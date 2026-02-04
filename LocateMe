@@ -1,0 +1,963 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Warehouse Photo Tag Tracker</title>
+
+  <style>
+    :root{
+      --bg:#060709;
+      --panel:rgba(255,255,255,.06);
+      --panel2:rgba(255,255,255,.09);
+      --stroke:rgba(255,255,255,.12);
+      --text:#EAECEF;
+      --muted:rgba(234,236,239,.72);
+      --gold1:#f6d57a;
+      --gold2:#caa24d;
+      --gold3:#8b6b23;
+      --good:#38d27a;
+      --bad:#ff5964;
+      --warn:#ffcc66;
+      --shadow: 0 12px 40px rgba(0,0,0,.45);
+      --radius: 18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; color:var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background: radial-gradient(1200px 800px at 15% 15%, rgba(246,213,122,.12), transparent 60%),
+                  radial-gradient(1000px 700px at 80% 35%, rgba(202,162,77,.10), transparent 55%),
+                  linear-gradient(180deg, #050608, #060709 40%, #050608);
+      min-height:100vh;
+      overflow-x:hidden;
+    }
+    .waves{
+      position:fixed; inset:-120px -120px auto -120px; height:520px; pointer-events:none;
+      opacity:.9; z-index:-1;
+    }
+    .waves::before, .waves::after{
+      content:""; position:absolute; inset:0;
+      background:
+        radial-gradient(1200px 340px at 12% 60%, rgba(246,213,122,.55), transparent 60%),
+        radial-gradient(900px 320px at 55% 35%, rgba(202,162,77,.40), transparent 65%),
+        radial-gradient(850px 300px at 88% 55%, rgba(139,107,35,.35), transparent 65%),
+        linear-gradient(135deg, rgba(0,0,0,.0), rgba(0,0,0,.55));
+      transform: skewY(-6deg);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .waves::after{
+      inset:80px 0 auto 0; height:420px;
+      opacity:.75;
+      filter: blur(1px);
+      transform: skewY(4deg);
+      background:
+        radial-gradient(900px 300px at 18% 40%, rgba(246,213,122,.45), transparent 70%),
+        radial-gradient(850px 280px at 70% 55%, rgba(202,162,77,.28), transparent 70%),
+        linear-gradient(135deg, rgba(0,0,0,.0), rgba(0,0,0,.7));
+    }
+
+    header{
+      padding:28px 18px 8px;
+      max-width:1200px; margin:0 auto;
+      display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; justify-content:space-between;
+    }
+    .title{display:flex; flex-direction:column; gap:6px;}
+    .title h1{margin:0; font-size:24px; letter-spacing:.3px; font-weight:800;}
+    .title .sub{color:var(--muted); font-size:13px;}
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:10px 12px; border-radius:999px;
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow: 0 10px 28px rgba(0,0,0,.22);
+      color:var(--muted); font-size:13px;
+    }
+    .pill b{color:var(--text)}
+    .dot{width:8px;height:8px;border-radius:99px;background: rgba(246,213,122,.9); box-shadow:0 0 12px rgba(246,213,122,.35)}
+
+    .wrap{
+      max-width:1200px; margin:0 auto;
+      padding: 12px 18px 40px;
+      display:grid;
+      grid-template-columns: 420px 1fr;
+      gap:14px;
+    }
+    @media (max-width: 980px){ .wrap{grid-template-columns:1fr} }
+
+    .card{
+      background: var(--panel);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card .head{
+      padding:14px 14px 10px;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+    }
+    .card .head h2{
+      margin:0; font-size:14px; letter-spacing:.4px; text-transform:uppercase;
+      color: rgba(234,236,239,.9);
+    }
+    .card .body{padding:14px}
+
+    .btn{
+      appearance:none; border:none; cursor:pointer;
+      padding:10px 12px; border-radius:12px;
+      background: rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.12);
+      color: var(--text);
+      font-weight:650;
+      transition: .15s transform, .15s background, .15s border-color;
+    }
+    .btn:hover{transform: translateY(-1px); background: rgba(255,255,255,.10); border-color: rgba(255,255,255,.16);}
+    .btn:active{transform: translateY(0px) scale(.99);}
+    .btn.gold{
+      background: linear-gradient(135deg, rgba(246,213,122,.26), rgba(202,162,77,.18));
+      border-color: rgba(246,213,122,.35);
+    }
+    .btn.red{background: rgba(255,89,100,.14); border-color: rgba(255,89,100,.35);}
+    .btn.green{background: rgba(56,210,122,.14); border-color: rgba(56,210,122,.35);}
+    .btn.small{padding:8px 10px; border-radius:11px; font-size:13px}
+
+    .field{display:flex; flex-direction:column; gap:7px; margin-bottom:10px;}
+    label{font-size:12px; color: var(--muted)}
+    input[type="text"], select, textarea{
+      width:100%;
+      padding:10px 11px;
+      border-radius:12px;
+      background: rgba(0,0,0,.35);
+      border:1px solid rgba(255,255,255,.12);
+      color: var(--text);
+      outline:none;
+    }
+    textarea{min-height:76px; resize:vertical}
+    .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+    .notice{
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.25);
+      color: var(--muted);
+      font-size:12px;
+      line-height:1.35;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap:10px;
+    }
+    @media (max-width: 520px){ .grid{grid-template-columns: 1fr} }
+
+    .tile{
+      padding:14px;
+      border-radius:16px;
+      background: linear-gradient(135deg, rgba(255,255,255,.06), rgba(0,0,0,.12));
+      border:1px solid rgba(255,255,255,.10);
+      cursor:pointer;
+      transition:.15s transform, .15s border-color, .15s background;
+      position:relative;
+      overflow:hidden;
+    }
+    .tile:hover{transform: translateY(-2px); border-color: rgba(246,213,122,.35)}
+    .tile.active{border-color: rgba(246,213,122,.55); background: linear-gradient(135deg, rgba(246,213,122,.10), rgba(0,0,0,.18));}
+    .tileName{font-weight:850; letter-spacing:.4px}
+    .tileMeta{margin-top:6px; font-size:12px; color: var(--muted)}
+    .badge{
+      display:inline-flex; align-items:center; gap:6px;
+      font-size:12px;
+      padding:6px 9px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.25);
+      color: var(--muted);
+    }
+
+    .list{display:flex; flex-direction:column; gap:10px;}
+    .item{
+      padding:12px;
+      border-radius:16px;
+      background: rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.10);
+    }
+    .itemTop{
+      display:flex; justify-content:space-between; gap:10px; align-items:flex-start;
+      margin-bottom:8px;
+    }
+    .tag{font-weight:850; letter-spacing:.2px;}
+    .muted{color:var(--muted); font-size:12px}
+    .status{
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.30);
+      color: rgba(234,236,239,.86);
+      white-space:nowrap;
+    }
+    .status.out{border-color: rgba(255,89,100,.45); background: rgba(255,89,100,.12)}
+    .status.in{border-color: rgba(56,210,122,.40); background: rgba(56,210,122,.12)}
+
+    .thumbs{
+      margin-top:10px;
+      display:grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap:8px;
+    }
+    @media (max-width: 980px){ .thumbs{grid-template-columns: repeat(3, minmax(0,1fr))} }
+    @media (max-width: 520px){ .thumbs{grid-template-columns: repeat(2, minmax(0,1fr))} }
+    .thumb{
+      aspect-ratio: 1 / 1;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.10);
+      overflow:hidden;
+      background: rgba(0,0,0,.25);
+      position:relative;
+    }
+    .thumb img{width:100%; height:100%; object-fit:cover; display:block;}
+    .thumb button{
+      position:absolute; top:6px; right:6px;
+      padding:6px 8px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.55);
+      color: var(--text);
+      cursor:pointer;
+      font-size:12px;
+    }
+
+    .step{display:none}
+    .step.active{display:block}
+    .stepTitle{font-weight:900; letter-spacing:.3px; margin:0 0 8px}
+    .crumbs{display:flex; flex-wrap:wrap; gap:8px; align-items:center;}
+    .crumb{padding:6px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.12); background: rgba(0,0,0,.25); color: var(--muted); font-size:12px;}
+    .crumb b{color:var(--text)}
+  </style>
+</head>
+
+<body>
+  <div class="waves"></div>
+
+  <header>
+    <div class="title">
+      <h1>Warehouse Photo Tag Tracker</h1>
+      <div class="sub">Step flow: Aisle → Rail → Level → Tag → Photos → Save • OUTBOUND auto-deletes after 5 days</div>
+    </div>
+    <div class="pill"><span class="dot"></span> <b id="dbCount">0</b> tags saved</div>
+  </header>
+
+  <div class="wrap">
+
+    <!-- LEFT: STEP FLOW -->
+    <section class="card">
+      <div class="head">
+        <h2>New / Update Tag</h2>
+        <div class="row">
+          <button class="btn small" id="btnBack" disabled>Back</button>
+          <button class="btn small" id="btnReset">Reset</button>
+        </div>
+      </div>
+      <div class="body">
+
+        <div class="crumbs" style="margin-bottom:12px">
+          <span class="crumb">Aisle: <b id="cAisle">—</b></span>
+          <span class="crumb">Rail: <b id="cRail">—</b></span>
+          <span class="crumb">Level: <b id="cLevel">—</b></span>
+        </div>
+
+        <!-- STEP 1: Choose Aisle -->
+        <div class="step active" id="step1">
+          <p class="stepTitle">1) Choose an Aisle</p>
+          <div class="grid" id="aisleTiles"></div>
+          <div style="height:10px"></div>
+          <div class="notice">Pick the aisle first. Then you’ll select Rail, then Level.</div>
+        </div>
+
+        <!-- STEP 2: Choose Rail -->
+        <div class="step" id="step2">
+          <p class="stepTitle">2) Choose a Rail</p>
+          <div class="field">
+            <label>Rail</label>
+            <select id="railSelect"></select>
+          </div>
+          <div class="row" style="justify-content:flex-end">
+            <button class="btn gold" id="toStep3">Next</button>
+          </div>
+        </div>
+
+        <!-- STEP 3: Choose Level -->
+        <div class="step" id="step3">
+          <p class="stepTitle">3) Choose a Level</p>
+          <div class="field">
+            <label>Level</label>
+            <select id="levelSelect">
+              <option value="L1">L1</option>
+              <option value="L2">L2</option>
+              <option value="L3">L3</option>
+              <option value="L4">L4</option>
+            </select>
+          </div>
+          <div class="row" style="justify-content:flex-end">
+            <button class="btn gold" id="toStep4">Next</button>
+          </div>
+        </div>
+
+        <!-- STEP 4: Tag + Photos + Save -->
+        <div class="step" id="step4">
+          <p class="stepTitle">4) Add Tag + Photos, then Save</p>
+
+          <div class="field">
+            <label>Tag ID</label>
+            <input id="tagId" type="text" placeholder="Example: R-11966.14.23 or CLT-12971.02.06" />
+          </div>
+
+          <div class="field">
+            <label>Status (Inbound / Outbound)</label>
+            <select id="statusSelect">
+              <option value="INBOUND">INBOUND</option>
+              <option value="OUTBOUND">OUTBOUND</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Notes (optional)</label>
+            <textarea id="notes" placeholder="Anything helpful (customer, contents, etc.)"></textarea>
+          </div>
+
+          <div class="field">
+            <label>Add Photos (multiple allowed)</label>
+            <input id="photos" type="file" accept="image/*" multiple />
+          </div>
+
+          <div class="row" style="justify-content:space-between; align-items:center">
+            <span class="muted" id="saveMsg"></span>
+            <div class="row">
+              <button class="btn gold" id="btnSave">Save</button>
+            </div>
+          </div>
+
+          <div style="height:10px"></div>
+          <div class="notice">
+            If you choose <b>OUTBOUND</b>, it will be auto-deleted <b>5 days</b> after outbound time.
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- RIGHT: SEARCH + LIST -->
+    <section class="card">
+      <div class="head">
+        <h2>Lookup / Manage</h2>
+        <div class="row">
+          <button class="btn small" id="btnExport">Export</button>
+          <button class="btn small" id="btnImport">Import</button>
+          <button class="btn small red" id="btnWipe">Wipe</button>
+        </div>
+      </div>
+      <div class="body">
+
+        <div class="field">
+          <label>Search (Tag / Notes / Aisle / Rail / Level)</label>
+          <input id="q" type="text" placeholder="Search… (example: BUGATTI or R-02 or L3 or tag)" />
+        </div>
+
+        <div class="row" style="justify-content:space-between; margin: 8px 0 12px;">
+          <span class="badge"><span class="dot"></span> Results: <b id="resultCount" style="color:var(--text)">0</b></span>
+          <label style="display:flex;gap:8px;align-items:center;cursor:pointer;">
+            <input id="toggleShowOutbound" type="checkbox" style="transform:scale(1.05)" checked />
+            <span class="muted">Show OUTBOUND</span>
+          </label>
+        </div>
+
+        <div class="list" id="list"></div>
+
+        <input id="importFile" type="file" accept="application/json" style="display:none" />
+
+        <div style="height:12px"></div>
+        <div class="notice">
+          Internal local mode (no login). Data saves to this browser only.
+          Export/Import moves it to another computer.
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+<script>
+/**
+ * ==========================================================
+ *  Step flow: Aisle → Rail → Level → Tag/Photos → Save
+ *  - No login, localStorage only
+ *  - OUTBOUND auto-deletes after 5 days
+ * ==========================================================
+ */
+
+const STORAGE_KEY = "warehouse_photo_tag_tracker_v2";
+const OUTBOUND_TTL_DAYS = 5;
+
+const DEFAULT_AISLES = [
+  "BUGATTI",
+  "PAGANI",
+  "LAMBORGHINI",
+  "ROLLS-ROYCE",
+  "FERRARI-B",
+  "MCLAREN",
+  "ASTON-MARTIN",
+  "MERCEDES",
+  "MASERATI",
+  "BENTLEY"
+];
+
+// If you want per-aisle rail counts, set them here.
+// Example: { "ROLLS-ROYCE": 9, "BENTLEY": 21, ... }
+// If an aisle isn't listed, it uses DEFAULT_RAIL_COUNT.
+const RAILS_BY_AISLE = {
+  // "ROLLS-ROYCE": 9,
+  // "BENTLEY": 21
+};
+const DEFAULT_RAIL_COUNT = 9;
+
+const ui = {
+  dbCount: document.getElementById("dbCount"),
+
+  // step panels
+  step1: document.getElementById("step1"),
+  step2: document.getElementById("step2"),
+  step3: document.getElementById("step3"),
+  step4: document.getElementById("step4"),
+
+  aisleTiles: document.getElementById("aisleTiles"),
+  railSelect: document.getElementById("railSelect"),
+  levelSelect: document.getElementById("levelSelect"),
+
+  cAisle: document.getElementById("cAisle"),
+  cRail: document.getElementById("cRail"),
+  cLevel: document.getElementById("cLevel"),
+
+  btnBack: document.getElementById("btnBack"),
+  btnReset: document.getElementById("btnReset"),
+  toStep3: document.getElementById("toStep3"),
+  toStep4: document.getElementById("toStep4"),
+
+  tagId: document.getElementById("tagId"),
+  statusSelect: document.getElementById("statusSelect"),
+  notes: document.getElementById("notes"),
+  photos: document.getElementById("photos"),
+  btnSave: document.getElementById("btnSave"),
+  saveMsg: document.getElementById("saveMsg"),
+
+  // list/search
+  q: document.getElementById("q"),
+  toggleShowOutbound: document.getElementById("toggleShowOutbound"),
+  list: document.getElementById("list"),
+  resultCount: document.getElementById("resultCount"),
+
+  // export/import/wipe
+  btnExport: document.getElementById("btnExport"),
+  btnImport: document.getElementById("btnImport"),
+  importFile: document.getElementById("importFile"),
+  btnWipe: document.getElementById("btnWipe"),
+};
+
+let state = loadDB();
+if(!Array.isArray(state.aisles) || state.aisles.length === 0) state.aisles = DEFAULT_AISLES.slice();
+if(!Array.isArray(state.items)) state.items = [];
+
+// step flow context
+let flow = {
+  step: 1,
+  aisle: null,
+  rail: null,
+  level: null,
+  editingItemId: null, // if you click edit from list
+};
+
+function nowISO(){ return new Date().toISOString(); }
+function msFromDays(d){ return d * 24 * 60 * 60 * 1000; }
+
+function uid(){
+  return "id_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
+}
+function norm(s){ return String(s ?? "").trim(); }
+function escapeHtml(s){
+  return String(s ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function saveDB(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  ui.dbCount.textContent = String(state.items.length);
+}
+
+function loadDB(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return {};
+    return JSON.parse(raw) || {};
+  }catch(e){
+    return {};
+  }
+}
+
+/** Auto-delete OUTBOUND items older than 5 days */
+function purgeExpiredOutbound(){
+  const cutoff = Date.now() - msFromDays(OUTBOUND_TTL_DAYS);
+  const before = state.items.length;
+  state.items = state.items.filter(it=>{
+    if(it.status !== "OUTBOUND") return true;
+    const t = it.outboundAt ? Date.parse(it.outboundAt) : Date.parse(it.updatedAt || it.createdAt || nowISO());
+    return t >= cutoff;
+  });
+  if(state.items.length !== before) saveDB();
+}
+
+/** Rail options based on selected aisle */
+function getRailCountForAisle(aisle){
+  const n = RAILS_BY_AISLE[String(aisle||"").toUpperCase()];
+  const count = Number(n);
+  return Number.isFinite(count) && count > 0 ? count : DEFAULT_RAIL_COUNT;
+}
+function setRailOptions(aisle){
+  ui.railSelect.innerHTML = "";
+  const count = getRailCountForAisle(aisle);
+  for(let i=1;i<=count;i++){
+    const val = "R-" + String(i).padStart(2,"0");
+    const opt = document.createElement("option");
+    opt.value = val;
+    opt.textContent = val;
+    ui.railSelect.appendChild(opt);
+  }
+}
+
+/** Steps render */
+function showStep(n){
+  flow.step = n;
+  [ui.step1, ui.step2, ui.step3, ui.step4].forEach((el, idx)=>{
+    el.classList.toggle("active", (idx+1) === n);
+  });
+  ui.btnBack.disabled = (n === 1);
+  renderCrumbs();
+}
+
+function renderCrumbs(){
+  ui.cAisle.textContent = flow.aisle || "—";
+  ui.cRail.textContent  = flow.rail  || "—";
+  ui.cLevel.textContent = flow.level || "—";
+}
+
+/** Step 1 tiles */
+function countMatchesForAisle(aisle){
+  const q = norm(ui.q.value).toLowerCase();
+  const showOut = ui.toggleShowOutbound.checked;
+  return state.items
+    .filter(it => it.aisle === aisle)
+    .filter(it => showOut ? true : it.status !== "OUTBOUND")
+    .filter(it => itemMatchesQuery(it, q))
+    .length;
+}
+
+function renderAisleTiles(){
+  ui.aisleTiles.innerHTML = "";
+  state.aisles.forEach(aisle=>{
+    const tile = document.createElement("div");
+    const active = (aisle === flow.aisle);
+    tile.className = "tile" + (active ? " active" : "");
+    const c = countMatchesForAisle(aisle);
+    tile.innerHTML = `
+      <div class="tileName">${escapeHtml(aisle)}</div>
+      <div class="tileMeta">${c} matching tags</div>
+    `;
+    tile.onclick = ()=>{
+      flow.aisle = aisle;
+      flow.rail = null;
+      flow.level = null;
+      flow.editingItemId = null;
+      setRailOptions(aisle);
+      ui.railSelect.value = ui.railSelect.options[0]?.value || "";
+      showStep(2);
+      renderAll();
+    };
+    ui.aisleTiles.appendChild(tile);
+  });
+}
+
+function itemMatchesQuery(item, qLower){
+  if(!qLower) return true;
+  const hay = [
+    item.aisle, item.rail, item.level,
+    item.tagId, item.notes, item.status
+  ].join(" ").toLowerCase();
+  return hay.includes(qLower);
+}
+
+/** Read photos */
+function readFilesAsDataUrls(fileList){
+  const files = Array.from(fileList || []);
+  return Promise.all(files.map(f=>{
+    return new Promise((resolve)=>{
+      const r = new FileReader();
+      r.onload = () => resolve({ id: uid(), name: f.name, type: f.type, dataUrl: r.result, addedAt: nowISO() });
+      r.onerror = () => resolve(null);
+      r.readAsDataURL(f);
+    });
+  })).then(arr => arr.filter(Boolean));
+}
+
+/** Save / upsert */
+function findExisting(aisle, rail, level, tagId){
+  const key = `${aisle}||${rail}||${level}||${tagId}`.toLowerCase();
+  return state.items.find(it => `${it.aisle}||${it.rail}||${it.level}||${it.tagId}`.toLowerCase() === key) || null;
+}
+
+async function saveFlow(){
+  const aisle = flow.aisle;
+  const rail  = flow.rail;
+  const level = flow.level;
+
+  if(!aisle || !rail || !level){
+    ui.saveMsg.textContent = "Missing aisle/rail/level. Use Back and re-pick.";
+    return;
+  }
+
+  const tagId = norm(ui.tagId.value);
+  if(!tagId){
+    ui.saveMsg.textContent = "Enter a Tag ID.";
+    return;
+  }
+
+  const status = norm(ui.statusSelect.value) || "INBOUND";
+  const notes  = norm(ui.notes.value);
+  const newPhotos = await readFilesAsDataUrls(ui.photos.files);
+
+  let it = null;
+
+  // If editing from list, update that record directly
+  if(flow.editingItemId){
+    it = state.items.find(x=>x.id===flow.editingItemId) || null;
+  }
+
+  if(it){
+    // update
+    it.aisle = aisle;
+    it.rail = rail;
+    it.level = level;
+    it.tagId = tagId;
+    it.notes = notes || "";
+    it.photos = (it.photos || []).concat(newPhotos);
+    it.updatedAt = nowISO();
+
+    if(status === "OUTBOUND" && it.status !== "OUTBOUND"){
+      it.status = "OUTBOUND";
+      it.outboundAt = nowISO();
+    } else if(status === "INBOUND" && it.status === "OUTBOUND"){
+      it.status = "INBOUND";
+      it.outboundAt = null;
+    } else {
+      it.status = status;
+      if(status === "OUTBOUND" && !it.outboundAt) it.outboundAt = nowISO();
+      if(status === "INBOUND") it.outboundAt = null;
+    }
+
+    ui.saveMsg.textContent = `Updated: ${tagId} (${aisle} ${rail}-${level}) +${newPhotos.length} photo(s).`;
+  } else {
+    // create OR upsert if same aisle/rail/level/tag exists
+    const existing = findExisting(aisle, rail, level, tagId);
+    if(existing){
+      existing.notes = notes || existing.notes || "";
+      existing.photos = (existing.photos || []).concat(newPhotos);
+      existing.updatedAt = nowISO();
+
+      if(status === "OUTBOUND" && existing.status !== "OUTBOUND"){
+        existing.status = "OUTBOUND";
+        existing.outboundAt = nowISO();
+      } else if(status === "INBOUND" && existing.status === "OUTBOUND"){
+        existing.status = "INBOUND";
+        existing.outboundAt = null;
+      }
+
+      ui.saveMsg.textContent = `Updated existing: ${tagId} (${aisle} ${rail}-${level}) +${newPhotos.length} photo(s).`;
+    } else {
+      const item = {
+        id: uid(),
+        aisle, rail, level,
+        tagId,
+        notes: notes || "",
+        status: status === "OUTBOUND" ? "OUTBOUND" : "INBOUND",
+        createdAt: nowISO(),
+        updatedAt: nowISO(),
+        outboundAt: status === "OUTBOUND" ? nowISO() : null,
+        photos: newPhotos
+      };
+      state.items.unshift(item);
+      ui.saveMsg.textContent = `Saved: ${tagId} (${aisle} ${rail}-${level}) +${newPhotos.length} photo(s).`;
+    }
+  }
+
+  saveDB();
+  ui.photos.value = "";
+  renderAll();
+}
+
+/** List render */
+function renderList(){
+  const q = norm(ui.q.value).toLowerCase();
+  const showOut = ui.toggleShowOutbound.checked;
+
+  let rows = state.items.slice();
+
+  if(!showOut){
+    rows = rows.filter(it => it.status !== "OUTBOUND");
+  }
+
+  if(q){
+    rows = rows.filter(it => itemMatchesQuery(it, q));
+  }
+
+  ui.resultCount.textContent = String(rows.length);
+  ui.list.innerHTML = "";
+
+  if(rows.length === 0){
+    ui.list.innerHTML = `<div class="notice">No matches. Try clearing search or toggling “Show OUTBOUND”.</div>`;
+    return;
+  }
+
+  rows.forEach(it=>{
+    const el = document.createElement("div");
+    el.className = "item";
+
+    const statusClass = it.status === "OUTBOUND" ? "status out" : "status in";
+    const locText = `${it.aisle} • ${it.rail}-${it.level}`;
+    const when = it.status === "OUTBOUND"
+      ? `Outbound: ${it.outboundAt ? new Date(it.outboundAt).toLocaleString() : "—"}`
+      : `Updated: ${new Date(it.updatedAt).toLocaleString()}`;
+
+    const expires = (it.status === "OUTBOUND")
+      ? computeOutboundExpiryText(it.outboundAt)
+      : "";
+
+    const thumbs = (it.photos||[]).slice(0, 8).map(p=>{
+      return `
+        <div class="thumb">
+          <img src="${p.dataUrl}" alt="${escapeHtml(p.name)}"/>
+          <button title="Remove photo" data-photo="${p.id}">✕</button>
+        </div>
+      `;
+    }).join("");
+
+    el.innerHTML = `
+      <div class="itemTop">
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <div class="tag">${escapeHtml(it.tagId)}</div>
+          <div class="muted">${escapeHtml(locText)} • ${escapeHtml(when)} ${expires ? " • " + escapeHtml(expires) : ""}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+          <span class="${statusClass}">${it.status}</span>
+          <div class="row">
+            <button class="btn small ${it.status==="OUTBOUND" ? "green" : "red"}" data-act="toggle">
+              ${it.status==="OUTBOUND" ? "Mark INBOUND" : "Mark OUTBOUND"}
+            </button>
+            <button class="btn small" data-act="edit">Edit</button>
+            <button class="btn small red" data-act="del">Delete</button>
+          </div>
+        </div>
+      </div>
+
+      ${it.notes ? `<div class="muted" style="margin-top:6px; white-space:pre-wrap">${escapeHtml(it.notes)}</div>` : ""}
+
+      ${(it.photos||[]).length ? `<div class="thumbs">${thumbs}</div>` : `<div class="muted" style="margin-top:8px">No photos saved yet.</div>`}
+    `;
+
+    // actions
+    el.querySelector('[data-act="edit"]').onclick = ()=>startEdit(it.id);
+    el.querySelector('[data-act="del"]').onclick = ()=>deleteItem(it.id);
+
+    el.querySelector('[data-act="toggle"]').onclick = ()=>{
+      if(it.status === "OUTBOUND"){
+        it.status = "INBOUND";
+        it.outboundAt = null;
+      }else{
+        it.status = "OUTBOUND";
+        it.outboundAt = nowISO();
+      }
+      it.updatedAt = nowISO();
+      saveDB();
+      renderAll();
+    };
+
+    // photo deletes
+    el.querySelectorAll("[data-photo]").forEach(btn=>{
+      btn.onclick = (e)=>{
+        const pid = e.currentTarget.getAttribute("data-photo");
+        deletePhoto(it.id, pid);
+      };
+    });
+
+    ui.list.appendChild(el);
+  });
+}
+
+function computeOutboundExpiryText(outboundAt){
+  if(!outboundAt) return "Auto-delete: unknown";
+  const t = Date.parse(outboundAt);
+  const expiresAt = t + msFromDays(OUTBOUND_TTL_DAYS);
+  const msLeft = expiresAt - Date.now();
+  if(msLeft <= 0) return "Auto-delete: due now";
+  const days = Math.ceil(msLeft / msFromDays(1));
+  return `Auto-delete in ${days} day(s)`;
+}
+
+/** Edit loads into step flow */
+function startEdit(itemId){
+  const it = state.items.find(x=>x.id===itemId);
+  if(!it) return;
+
+  flow.editingItemId = it.id;
+  flow.aisle = it.aisle;
+  flow.rail = it.rail;
+  flow.level = it.level;
+
+  setRailOptions(it.aisle);
+  ui.railSelect.value = it.rail;
+  ui.levelSelect.value = it.level;
+
+  ui.tagId.value = it.tagId;
+  ui.notes.value = it.notes || "";
+  ui.statusSelect.value = it.status || "INBOUND";
+  ui.photos.value = "";
+  ui.saveMsg.textContent = `Editing: ${it.tagId} (${it.aisle} ${it.rail}-${it.level})`;
+
+  showStep(4);
+  renderAll();
+}
+
+/** Delete item */
+function deleteItem(itemId){
+  const ok = confirm("Delete this tag record?");
+  if(!ok) return;
+  state.items = state.items.filter(x=>x.id!==itemId);
+  saveDB();
+  renderAll();
+}
+
+/** Delete photo */
+function deletePhoto(itemId, photoId){
+  const it = state.items.find(x=>x.id===itemId);
+  if(!it) return;
+  it.photos = (it.photos||[]).filter(p=>p.id!==photoId);
+  it.updatedAt = nowISO();
+  saveDB();
+  renderAll();
+}
+
+/** Back + Reset */
+ui.btnBack.onclick = ()=>{
+  if(flow.step === 4) showStep(3);
+  else if(flow.step === 3) showStep(2);
+  else if(flow.step === 2) showStep(1);
+};
+
+function resetFlow(){
+  flow = { step: 1, aisle: null, rail: null, level: null, editingItemId: null };
+  ui.tagId.value = "";
+  ui.notes.value = "";
+  ui.statusSelect.value = "INBOUND";
+  ui.photos.value = "";
+  ui.saveMsg.textContent = "";
+  showStep(1);
+  renderAll();
+}
+ui.btnReset.onclick = resetFlow;
+
+/** Step transitions */
+ui.toStep3.onclick = ()=>{
+  const rail = norm(ui.railSelect.value);
+  if(!rail){ alert("Pick a rail."); return; }
+  flow.rail = rail;
+  showStep(3);
+  renderAll();
+};
+
+ui.toStep4.onclick = ()=>{
+  const level = norm(ui.levelSelect.value);
+  if(!level){ alert("Pick a level."); return; }
+  flow.level = level;
+  showStep(4);
+  renderAll();
+};
+
+ui.levelSelect.onchange = ()=>{ /* keeps selection */ };
+
+/** Save button */
+ui.btnSave.onclick = saveFlow;
+
+/** Search */
+ui.q.oninput = ()=>renderAll();
+ui.toggleShowOutbound.onchange = ()=>renderAll();
+
+/** Export/Import/Wipe */
+ui.btnExport.onclick = ()=>{
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "warehouse-photo-tag-tracker-export.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+ui.btnImport.onclick = ()=> ui.importFile.click();
+ui.importFile.onchange = async ()=>{
+  const f = ui.importFile.files && ui.importFile.files[0];
+  if(!f) return;
+  try{
+    const txt = await f.text();
+    const incoming = JSON.parse(txt);
+    if(!incoming || !Array.isArray(incoming.aisles) || !Array.isArray(incoming.items)){
+      alert("Import file doesn't look valid.");
+      return;
+    }
+    const ok = confirm("Import will REPLACE your current data on this device. Continue?");
+    if(!ok) return;
+    state = incoming;
+    saveDB();
+    resetFlow();
+    renderAll();
+  }catch(e){
+    alert("Import failed. Make sure it's a JSON export from this tool.");
+  }finally{
+    ui.importFile.value = "";
+  }
+};
+
+ui.btnWipe.onclick = ()=>{
+  const ok = confirm("This wipes ALL tags + photos on this device. Continue?");
+  if(!ok) return;
+  localStorage.removeItem(STORAGE_KEY);
+  state = { aisles: DEFAULT_AISLES.slice(), items: [] };
+  saveDB();
+  resetFlow();
+};
+
+/** Render all */
+function renderAll(){
+  purgeExpiredOutbound();
+  renderAisleTiles();
+  renderCrumbs();
+  renderList();
+  ui.dbCount.textContent = String(state.items.length);
+}
+
+/** Boot */
+saveDB();
+resetFlow();
+renderAll();
+</script>
+
+</body>
+</html>
