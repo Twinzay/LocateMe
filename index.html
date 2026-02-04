@@ -74,13 +74,9 @@
     .dot{width:8px;height:8px;border-radius:999px;background:var(--bad)}
     .dot.ok{background:var(--good)}
 
-    .tabs{
-      margin-top:14px;
-      display:flex;gap:10px;flex-wrap:wrap;
-    }
+    .tabs{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
     .tabbtn{
-      padding:10px 12px;
-      border-radius:999px;
+      padding:10px 12px;border-radius:999px;
       border:1px solid rgba(255,255,255,.12);
       background: rgba(255,255,255,.05);
       color: var(--text);
@@ -88,14 +84,10 @@
       font-weight:750;
       font-size:12px;
     }
-    .tabbtn.active{
-      border-color: rgba(246,213,122,.35);
-      background: rgba(246,213,122,.12);
-    }
+    .tabbtn.active{border-color: rgba(246,213,122,.35);background: rgba(246,213,122,.12)}
 
     .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;margin-top:16px}
     @media(max-width:980px){.grid{grid-template-columns:1fr}}
-
     .gridOne{display:grid;grid-template-columns:1fr;gap:16px;margin-top:16px}
 
     .card{
@@ -173,9 +165,7 @@
       border:1px solid rgba(255,255,255,.10);
       background: rgba(0,0,0,.20);
     }
-    .res .top{
-      display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap
-    }
+    .res .top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
     .tag{
       display:inline-flex;align-items:center;gap:8px;
       padding:7px 10px;border-radius:999px;
@@ -196,6 +186,7 @@
     }
     .badge.in{border-color:rgba(56,210,122,.35);background:rgba(56,210,122,.10)}
     .badge.out{border-color:rgba(255,89,100,.35);background:rgba(255,89,100,.12)}
+
     .thumbs{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
     .thumb{
       width:120px;height:86px;border-radius:14px;
@@ -203,6 +194,7 @@
       background: rgba(255,255,255,.04);
       overflow:hidden;
       position:relative;
+      cursor: zoom-in;
     }
     .thumb img{width:100%;height:100%;object-fit:cover;display:block}
     .small{font-size:11px;color:var(--muted)}
@@ -228,25 +220,16 @@
       align-items:end;
     }
     @media(max-width:980px){.mapTop{grid-template-columns:1fr}}
-    .seg{
-      display:flex;gap:8px;flex-wrap:wrap;
-      align-items:center;
-    }
+    .seg{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
     .chip{
-      padding:8px 10px;
-      border-radius:999px;
+      padding:8px 10px;border-radius:999px;
       border:1px solid rgba(255,255,255,.12);
       background: rgba(255,255,255,.05);
       color: var(--text);
-      font-weight:750;
-      font-size:12px;
-      cursor:pointer;
-      user-select:none;
+      font-weight:750;font-size:12px;
+      cursor:pointer;user-select:none;
     }
-    .chip.on{
-      border-color: rgba(246,213,122,.35);
-      background: rgba(246,213,122,.12);
-    }
+    .chip.on{border-color: rgba(246,213,122,.35);background: rgba(246,213,122,.12)}
 
     .mapGridWrap{
       margin-top:12px;
@@ -263,29 +246,24 @@
       padding:12px;
     }
     .mapHdr{
-      font-size:11px;
-      color: rgba(233,238,245,.75);
+      font-size:11px;color: rgba(233,238,245,.75);
       text-align:center;
       padding:8px 6px;
       border:1px solid rgba(255,255,255,.10);
       border-radius:12px;
       background: rgba(255,255,255,.04);
-      position:sticky;
-      top:0;
+      position:sticky;top:0;
       backdrop-filter: blur(6px);
       z-index:1;
     }
     .mapRowLbl{
-      font-size:12px;
-      font-weight:800;
-      color: rgba(233,238,245,.90);
+      font-size:12px;font-weight:800;color: rgba(233,238,245,.90);
       display:flex;align-items:center;justify-content:center;
       border:1px solid rgba(255,255,255,.10);
       border-radius:12px;
       background: rgba(255,255,255,.04);
       padding:8px;
-      position:sticky;
-      left:0;
+      position:sticky;left:0;
       z-index:1;
       backdrop-filter: blur(6px);
     }
@@ -298,8 +276,7 @@
       transition: transform .08s ease, border-color .08s ease, background .08s ease;
       min-height:46px;
       display:flex;flex-direction:column;justify-content:center;align-items:center;
-      gap:4px;
-      text-align:center;
+      gap:4px;text-align:center;
     }
     .cell:hover{
       transform: translateY(-1px);
@@ -320,18 +297,10 @@
       background: rgba(0,0,0,.20);
       padding:12px;
     }
-    .drawerTop{
-      display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;
-    }
-    .drawerTitle{
-      font-weight:900;
-      letter-spacing:.2px;
-    }
+    .drawerTop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .drawerTitle{font-weight:900;letter-spacing:.2px}
     .drawerSub{color:var(--muted);font-size:12px;margin-top:4px}
-    .drawerList{
-      margin-top:10px;
-      display:flex;flex-direction:column;gap:10px;
-    }
+    .drawerList{margin-top:10px;display:flex;flex-direction:column;gap:10px}
     .miniRow{
       display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;
       padding:10px;
@@ -341,6 +310,50 @@
     }
     .miniLeft .t{font-weight:900;font-size:12px}
     .miniLeft .s{font-size:11px;color:var(--muted);margin-top:4px}
+
+    /* Modal */
+    .modal{
+      position:fixed;inset:0;
+      background: rgba(0,0,0,.78);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      z-index:9999;
+    }
+    .modal.show{display:flex}
+    .modalInner{
+      max-width:1100px;
+      width:100%;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(10,10,12,.9);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .modalTop{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:12px 14px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+    }
+    .modalTop b{font-size:13px}
+    .modalBody{padding:12px}
+    .modalBody img{
+      width:100%;
+      height:auto;
+      display:block;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.10);
+    }
+    .xBtn{
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      color: var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:800;
+    }
   </style>
 </head>
 
@@ -355,26 +368,24 @@
         </div>
       </div>
 
-      <div class="pill" id="connPill">
+      <div class="pill">
         <span class="dot" id="connDot"></span>
         <span id="connTxt">Connecting…</span>
       </div>
     </div>
 
-    <!-- TABS -->
     <div class="tabs">
       <button class="tabbtn active" id="tabSave">Save / Update</button>
       <button class="tabbtn" id="tabSearch">Search</button>
       <button class="tabbtn" id="tabMap">Aisle View</button>
     </div>
 
-    <!-- SAVE + SEARCH (two-column) -->
     <div class="grid" id="viewSaveSearch">
-      <!-- LEFT: SAVE / UPDATE -->
+      <!-- SAVE -->
       <div class="card">
         <div class="hd">
           <b>Save / Update a Tag</b>
-          <span class="small" id="modeTxt">Pick aisle → rail → level</span>
+          <span class="small">Pick aisle → rail → level</span>
         </div>
         <div class="bd">
           <div class="row">
@@ -415,8 +426,8 @@
             <button id="saveBtn">Save (Inbound)</button>
             <button class="secondary" id="outBtn" type="button">Mark Outbound</button>
             <button class="secondary" id="inBtn" type="button">Mark Inbound</button>
-            <button class="secondary" id="backBtn" type="button">Back (undo inputs)</button>
-            <button class="danger" id="clearBtn" type="button">Clear Form</button>
+            <button class="secondary" id="moveBtn" type="button">Move Tag (no photo)</button>
+            <button class="secondary" id="clearBtn" type="button">Clear</button>
           </div>
 
           <div class="toast" id="toast"></div>
@@ -434,33 +445,38 @@
             </div>
             <div class="kpi">
               <div class="n" id="kpiOutbound">—</div>
-              <div class="t">Outbound (auto-delete after 5 days via SQL function)</div>
+              <div class="t">Outbound (auto-delete with SQL purge)</div>
             </div>
           </div>
 
           <div class="help" style="margin-top:12px">
-            <b>Outbound auto-delete:</b> Run this anytime in Supabase SQL Editor:
+            Cleanup (run anytime in Supabase SQL Editor):
             <code>select public.purge_outbound_older_than(5);</code>
           </div>
         </div>
       </div>
 
-      <!-- RIGHT: SEARCH -->
+      <!-- SEARCH -->
       <div class="card">
         <div class="hd">
-          <b>Search by Tag</b>
-          <span class="small">Pulls aisle/rail/level + photos</span>
+          <b>Search</b>
+          <span class="small">Exact / starts with / contains</span>
         </div>
         <div class="bd">
-          <label>Tag ID</label>
-          <div class="row" style="grid-template-columns:1fr auto;gap:10px">
-            <input id="searchInput" placeholder="Type a tag and hit Search…" autocomplete="off" />
-            <button id="searchBtn" style="white-space:nowrap">Search</button>
+          <label>Tag search</label>
+          <div class="row" style="grid-template-columns:1fr 160px;gap:10px">
+            <input id="searchInput" placeholder="Type tag (example: R-11966)" autocomplete="off" />
+            <select id="searchMode">
+              <option value="contains">Contains</option>
+              <option value="starts">Starts with</option>
+              <option value="exact">Exact</option>
+            </select>
           </div>
 
           <div class="btnrow" style="margin-top:10px">
+            <button id="searchBtn">Search</button>
+            <button class="secondary" id="recentBtn" type="button">Recent (25)</button>
             <button class="secondary" id="refreshBtn" type="button">Refresh KPIs</button>
-            <button class="secondary" id="recentBtn" type="button">Recent Tags</button>
           </div>
 
           <div class="hr"></div>
@@ -469,12 +485,12 @@
       </div>
     </div>
 
-    <!-- AISLE VIEW (one-column) -->
+    <!-- AISLE VIEW -->
     <div class="gridOne" id="viewMap" style="display:none">
       <div class="card">
         <div class="hd">
           <b>Aisle View</b>
-          <span class="small">Click a cell to see tags + photos. Use “Add tag here” to prefill the form.</span>
+          <span class="small">Click a cell to see tags + photos</span>
         </div>
         <div class="bd">
           <div class="mapTop">
@@ -494,7 +510,7 @@
 
             <div class="btnrow" style="margin-top:0">
               <button class="secondary" id="mapRefreshBtn" type="button">Refresh aisle</button>
-              <button class="secondary" id="mapRecentBtn" type="button">Jump to latest tag (loads its cell)</button>
+              <button class="secondary" id="mapRecentBtn" type="button">Jump to latest tag</button>
             </div>
           </div>
 
@@ -521,6 +537,19 @@
 
   </div>
 
+  <!-- PHOTO MODAL -->
+  <div class="modal" id="modal">
+    <div class="modalInner">
+      <div class="modalTop">
+        <b id="modalTitle">Photo</b>
+        <button class="xBtn" id="modalClose">Close</button>
+      </div>
+      <div class="modalBody">
+        <img id="modalImg" alt="photo"/>
+      </div>
+    </div>
+  </div>
+
 <script>
 /** =========================================================
  *  CONFIG (YOUR SUPABASE)
@@ -545,7 +574,7 @@ const ui = {
   connDot: $("connDot"),
   connTxt: $("connTxt"),
 
-  // save form
+  // save
   aisleSel: $("aisleSel"),
   railSel: $("railSel"),
   levelSel: $("levelSel"),
@@ -555,16 +584,16 @@ const ui = {
   saveBtn: $("saveBtn"),
   outBtn: $("outBtn"),
   inBtn: $("inBtn"),
-  backBtn: $("backBtn"),
+  moveBtn: $("moveBtn"),
   clearBtn: $("clearBtn"),
   toast: $("toast"),
-  modeTxt: $("modeTxt"),
 
   // search
   searchInput: $("searchInput"),
+  searchMode: $("searchMode"),
   searchBtn: $("searchBtn"),
-  refreshBtn: $("refreshBtn"),
   recentBtn: $("recentBtn"),
+  refreshBtn: $("refreshBtn"),
   results: $("results"),
 
   // KPIs
@@ -588,6 +617,12 @@ const ui = {
   drawerList: $("drawerList"),
   drawerAddBtn: $("drawerAddBtn"),
   drawerCloseBtn: $("drawerCloseBtn"),
+
+  // modal
+  modal: $("modal"),
+  modalImg: $("modalImg"),
+  modalTitle: $("modalTitle"),
+  modalClose: $("modalClose"),
 };
 
 function toast(msg, type=""){
@@ -596,65 +631,41 @@ function toast(msg, type=""){
   clearTimeout(toast._t);
   toast._t = setTimeout(()=> ui.toast.className = "toast", 4500);
 }
-
 function setConn(ok, msg){
   ui.connDot.classList.toggle("ok", !!ok);
   ui.connTxt.textContent = msg;
 }
-
 function normTag(s){ return (s||"").trim(); }
 function safePathPart(s){
-  return (s||"").trim()
-    .replace(/[^\w.\-]+/g, "_")
-    .replace(/_+/g, "_")
-    .slice(0, 80) || "TAG";
+  return (s||"").trim().replace(/[^\w.\-]+/g, "_").replace(/_+/g, "_").slice(0, 80) || "TAG";
 }
 function pad2(n){ return String(n).padStart(2,"0"); }
 function escapeHtml(s){
   return String(s||"")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
+    .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;").replaceAll("'","&#039;");
 }
+async function copyText(txt){
+  try{ await navigator.clipboard.writeText(txt); toast("Copied.", "ok"); }
+  catch{ toast("Copy failed (browser blocked).", "bad"); }
+}
+
+function showModal(title, imgUrl){
+  ui.modalTitle.textContent = title || "Photo";
+  ui.modalImg.src = imgUrl;
+  ui.modal.classList.add("show");
+}
+function hideModal(){
+  ui.modal.classList.remove("show");
+  ui.modalImg.src = "";
+}
+ui.modalClose.addEventListener("click", hideModal);
+ui.modal.addEventListener("click", (e)=>{ if(e.target === ui.modal) hideModal(); });
 
 /** =========================================================
  *  Supabase
  * ========================================================= */
 let sb = null;
-
-/** =========================================================
- *  Back button state
- * ========================================================= */
-let historyStack = [];
-function snapshotState(){
-  return {
-    aisle: ui.aisleSel.value,
-    rail: ui.railSel.value,
-    level: ui.levelSel.value,
-    tag: ui.tagInput.value,
-    notes: ui.notesInput.value,
-  };
-}
-function pushHistory(){
-  historyStack.push(snapshotState());
-  if(historyStack.length > 30) historyStack.shift();
-}
-function restoreState(s){
-  if(!s) return;
-  ui.aisleSel.value = s.aisle || ui.aisleSel.value;
-  ui.railSel.value = s.rail || ui.railSel.value;
-  ui.levelSel.value = s.level || ui.levelSel.value;
-  ui.tagInput.value = s.tag || "";
-  ui.notesInput.value = s.notes || "";
-}
-function back(){
-  const prev = historyStack.pop();
-  if(!prev){ toast("Nothing to go back to.", "bad"); return; }
-  restoreState(prev);
-  toast("Reverted to previous inputs.", "ok");
-}
 
 /** =========================================================
  *  Tabs
@@ -666,22 +677,14 @@ function setTab(which){
 
   ui.viewSaveSearch.style.display = (which==="map") ? "none" : "";
   ui.viewMap.style.display = (which==="map") ? "" : "none";
-
-  if(which==="search"){
-    // bring attention to search box
-    setTimeout(()=>ui.searchInput.focus(), 50);
-  }
-  if(which==="map"){
-    // build map if needed
-    setTimeout(()=>refreshMap(), 50);
-  }
+  if(which==="search") setTimeout(()=>ui.searchInput.focus(), 50);
+  if(which==="map") setTimeout(()=>refreshMap(), 50);
 }
 
 /** =========================================================
  *  Load aisles / rails / levels
  * ========================================================= */
 async function loadAisles(){
-  // rails + levels for form
   ui.railSel.innerHTML = "";
   for(let i=1;i<=21;i++){
     const opt = document.createElement("option");
@@ -689,6 +692,7 @@ async function loadAisles(){
     opt.textContent = `Rail ${i}`;
     ui.railSel.appendChild(opt);
   }
+
   ui.levelSel.innerHTML = "";
   for(let i=1;i<=5;i++){
     const opt = document.createElement("option");
@@ -697,13 +701,10 @@ async function loadAisles(){
     ui.levelSel.appendChild(opt);
   }
 
-  const { data, error } = await sb
-    .from("aisles")
-    .select("name")
-    .order("name", { ascending: true });
+  const { data, error } = await sb.from("aisles").select("name").order("name", { ascending:true });
 
   const fallback = ()=>{
-    const names = [];
+    const names=[];
     for(let i=1;i<=10;i++) names.push(`AISLE-${pad2(i)}`);
     return names;
   };
@@ -713,13 +714,10 @@ async function loadAisles(){
   ui.aisleSel.innerHTML = "";
   ui.mapAisleSel.innerHTML = "";
   for(const name of aisles){
-    const opt1 = document.createElement("option");
-    opt1.value = name; opt1.textContent = name;
-    ui.aisleSel.appendChild(opt1);
-
-    const opt2 = document.createElement("option");
-    opt2.value = name; opt2.textContent = name;
-    ui.mapAisleSel.appendChild(opt2);
+    const a1 = document.createElement("option"); a1.value = name; a1.textContent = name;
+    const a2 = document.createElement("option"); a2.value = name; a2.textContent = name;
+    ui.aisleSel.appendChild(a1);
+    ui.mapAisleSel.appendChild(a2);
   }
 
   ui.railSel.value = "1";
@@ -727,13 +725,44 @@ async function loadAisles(){
 }
 
 /** =========================================================
+ *  Storage helpers
+ * ========================================================= */
+function publicUrl(path){
+  const { data } = sb.storage.from(PHOTO_BUCKET).getPublicUrl(path);
+  return data?.publicUrl || "";
+}
+
+/** =========================================================
  *  DB ops
  * ========================================================= */
+function validateFormBasics(){
+  const tag_id = normTag(ui.tagInput.value);
+  if(!tag_id) return { ok:false, msg:"Enter a Tag ID first." };
+  if(!ui.aisleSel.value) return { ok:false, msg:"Select an aisle." };
+  const rail = parseInt(ui.railSel.value, 10);
+  const level = parseInt(ui.levelSel.value, 10);
+  if(!Number.isFinite(rail) || rail < 1 || rail > 21) return { ok:false, msg:"Rail must be 1–21." };
+  if(!Number.isFinite(level) || level < 1 || level > 5) return { ok:false, msg:"Level must be 1–5." };
+  return { ok:true, tag_id, rail, level, aisle_name: ui.aisleSel.value };
+}
+
 async function upsertPalletTag({tag_id, aisle_name, rail, level, status, notes}){
   const payload = { tag_id, aisle_name, rail, level, status, notes };
   const { data, error } = await sb
     .from("pallet_tags")
     .upsert(payload, { onConflict: "aisle_name,rail,level,tag_id" })
+    .select("*")
+    .limit(1)
+    .single();
+  if(error) throw error;
+  return data;
+}
+
+async function updateMoveTag({tag_id, aisle_name, rail, level}){
+  const { data, error } = await sb
+    .from("pallet_tags")
+    .update({ aisle_name, rail, level, updated_at: new Date().toISOString() })
+    .eq("tag_id", tag_id)
     .select("*")
     .limit(1)
     .single();
@@ -756,7 +785,7 @@ async function uploadPhotoAndLink(palletTagRow, file){
 
   const { error: upErr } = await sb.storage
     .from(PHOTO_BUCKET)
-    .upload(object_path, file, { upsert: false, contentType: file.type || "image/jpeg" });
+    .upload(object_path, file, { upsert:false, contentType: file.type || "image/jpeg" });
   if(upErr) throw upErr;
 
   const { data, error } = await sb
@@ -775,34 +804,14 @@ async function uploadPhotoAndLink(palletTagRow, file){
   return data;
 }
 
-function publicUrl(path){
-  const { data } = sb.storage.from(PHOTO_BUCKET).getPublicUrl(path);
-  return data?.publicUrl || "";
-}
-
-/** =========================================================
- *  Save / status buttons
- * ========================================================= */
 async function saveWithStatus(status){
-  const tag_id = normTag(ui.tagInput.value);
-  if(!tag_id){
-    toast("Enter a Tag ID first.", "bad");
-    ui.tagInput.focus();
-    return;
-  }
+  const v = validateFormBasics();
+  if(!v.ok){ toast(v.msg, "bad"); ui.tagInput.focus(); return; }
 
-  pushHistory();
-  ui.saveBtn.disabled = true;
-  ui.outBtn.disabled = true;
-  ui.inBtn.disabled = true;
-
+  ui.saveBtn.disabled = ui.outBtn.disabled = ui.inBtn.disabled = ui.moveBtn.disabled = true;
   try{
-    const aisle_name = ui.aisleSel.value;
-    const rail = parseInt(ui.railSel.value, 10);
-    const level = parseInt(ui.levelSel.value, 10);
     const notes = (ui.notesInput.value || "").trim() || null;
-
-    const row = await upsertPalletTag({ tag_id, aisle_name, rail, level, status, notes });
+    const row = await upsertPalletTag({ tag_id:v.tag_id, aisle_name:v.aisle_name, rail:v.rail, level:v.level, status, notes });
 
     const file = ui.photoInput.files?.[0] || null;
     if(file){
@@ -810,25 +819,49 @@ async function saveWithStatus(status){
       ui.photoInput.value = "";
     }
 
-    toast(`Saved ${tag_id} → ${aisle_name} / Rail ${rail} / Level ${level} (${status}).`, "ok");
+    toast(`Saved ${v.tag_id} → ${v.aisle_name} / Rail ${v.rail} / Level ${v.level} (${status}).`, "ok");
     await refreshKPIs();
-
-    // keep map in sync if it's open
-    if(ui.viewMap.style.display !== "none"){
-      await refreshMap({ keepDrawer:true });
-    }
   }catch(err){
     console.error(err);
     toast(`Save failed: ${err.message || err}`, "bad");
   }finally{
-    ui.saveBtn.disabled = false;
-    ui.outBtn.disabled = false;
-    ui.inBtn.disabled = false;
+    ui.saveBtn.disabled = ui.outBtn.disabled = ui.inBtn.disabled = ui.moveBtn.disabled = false;
+  }
+}
+
+async function moveTagNoPhoto(){
+  const v = validateFormBasics();
+  if(!v.ok){ toast(v.msg, "bad"); ui.tagInput.focus(); return; }
+
+  ui.moveBtn.disabled = true;
+  try{
+    // Make sure tag exists first
+    const { data: existing, error: exErr } = await sb
+      .from("pallet_tags")
+      .select("*")
+      .eq("tag_id", v.tag_id)
+      .limit(1)
+      .maybeSingle();
+    if(exErr) throw exErr;
+    if(!existing){
+      toast("That tag isn’t saved yet. Use Save first.", "bad");
+      return;
+    }
+
+    const moved = await updateMoveTag({ tag_id:v.tag_id, aisle_name:v.aisle_name, rail:v.rail, level:v.level });
+    toast(`Moved ${moved.tag_id} → ${moved.aisle_name} / Rail ${moved.rail} / Level ${moved.level} (photos kept).`, "ok");
+    await refreshKPIs();
+    await doSearch(v.tag_id);
+  }catch(err){
+    console.error(err);
+    toast(`Move failed: ${err.message || err}`, "bad");
+  }finally{
+    ui.moveBtn.disabled = false;
   }
 }
 
 /** =========================================================
- *  Search
+ *  Photos query + rendering
  * ========================================================= */
 async function fetchPhotosForTagIds(palletTagIds){
   if(!palletTagIds.length) return new Map();
@@ -876,22 +909,31 @@ function renderResults(rows, photoMap){
         </div>
         <div class="badge ${badgeClass}">${badgeTxt}</div>
       </div>
+
       <div class="thumbs" id="thumbs_${r.id}"></div>
+
       <div class="btnrow" style="margin-top:10px">
         <button class="secondary" data-act="fill" data-id="${r.id}">Load into form</button>
         <button class="secondary" data-act="map" data-id="${r.id}">Open in Aisle View</button>
-        <button class="secondary" data-act="in" data-id="${r.id}">Mark Inbound</button>
-        <button class="secondary" data-act="out" data-id="${r.id}">Mark Outbound</button>
+        <button class="secondary" data-act="copytag" data-id="${r.id}">Copy tag</button>
+        <button class="secondary" data-act="copyloc" data-id="${r.id}">Copy location</button>
+        <button class="secondary" data-act="addphoto" data-id="${r.id}">Add photo</button>
+        <button class="secondary" data-act="in" data-id="${r.id}">Inbound</button>
+        <button class="secondary" data-act="out" data-id="${r.id}">Outbound</button>
       </div>
     `;
 
     const thumbs = div.querySelector(`#thumbs_${CSS.escape(r.id)}`);
     if(photos.length){
-      for(const p of photos.slice(0,6)){
+      for(const p of photos.slice(0,8)){
         const t = document.createElement("div");
         t.className = "thumb";
         const url = publicUrl(p);
         t.innerHTML = `<img src="${url}" alt="photo" loading="lazy" />`;
+        t.addEventListener("click", (e)=>{
+          e.stopPropagation();
+          showModal(`${r.tag_id} — ${r.aisle_name} / R${r.rail} / L${r.level}`, url);
+        });
         thumbs.appendChild(t);
       }
     } else {
@@ -901,18 +943,18 @@ function renderResults(rows, photoMap){
     div.addEventListener("click", async (e)=>{
       const btn = e.target.closest("button");
       if(!btn) return;
+
       const act = btn.getAttribute("data-act");
       if(!act) return;
 
       if(act === "fill"){
-        pushHistory();
         ui.tagInput.value = r.tag_id;
         ui.aisleSel.value = r.aisle_name;
         ui.railSel.value = String(r.rail);
         ui.levelSel.value = String(r.level);
         ui.notesInput.value = r.notes || "";
         setTab("save");
-        toast("Loaded into form. You can update and resave.", "ok");
+        toast("Loaded into form.", "ok");
       }
 
       if(act === "map"){
@@ -922,26 +964,43 @@ function renderResults(rows, photoMap){
         openCellDrawer(r.aisle_name, r.rail, r.level);
       }
 
+      if(act === "copytag"){
+        await copyText(r.tag_id);
+      }
+
+      if(act === "copyloc"){
+        await copyText(`${r.aisle_name} / Rail ${r.rail} / Level ${r.level}`);
+      }
+
+      if(act === "addphoto"){
+        // Use the Save form photo input, but link to THIS tag row without changing location/status
+        setTab("save");
+        ui.tagInput.value = r.tag_id;
+        ui.aisleSel.value = r.aisle_name;
+        ui.railSel.value = String(r.rail);
+        ui.levelSel.value = String(r.level);
+        ui.notesInput.value = r.notes || "";
+        toast("Pick a photo, then click Save (it will attach to this tag).", "ok");
+      }
+
       if(act === "in"){
-        pushHistory();
         ui.tagInput.value = r.tag_id;
         ui.aisleSel.value = r.aisle_name;
         ui.railSel.value = String(r.rail);
         ui.levelSel.value = String(r.level);
         ui.notesInput.value = r.notes || "";
         await saveWithStatus("INBOUND");
-        await doSearch(r.tag_id);
+        await doSearch(ui.searchInput.value);
       }
 
       if(act === "out"){
-        pushHistory();
         ui.tagInput.value = r.tag_id;
         ui.aisleSel.value = r.aisle_name;
         ui.railSel.value = String(r.rail);
         ui.levelSel.value = String(r.level);
         ui.notesInput.value = r.notes || "";
         await saveWithStatus("OUTBOUND");
-        await doSearch(r.tag_id);
+        await doSearch(ui.searchInput.value);
       }
     });
 
@@ -949,21 +1008,32 @@ function renderResults(rows, photoMap){
   }
 }
 
-async function doSearch(tag){
-  const q = normTag(tag);
-  if(!q){
-    toast("Type a tag to search.", "bad");
-    return;
-  }
+/** =========================================================
+ *  Search modes
+ * ========================================================= */
+async function doSearch(raw){
+  const q = normTag(raw);
+  if(!q){ toast("Type a tag to search.", "bad"); return; }
+
   ui.searchBtn.disabled = true;
   ui.results.innerHTML = `<div class="small">Searching…</div>`;
-  try{
-    const { data, error } = await sb
-      .from("pallet_tags")
-      .select("*")
-      .eq("tag_id", q)
-      .order("updated_at", { ascending:false });
 
+  try{
+    const mode = ui.searchMode.value;
+
+    let query = sb.from("pallet_tags").select("*").order("updated_at", { ascending:false }).limit(50);
+
+    if(mode === "exact"){
+      query = query.eq("tag_id", q);
+    } else if(mode === "starts"){
+      // Case-insensitive "starts with"
+      query = query.ilike("tag_id", `${q}%`);
+    } else {
+      // contains
+      query = query.ilike("tag_id", `%${q}%`);
+    }
+
+    const { data, error } = await query;
     if(error) throw error;
 
     const rows = data || [];
@@ -986,9 +1056,9 @@ async function recentTags(){
       .from("pallet_tags")
       .select("*")
       .order("updated_at", { ascending:false })
-      .limit(10);
-
+      .limit(25);
     if(error) throw error;
+
     const rows = data || [];
     const ids = rows.map(r=>r.id);
     const photoMap = await fetchPhotosForTagIds(ids);
@@ -1021,12 +1091,7 @@ async function refreshKPIs(){
  *  AISLE VIEW
  * ========================================================= */
 let mapFilter = "ALL"; // ALL | INBOUND | OUTBOUND
-let aisleCache = {
-  aisle: null,
-  rows: [],
-  byCell: new Map(),   // key: "r|l" => array rows
-  photoMap: new Map(), // pallet_tag_id => [paths]
-};
+let aisleCache = { aisle:null, rows:[], byCell:new Map(), photoMap:new Map() };
 let openCell = null; // {aisle, rail, level}
 
 function setFilter(f){
@@ -1036,11 +1101,9 @@ function setFilter(f){
   ui.fOut.classList.toggle("on", f==="OUTBOUND");
   refreshMap({ keepDrawer:true });
 }
-
 function cellKey(rail, level){ return `${rail}|${level}`; }
 
 async function loadAisleRows(aisleName){
-  // fetch all tags for this aisle (optionally filtered)
   let q = sb.from("pallet_tags").select("*").eq("aisle_name", aisleName);
   if(mapFilter === "INBOUND") q = q.eq("status","INBOUND");
   if(mapFilter === "OUTBOUND") q = q.eq("status","OUTBOUND");
@@ -1052,7 +1115,6 @@ async function loadAisleRows(aisleName){
   const ids = rows.map(r=>r.id);
   const photoMap = await fetchPhotosForTagIds(ids);
 
-  // group by cell
   const byCell = new Map();
   for(const r of rows){
     const k = cellKey(r.rail, r.level);
@@ -1067,13 +1129,11 @@ function buildMapGrid(){
   const g = ui.mapGrid;
   g.innerHTML = "";
 
-  // top-left blank
   const blank = document.createElement("div");
   blank.className = "mapHdr";
   blank.textContent = "Level \\ Rail";
   g.appendChild(blank);
 
-  // headers rail 1..21
   for(let rail=1; rail<=21; rail++){
     const h = document.createElement("div");
     h.className = "mapHdr";
@@ -1081,7 +1141,6 @@ function buildMapGrid(){
     g.appendChild(h);
   }
 
-  // levels 5..1 (top is L5)
   for(let level=5; level>=1; level--){
     const lbl = document.createElement("div");
     lbl.className = "mapRowLbl";
@@ -1096,9 +1155,6 @@ function buildMapGrid(){
 
       const cell = document.createElement("div");
       cell.className = "cell";
-      cell.dataset.rail = String(rail);
-      cell.dataset.level = String(level);
-
       if(!list.length) cell.classList.add("empty");
       if(list.length){
         if(inboundCount && outboundCount) cell.classList.add("mixed");
@@ -1107,15 +1163,10 @@ function buildMapGrid(){
       }
 
       const top = list.length ? `${list.length}` : "—";
-      const sub = list.length
-        ? `${inboundCount} in • ${outboundCount} out`
-        : "empty";
+      const sub = list.length ? `${inboundCount} in • ${outboundCount} out` : "empty";
 
       cell.innerHTML = `<div class="c1">${top}</div><div class="c2">${sub}</div>`;
-      cell.addEventListener("click", ()=>{
-        openCellDrawer(aisleCache.aisle, rail, level);
-      });
-
+      cell.addEventListener("click", ()=>openCellDrawer(aisleCache.aisle, rail, level));
       g.appendChild(cell);
     }
   }
@@ -1129,11 +1180,9 @@ async function refreshMap(opts={}){
     await loadAisleRows(aisleName);
     buildMapGrid();
 
-    // keep drawer open if requested
     if(opts.keepDrawer && openCell && openCell.aisle === aisleName){
       openCellDrawer(openCell.aisle, openCell.rail, openCell.level, { silent:true });
     } else {
-      // hide drawer on change
       ui.cellDrawer.style.display = "none";
       openCell = null;
     }
@@ -1144,8 +1193,7 @@ async function refreshMap(opts={}){
 }
 
 function openCellDrawer(aisleName, rail, level, opts={}){
-  openCell = { aisle: aisleName, rail, level };
-
+  openCell = { aisle:aisleName, rail, level };
   const k = cellKey(rail, level);
   const list = aisleCache.byCell.get(k) || [];
 
@@ -1165,14 +1213,13 @@ function openCellDrawer(aisleName, rail, level, opts={}){
     const badgeClass = r.status === "OUTBOUND" ? "out" : "in";
     const badgeTxt = r.status === "OUTBOUND" ? "OUTBOUND" : "INBOUND";
 
-    const item = document.createElement("div");
-    item.className = "miniRow";
-
     const thumbs = photos.slice(0,3).map(p=>{
       const url = publicUrl(p);
-      return `<div class="thumb" style="width:96px;height:70px"><img src="${url}" loading="lazy" alt="photo"></div>`;
+      return `<div class="thumb" style="width:96px;height:70px" data-url="${escapeHtml(url)}" data-title="${escapeHtml(r.tag_id)}"><img src="${url}" loading="lazy" alt="photo"></div>`;
     }).join("");
 
+    const item = document.createElement("div");
+    item.className = "miniRow";
     item.innerHTML = `
       <div class="miniLeft">
         <div class="t">${escapeHtml(r.tag_id)}</div>
@@ -1186,10 +1233,18 @@ function openCellDrawer(aisleName, rail, level, opts={}){
       </div>
       <div class="btnrow" style="margin-top:0">
         <button class="secondary" data-act="load">Load</button>
+        <button class="secondary" data-act="copy">Copy</button>
         <button class="secondary" data-act="in">Inbound</button>
         <button class="secondary" data-act="out">Outbound</button>
       </div>
     `;
+
+    item.querySelectorAll(".thumb").forEach(th=>{
+      th.addEventListener("click",(e)=>{
+        e.stopPropagation();
+        showModal(`${r.tag_id} — ${r.aisle_name} / R${r.rail} / L${r.level}`, th.getAttribute("data-url"));
+      });
+    });
 
     item.addEventListener("click", async (e)=>{
       const btn = e.target.closest("button");
@@ -1198,7 +1253,6 @@ function openCellDrawer(aisleName, rail, level, opts={}){
       if(!act) return;
 
       if(act === "load"){
-        pushHistory();
         ui.tagInput.value = r.tag_id;
         ui.aisleSel.value = r.aisle_name;
         ui.railSel.value = String(r.rail);
@@ -1208,8 +1262,11 @@ function openCellDrawer(aisleName, rail, level, opts={}){
         toast("Loaded into form.", "ok");
       }
 
+      if(act === "copy"){
+        await copyText(`${r.tag_id} — ${r.aisle_name} / Rail ${r.rail} / Level ${r.level}`);
+      }
+
       if(act === "in"){
-        pushHistory();
         ui.tagInput.value = r.tag_id;
         ui.aisleSel.value = r.aisle_name;
         ui.railSel.value = String(r.rail);
@@ -1219,7 +1276,6 @@ function openCellDrawer(aisleName, rail, level, opts={}){
       }
 
       if(act === "out"){
-        pushHistory();
         ui.tagInput.value = r.tag_id;
         ui.aisleSel.value = r.aisle_name;
         ui.railSel.value = String(r.rail);
@@ -1238,13 +1294,7 @@ function openCellDrawer(aisleName, rail, level, opts={}){
 
 async function jumpToLatestTagCell(){
   try{
-    const { data, error } = await sb
-      .from("pallet_tags")
-      .select("*")
-      .order("updated_at", { ascending:false })
-      .limit(1)
-      .single();
-
+    const { data, error } = await sb.from("pallet_tags").select("*").order("updated_at",{ascending:false}).limit(1).single();
     if(error) throw error;
     if(!data) return;
 
@@ -1259,7 +1309,7 @@ async function jumpToLatestTagCell(){
 }
 
 /** =========================================================
- *  Init
+ *  Init + events
  * ========================================================= */
 async function init(){
   try{
@@ -1275,9 +1325,6 @@ async function init(){
   }
 }
 
-/** =========================================================
- *  Wire events
- * ========================================================= */
 ui.tabSave.addEventListener("click", ()=>setTab("save"));
 ui.tabSearch.addEventListener("click", ()=>setTab("search"));
 ui.tabMap.addEventListener("click", ()=>setTab("map"));
@@ -1285,9 +1332,9 @@ ui.tabMap.addEventListener("click", ()=>setTab("map"));
 ui.saveBtn.addEventListener("click", ()=>saveWithStatus("INBOUND"));
 ui.outBtn.addEventListener("click", ()=>saveWithStatus("OUTBOUND"));
 ui.inBtn.addEventListener("click", ()=>saveWithStatus("INBOUND"));
-ui.backBtn.addEventListener("click", back);
+ui.moveBtn.addEventListener("click", moveTagNoPhoto);
+
 ui.clearBtn.addEventListener("click", ()=>{
-  pushHistory();
   ui.tagInput.value = "";
   ui.notesInput.value = "";
   ui.photoInput.value = "";
@@ -1297,20 +1344,12 @@ ui.clearBtn.addEventListener("click", ()=>{
 });
 
 ui.searchBtn.addEventListener("click", ()=>doSearch(ui.searchInput.value));
-ui.searchInput.addEventListener("keydown", (e)=>{
+ui.searchInput.addEventListener("keydown",(e)=>{
   if(e.key === "Enter"){ e.preventDefault(); doSearch(ui.searchInput.value); }
 });
-ui.refreshBtn.addEventListener("click", refreshKPIs);
 ui.recentBtn.addEventListener("click", recentTags);
+ui.refreshBtn.addEventListener("click", refreshKPIs);
 
-// history helps Back
-["change","input"].forEach(evt=>{
-  ui.aisleSel.addEventListener(evt, pushHistory);
-  ui.railSel.addEventListener(evt, pushHistory);
-  ui.levelSel.addEventListener(evt, pushHistory);
-});
-
-// map events
 ui.mapAisleSel.addEventListener("change", ()=>refreshMap());
 ui.mapRefreshBtn.addEventListener("click", ()=>refreshMap());
 ui.mapRecentBtn.addEventListener("click", jumpToLatestTagCell);
@@ -1324,13 +1363,12 @@ ui.drawerCloseBtn.addEventListener("click", ()=>{
 });
 ui.drawerAddBtn.addEventListener("click", ()=>{
   if(!openCell){ toast("Open a cell first.", "bad"); return; }
-  pushHistory();
   ui.aisleSel.value = openCell.aisle;
   ui.railSel.value = String(openCell.rail);
   ui.levelSel.value = String(openCell.level);
   setTab("save");
   ui.tagInput.focus();
-  toast("Prefilled location. Now type/scan tag and save.", "ok");
+  toast("Prefilled location. Now scan/type tag and save.", "ok");
 });
 
 init();
