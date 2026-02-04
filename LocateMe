@@ -9,7 +9,6 @@
     :root{
       --bg:#060709;
       --panel:rgba(255,255,255,.06);
-      --panel2:rgba(255,255,255,.09);
       --stroke:rgba(255,255,255,.12);
       --text:#EAECEF;
       --muted:rgba(234,236,239,.72);
@@ -18,7 +17,6 @@
       --gold3:#8b6b23;
       --good:#38d27a;
       --bad:#ff5964;
-      --warn:#ffcc66;
       --shadow: 0 12px 40px rgba(0,0,0,.45);
       --radius: 18px;
     }
@@ -32,10 +30,7 @@
       min-height:100vh;
       overflow-x:hidden;
     }
-    .waves{
-      position:fixed; inset:-120px -120px auto -120px; height:520px; pointer-events:none;
-      opacity:.9; z-index:-1;
-    }
+    .waves{position:fixed; inset:-120px -120px auto -120px; height:520px; pointer-events:none; opacity:.9; z-index:-1;}
     .waves::before, .waves::after{
       content:""; position:absolute; inset:0;
       background:
@@ -48,9 +43,7 @@
     }
     .waves::after{
       inset:80px 0 auto 0; height:420px;
-      opacity:.75;
-      filter: blur(1px);
-      transform: skewY(4deg);
+      opacity:.75; filter: blur(1px); transform: skewY(4deg);
       background:
         radial-gradient(900px 300px at 18% 40%, rgba(246,213,122,.45), transparent 70%),
         radial-gradient(850px 280px at 70% 55%, rgba(202,162,77,.28), transparent 70%),
@@ -115,12 +108,8 @@
     }
     .btn:hover{transform: translateY(-1px); background: rgba(255,255,255,.10); border-color: rgba(255,255,255,.16);}
     .btn:active{transform: translateY(0px) scale(.99);}
-    .btn.gold{
-      background: linear-gradient(135deg, rgba(246,213,122,.26), rgba(202,162,77,.18));
-      border-color: rgba(246,213,122,.35);
-    }
+    .btn.gold{background: linear-gradient(135deg, rgba(246,213,122,.26), rgba(202,162,77,.18)); border-color: rgba(246,213,122,.35);}
     .btn.red{background: rgba(255,89,100,.14); border-color: rgba(255,89,100,.35);}
-    .btn.green{background: rgba(56,210,122,.14); border-color: rgba(56,210,122,.35);}
     .btn.small{padding:8px 10px; border-radius:11px; font-size:13px}
 
     .field{display:flex; flex-direction:column; gap:7px; margin-bottom:10px;}
@@ -145,22 +134,15 @@
       font-size:12px;
       line-height:1.35;
     }
-    .grid{
-      display:grid;
-      grid-template-columns: repeat(2, minmax(0,1fr));
-      gap:10px;
-    }
+    .grid{display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:10px;}
     @media (max-width: 520px){ .grid{grid-template-columns: 1fr} }
 
     .tile{
-      padding:14px;
-      border-radius:16px;
+      padding:14px; border-radius:16px;
       background: linear-gradient(135deg, rgba(255,255,255,.06), rgba(0,0,0,.12));
       border:1px solid rgba(255,255,255,.10);
       cursor:pointer;
       transition:.15s transform, .15s border-color, .15s background;
-      position:relative;
-      overflow:hidden;
     }
     .tile:hover{transform: translateY(-2px); border-color: rgba(246,213,122,.35)}
     .tile.active{border-color: rgba(246,213,122,.55); background: linear-gradient(135deg, rgba(246,213,122,.10), rgba(0,0,0,.18));}
@@ -178,15 +160,11 @@
 
     .list{display:flex; flex-direction:column; gap:10px;}
     .item{
-      padding:12px;
-      border-radius:16px;
+      padding:12px; border-radius:16px;
       background: rgba(255,255,255,.05);
       border:1px solid rgba(255,255,255,.10);
     }
-    .itemTop{
-      display:flex; justify-content:space-between; gap:10px; align-items:flex-start;
-      margin-bottom:8px;
-    }
+    .itemTop{display:flex; justify-content:space-between; gap:10px; align-items:flex-start; margin-bottom:8px;}
     .tag{font-weight:850; letter-spacing:.2px;}
     .muted{color:var(--muted); font-size:12px}
     .status{
@@ -201,21 +179,12 @@
     .status.out{border-color: rgba(255,89,100,.45); background: rgba(255,89,100,.12)}
     .status.in{border-color: rgba(56,210,122,.40); background: rgba(56,210,122,.12)}
 
-    .thumbs{
-      margin-top:10px;
-      display:grid;
-      grid-template-columns: repeat(4, minmax(0,1fr));
-      gap:8px;
-    }
+    .thumbs{margin-top:10px; display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:8px;}
     @media (max-width: 980px){ .thumbs{grid-template-columns: repeat(3, minmax(0,1fr))} }
     @media (max-width: 520px){ .thumbs{grid-template-columns: repeat(2, minmax(0,1fr))} }
     .thumb{
-      aspect-ratio: 1 / 1;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.10);
-      overflow:hidden;
-      background: rgba(0,0,0,.25);
-      position:relative;
+      aspect-ratio: 1 / 1; border-radius:12px; border:1px solid rgba(255,255,255,.10);
+      overflow:hidden; background: rgba(0,0,0,.25); position:relative;
     }
     .thumb img{width:100%; height:100%; object-fit:cover; display:block;}
     .thumb button{
@@ -243,13 +212,12 @@
   <header>
     <div class="title">
       <h1>Warehouse Photo Tag Tracker</h1>
-      <div class="sub">Step flow: Aisle → Rail → Level → Tag → Photos → Save • OUTBOUND auto-deletes after 5 days</div>
+      <div class="sub">Aisle → Rail (R-01..R-21) → Level (L1..L5) → Tag/Photos → Save • OUTBOUND auto-deletes after 5 days</div>
     </div>
     <div class="pill"><span class="dot"></span> <b id="dbCount">0</b> tags saved</div>
   </header>
 
   <div class="wrap">
-
     <!-- LEFT: STEP FLOW -->
     <section class="card">
       <div class="head">
@@ -267,7 +235,6 @@
           <span class="crumb">Level: <b id="cLevel">—</b></span>
         </div>
 
-        <!-- STEP 1: Choose Aisle -->
         <div class="step active" id="step1">
           <p class="stepTitle">1) Choose an Aisle</p>
           <div class="grid" id="aisleTiles"></div>
@@ -275,7 +242,6 @@
           <div class="notice">Pick the aisle first. Then you’ll select Rail, then Level.</div>
         </div>
 
-        <!-- STEP 2: Choose Rail -->
         <div class="step" id="step2">
           <p class="stepTitle">2) Choose a Rail</p>
           <div class="field">
@@ -287,24 +253,17 @@
           </div>
         </div>
 
-        <!-- STEP 3: Choose Level -->
         <div class="step" id="step3">
           <p class="stepTitle">3) Choose a Level</p>
           <div class="field">
             <label>Level</label>
-            <select id="levelSelect">
-              <option value="L1">L1</option>
-              <option value="L2">L2</option>
-              <option value="L3">L3</option>
-              <option value="L4">L4</option>
-            </select>
+            <select id="levelSelect"></select>
           </div>
           <div class="row" style="justify-content:flex-end">
             <button class="btn gold" id="toStep4">Next</button>
           </div>
         </div>
 
-        <!-- STEP 4: Tag + Photos + Save -->
         <div class="step" id="step4">
           <p class="stepTitle">4) Add Tag + Photos, then Save</p>
 
@@ -333,9 +292,7 @@
 
           <div class="row" style="justify-content:space-between; align-items:center">
             <span class="muted" id="saveMsg"></span>
-            <div class="row">
-              <button class="btn gold" id="btnSave">Save</button>
-            </div>
+            <button class="btn gold" id="btnSave">Save</button>
           </div>
 
           <div style="height:10px"></div>
@@ -358,7 +315,6 @@
         </div>
       </div>
       <div class="body">
-
         <div class="field">
           <label>Search (Tag / Notes / Aisle / Rail / Level)</label>
           <input id="q" type="text" placeholder="Search… (example: BUGATTI or R-02 or L3 or tag)" />
@@ -389,41 +345,27 @@
 <script>
 /**
  * ==========================================================
- *  Step flow: Aisle → Rail → Level → Tag/Photos → Save
- *  - No login, localStorage only
- *  - OUTBOUND auto-deletes after 5 days
+ *  Generic rails/levels:
+ *    Rails: R-01..R-21
+ *    Levels: L1..L5
+ *  OUTBOUND auto-delete: 5 days after outboundAt
  * ==========================================================
  */
 
-const STORAGE_KEY = "warehouse_photo_tag_tracker_v2";
+const STORAGE_KEY = "warehouse_photo_tag_tracker_v3";
 const OUTBOUND_TTL_DAYS = 5;
 
 const DEFAULT_AISLES = [
-  "BUGATTI",
-  "PAGANI",
-  "LAMBORGHINI",
-  "ROLLS-ROYCE",
-  "FERRARI-B",
-  "MCLAREN",
-  "ASTON-MARTIN",
-  "MERCEDES",
-  "MASERATI",
-  "BENTLEY"
+  "BUGATTI","PAGANI","LAMBORGHINI","ROLLS-ROYCE","FERRARI-B",
+  "MCLAREN","ASTON-MARTIN","MERCEDES","MASERATI","BENTLEY"
 ];
 
-// If you want per-aisle rail counts, set them here.
-// Example: { "ROLLS-ROYCE": 9, "BENTLEY": 21, ... }
-// If an aisle isn't listed, it uses DEFAULT_RAIL_COUNT.
-const RAILS_BY_AISLE = {
-  // "ROLLS-ROYCE": 9,
-  // "BENTLEY": 21
-};
-const DEFAULT_RAIL_COUNT = 9;
+const MAX_RAILS = 21;
+const MAX_LEVELS = 5;
 
 const ui = {
   dbCount: document.getElementById("dbCount"),
 
-  // step panels
   step1: document.getElementById("step1"),
   step2: document.getElementById("step2"),
   step3: document.getElementById("step3"),
@@ -449,13 +391,11 @@ const ui = {
   btnSave: document.getElementById("btnSave"),
   saveMsg: document.getElementById("saveMsg"),
 
-  // list/search
   q: document.getElementById("q"),
   toggleShowOutbound: document.getElementById("toggleShowOutbound"),
   list: document.getElementById("list"),
   resultCount: document.getElementById("resultCount"),
 
-  // export/import/wipe
   btnExport: document.getElementById("btnExport"),
   btnImport: document.getElementById("btnImport"),
   importFile: document.getElementById("importFile"),
@@ -466,21 +406,11 @@ let state = loadDB();
 if(!Array.isArray(state.aisles) || state.aisles.length === 0) state.aisles = DEFAULT_AISLES.slice();
 if(!Array.isArray(state.items)) state.items = [];
 
-// step flow context
-let flow = {
-  step: 1,
-  aisle: null,
-  rail: null,
-  level: null,
-  editingItemId: null, // if you click edit from list
-};
+let flow = { step:1, aisle:null, rail:null, level:null, editingItemId:null };
 
 function nowISO(){ return new Date().toISOString(); }
 function msFromDays(d){ return d * 24 * 60 * 60 * 1000; }
-
-function uid(){
-  return "id_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
-}
+function uid(){ return "id_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16); }
 function norm(s){ return String(s ?? "").trim(); }
 function escapeHtml(s){
   return String(s ?? "")
@@ -495,15 +425,12 @@ function saveDB(){
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   ui.dbCount.textContent = String(state.items.length);
 }
-
 function loadDB(){
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
     if(!raw) return {};
     return JSON.parse(raw) || {};
-  }catch(e){
-    return {};
-  }
+  }catch(e){ return {}; }
 }
 
 /** Auto-delete OUTBOUND items older than 5 days */
@@ -518,25 +445,18 @@ function purgeExpiredOutbound(){
   if(state.items.length !== before) saveDB();
 }
 
-/** Rail options based on selected aisle */
-function getRailCountForAisle(aisle){
-  const n = RAILS_BY_AISLE[String(aisle||"").toUpperCase()];
-  const count = Number(n);
-  return Number.isFinite(count) && count > 0 ? count : DEFAULT_RAIL_COUNT;
-}
-function setRailOptions(aisle){
-  ui.railSelect.innerHTML = "";
-  const count = getRailCountForAisle(aisle);
-  for(let i=1;i<=count;i++){
-    const val = "R-" + String(i).padStart(2,"0");
-    const opt = document.createElement("option");
-    opt.value = val;
-    opt.textContent = val;
-    ui.railSelect.appendChild(opt);
-  }
+function itemMatchesQuery(item, qLower){
+  if(!qLower) return true;
+  const hay = [item.aisle,item.rail,item.level,item.tagId,item.notes,item.status].join(" ").toLowerCase();
+  return hay.includes(qLower);
 }
 
-/** Steps render */
+function renderCrumbs(){
+  ui.cAisle.textContent = flow.aisle || "—";
+  ui.cRail.textContent  = flow.rail  || "—";
+  ui.cLevel.textContent = flow.level || "—";
+}
+
 function showStep(n){
   flow.step = n;
   [ui.step1, ui.step2, ui.step3, ui.step4].forEach((el, idx)=>{
@@ -546,13 +466,30 @@ function showStep(n){
   renderCrumbs();
 }
 
-function renderCrumbs(){
-  ui.cAisle.textContent = flow.aisle || "—";
-  ui.cRail.textContent  = flow.rail  || "—";
-  ui.cLevel.textContent = flow.level || "—";
+/** Populate generic Rails R-01..R-21 */
+function setRailOptions(){
+  ui.railSelect.innerHTML = "";
+  for(let i=1;i<=MAX_RAILS;i++){
+    const val = "R-" + String(i).padStart(2,"0");
+    const opt = document.createElement("option");
+    opt.value = val;
+    opt.textContent = val;
+    ui.railSelect.appendChild(opt);
+  }
 }
 
-/** Step 1 tiles */
+/** Populate generic Levels L1..L5 */
+function setLevelOptions(){
+  ui.levelSelect.innerHTML = "";
+  for(let i=1;i<=MAX_LEVELS;i++){
+    const val = "L" + i;
+    const opt = document.createElement("option");
+    opt.value = val;
+    opt.textContent = val;
+    ui.levelSelect.appendChild(opt);
+  }
+}
+
 function countMatchesForAisle(aisle){
   const q = norm(ui.q.value).toLowerCase();
   const showOut = ui.toggleShowOutbound.checked;
@@ -567,20 +504,16 @@ function renderAisleTiles(){
   ui.aisleTiles.innerHTML = "";
   state.aisles.forEach(aisle=>{
     const tile = document.createElement("div");
-    const active = (aisle === flow.aisle);
-    tile.className = "tile" + (active ? " active" : "");
+    tile.className = "tile" + (aisle === flow.aisle ? " active" : "");
     const c = countMatchesForAisle(aisle);
-    tile.innerHTML = `
-      <div class="tileName">${escapeHtml(aisle)}</div>
-      <div class="tileMeta">${c} matching tags</div>
-    `;
+    tile.innerHTML = `<div class="tileName">${escapeHtml(aisle)}</div><div class="tileMeta">${c} matching tags</div>`;
     tile.onclick = ()=>{
       flow.aisle = aisle;
       flow.rail = null;
       flow.level = null;
       flow.editingItemId = null;
-      setRailOptions(aisle);
-      ui.railSelect.value = ui.railSelect.options[0]?.value || "";
+      setRailOptions();
+      ui.railSelect.value = "R-01";
       showStep(2);
       renderAll();
     };
@@ -588,16 +521,6 @@ function renderAisleTiles(){
   });
 }
 
-function itemMatchesQuery(item, qLower){
-  if(!qLower) return true;
-  const hay = [
-    item.aisle, item.rail, item.level,
-    item.tagId, item.notes, item.status
-  ].join(" ").toLowerCase();
-  return hay.includes(qLower);
-}
-
-/** Read photos */
 function readFilesAsDataUrls(fileList){
   const files = Array.from(fileList || []);
   return Promise.all(files.map(f=>{
@@ -610,78 +533,54 @@ function readFilesAsDataUrls(fileList){
   })).then(arr => arr.filter(Boolean));
 }
 
-/** Save / upsert */
 function findExisting(aisle, rail, level, tagId){
   const key = `${aisle}||${rail}||${level}||${tagId}`.toLowerCase();
   return state.items.find(it => `${it.aisle}||${it.rail}||${it.level}||${it.tagId}`.toLowerCase() === key) || null;
 }
 
 async function saveFlow(){
-  const aisle = flow.aisle;
-  const rail  = flow.rail;
-  const level = flow.level;
-
-  if(!aisle || !rail || !level){
-    ui.saveMsg.textContent = "Missing aisle/rail/level. Use Back and re-pick.";
-    return;
-  }
+  const aisle = flow.aisle, rail = flow.rail, level = flow.level;
+  if(!aisle || !rail || !level){ ui.saveMsg.textContent = "Missing aisle/rail/level. Use Back and re-pick."; return; }
 
   const tagId = norm(ui.tagId.value);
-  if(!tagId){
-    ui.saveMsg.textContent = "Enter a Tag ID.";
-    return;
-  }
+  if(!tagId){ ui.saveMsg.textContent = "Enter a Tag ID."; return; }
 
   const status = norm(ui.statusSelect.value) || "INBOUND";
   const notes  = norm(ui.notes.value);
   const newPhotos = await readFilesAsDataUrls(ui.photos.files);
 
   let it = null;
-
-  // If editing from list, update that record directly
   if(flow.editingItemId){
     it = state.items.find(x=>x.id===flow.editingItemId) || null;
   }
 
   if(it){
-    // update
-    it.aisle = aisle;
-    it.rail = rail;
-    it.level = level;
-    it.tagId = tagId;
-    it.notes = notes || "";
-    it.photos = (it.photos || []).concat(newPhotos);
+    it.aisle = aisle; it.rail = rail; it.level = level;
+    it.tagId = tagId; it.notes = notes || "";
+    it.photos = (it.photos||[]).concat(newPhotos);
     it.updatedAt = nowISO();
 
-    if(status === "OUTBOUND" && it.status !== "OUTBOUND"){
+    if(status === "OUTBOUND"){
       it.status = "OUTBOUND";
-      it.outboundAt = nowISO();
-    } else if(status === "INBOUND" && it.status === "OUTBOUND"){
+      it.outboundAt = it.outboundAt || nowISO();
+    }else{
       it.status = "INBOUND";
       it.outboundAt = null;
-    } else {
-      it.status = status;
-      if(status === "OUTBOUND" && !it.outboundAt) it.outboundAt = nowISO();
-      if(status === "INBOUND") it.outboundAt = null;
     }
-
     ui.saveMsg.textContent = `Updated: ${tagId} (${aisle} ${rail}-${level}) +${newPhotos.length} photo(s).`;
   } else {
-    // create OR upsert if same aisle/rail/level/tag exists
     const existing = findExisting(aisle, rail, level, tagId);
     if(existing){
       existing.notes = notes || existing.notes || "";
-      existing.photos = (existing.photos || []).concat(newPhotos);
+      existing.photos = (existing.photos||[]).concat(newPhotos);
       existing.updatedAt = nowISO();
-
-      if(status === "OUTBOUND" && existing.status !== "OUTBOUND"){
+      if(status === "OUTBOUND"){
         existing.status = "OUTBOUND";
-        existing.outboundAt = nowISO();
-      } else if(status === "INBOUND" && existing.status === "OUTBOUND"){
+        existing.outboundAt = existing.outboundAt || nowISO();
+      }else{
         existing.status = "INBOUND";
         existing.outboundAt = null;
       }
-
       ui.saveMsg.textContent = `Updated existing: ${tagId} (${aisle} ${rail}-${level}) +${newPhotos.length} photo(s).`;
     } else {
       const item = {
@@ -705,20 +604,64 @@ async function saveFlow(){
   renderAll();
 }
 
-/** List render */
+function computeOutboundExpiryText(outboundAt){
+  if(!outboundAt) return "Auto-delete: unknown";
+  const t = Date.parse(outboundAt);
+  const expiresAt = t + msFromDays(OUTBOUND_TTL_DAYS);
+  const msLeft = expiresAt - Date.now();
+  if(msLeft <= 0) return "Auto-delete: due now";
+  const days = Math.ceil(msLeft / msFromDays(1));
+  return `Auto-delete in ${days} day(s)`;
+}
+
+function startEdit(itemId){
+  const it = state.items.find(x=>x.id===itemId);
+  if(!it) return;
+
+  flow.editingItemId = it.id;
+  flow.aisle = it.aisle;
+  flow.rail = it.rail;
+  flow.level = it.level;
+
+  setRailOptions();
+  setLevelOptions();
+  ui.railSelect.value = it.rail;
+  ui.levelSelect.value = it.level;
+
+  ui.tagId.value = it.tagId;
+  ui.notes.value = it.notes || "";
+  ui.statusSelect.value = it.status || "INBOUND";
+  ui.photos.value = "";
+  ui.saveMsg.textContent = `Editing: ${it.tagId} (${it.aisle} ${it.rail}-${it.level})`;
+
+  showStep(4);
+  renderAll();
+}
+
+function deleteItem(itemId){
+  const ok = confirm("Delete this tag record?");
+  if(!ok) return;
+  state.items = state.items.filter(x=>x.id!==itemId);
+  saveDB();
+  renderAll();
+}
+
+function deletePhoto(itemId, photoId){
+  const it = state.items.find(x=>x.id===itemId);
+  if(!it) return;
+  it.photos = (it.photos||[]).filter(p=>p.id!==photoId);
+  it.updatedAt = nowISO();
+  saveDB();
+  renderAll();
+}
+
 function renderList(){
   const q = norm(ui.q.value).toLowerCase();
   const showOut = ui.toggleShowOutbound.checked;
 
   let rows = state.items.slice();
-
-  if(!showOut){
-    rows = rows.filter(it => it.status !== "OUTBOUND");
-  }
-
-  if(q){
-    rows = rows.filter(it => itemMatchesQuery(it, q));
-  }
+  if(!showOut) rows = rows.filter(it => it.status !== "OUTBOUND");
+  if(q) rows = rows.filter(it => itemMatchesQuery(it, q));
 
   ui.resultCount.textContent = String(rows.length);
   ui.list.innerHTML = "";
@@ -737,10 +680,7 @@ function renderList(){
     const when = it.status === "OUTBOUND"
       ? `Outbound: ${it.outboundAt ? new Date(it.outboundAt).toLocaleString() : "—"}`
       : `Updated: ${new Date(it.updatedAt).toLocaleString()}`;
-
-    const expires = (it.status === "OUTBOUND")
-      ? computeOutboundExpiryText(it.outboundAt)
-      : "";
+    const expires = (it.status === "OUTBOUND") ? computeOutboundExpiryText(it.outboundAt) : "";
 
     const thumbs = (it.photos||[]).slice(0, 8).map(p=>{
       return `
@@ -760,7 +700,7 @@ function renderList(){
         <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
           <span class="${statusClass}">${it.status}</span>
           <div class="row">
-            <button class="btn small ${it.status==="OUTBOUND" ? "green" : "red"}" data-act="toggle">
+            <button class="btn small ${it.status==="OUTBOUND" ? "" : "red"}" data-act="toggle">
               ${it.status==="OUTBOUND" ? "Mark INBOUND" : "Mark OUTBOUND"}
             </button>
             <button class="btn small" data-act="edit">Edit</button>
@@ -774,10 +714,8 @@ function renderList(){
       ${(it.photos||[]).length ? `<div class="thumbs">${thumbs}</div>` : `<div class="muted" style="margin-top:8px">No photos saved yet.</div>`}
     `;
 
-    // actions
     el.querySelector('[data-act="edit"]').onclick = ()=>startEdit(it.id);
     el.querySelector('[data-act="del"]').onclick = ()=>deleteItem(it.id);
-
     el.querySelector('[data-act="toggle"]').onclick = ()=>{
       if(it.status === "OUTBOUND"){
         it.status = "INBOUND";
@@ -791,7 +729,6 @@ function renderList(){
       renderAll();
     };
 
-    // photo deletes
     el.querySelectorAll("[data-photo]").forEach(btn=>{
       btn.onclick = (e)=>{
         const pid = e.currentTarget.getAttribute("data-photo");
@@ -803,57 +740,12 @@ function renderList(){
   });
 }
 
-function computeOutboundExpiryText(outboundAt){
-  if(!outboundAt) return "Auto-delete: unknown";
-  const t = Date.parse(outboundAt);
-  const expiresAt = t + msFromDays(OUTBOUND_TTL_DAYS);
-  const msLeft = expiresAt - Date.now();
-  if(msLeft <= 0) return "Auto-delete: due now";
-  const days = Math.ceil(msLeft / msFromDays(1));
-  return `Auto-delete in ${days} day(s)`;
-}
-
-/** Edit loads into step flow */
-function startEdit(itemId){
-  const it = state.items.find(x=>x.id===itemId);
-  if(!it) return;
-
-  flow.editingItemId = it.id;
-  flow.aisle = it.aisle;
-  flow.rail = it.rail;
-  flow.level = it.level;
-
-  setRailOptions(it.aisle);
-  ui.railSelect.value = it.rail;
-  ui.levelSelect.value = it.level;
-
-  ui.tagId.value = it.tagId;
-  ui.notes.value = it.notes || "";
-  ui.statusSelect.value = it.status || "INBOUND";
-  ui.photos.value = "";
-  ui.saveMsg.textContent = `Editing: ${it.tagId} (${it.aisle} ${it.rail}-${it.level})`;
-
-  showStep(4);
-  renderAll();
-}
-
-/** Delete item */
-function deleteItem(itemId){
-  const ok = confirm("Delete this tag record?");
-  if(!ok) return;
-  state.items = state.items.filter(x=>x.id!==itemId);
-  saveDB();
-  renderAll();
-}
-
-/** Delete photo */
-function deletePhoto(itemId, photoId){
-  const it = state.items.find(x=>x.id===itemId);
-  if(!it) return;
-  it.photos = (it.photos||[]).filter(p=>p.id!==photoId);
-  it.updatedAt = nowISO();
-  saveDB();
-  renderAll();
+function renderAll(){
+  purgeExpiredOutbound();
+  renderAisleTiles();
+  renderCrumbs();
+  renderList();
+  ui.dbCount.textContent = String(state.items.length);
 }
 
 /** Back + Reset */
@@ -862,9 +754,8 @@ ui.btnBack.onclick = ()=>{
   else if(flow.step === 3) showStep(2);
   else if(flow.step === 2) showStep(1);
 };
-
 function resetFlow(){
-  flow = { step: 1, aisle: null, rail: null, level: null, editingItemId: null };
+  flow = { step:1, aisle:null, rail:null, level:null, editingItemId:null };
   ui.tagId.value = "";
   ui.notes.value = "";
   ui.statusSelect.value = "INBOUND";
@@ -883,7 +774,6 @@ ui.toStep3.onclick = ()=>{
   showStep(3);
   renderAll();
 };
-
 ui.toStep4.onclick = ()=>{
   const level = norm(ui.levelSelect.value);
   if(!level){ alert("Pick a level."); return; }
@@ -892,9 +782,7 @@ ui.toStep4.onclick = ()=>{
   renderAll();
 };
 
-ui.levelSelect.onchange = ()=>{ /* keeps selection */ };
-
-/** Save button */
+/** Save */
 ui.btnSave.onclick = saveFlow;
 
 /** Search */
@@ -910,7 +798,6 @@ ui.btnExport.onclick = ()=>{
   a.click();
   URL.revokeObjectURL(a.href);
 };
-
 ui.btnImport.onclick = ()=> ui.importFile.click();
 ui.importFile.onchange = async ()=>{
   const f = ui.importFile.files && ui.importFile.files[0];
@@ -934,7 +821,6 @@ ui.importFile.onchange = async ()=>{
     ui.importFile.value = "";
   }
 };
-
 ui.btnWipe.onclick = ()=>{
   const ok = confirm("This wipes ALL tags + photos on this device. Continue?");
   if(!ok) return;
@@ -944,17 +830,10 @@ ui.btnWipe.onclick = ()=>{
   resetFlow();
 };
 
-/** Render all */
-function renderAll(){
-  purgeExpiredOutbound();
-  renderAisleTiles();
-  renderCrumbs();
-  renderList();
-  ui.dbCount.textContent = String(state.items.length);
-}
-
 /** Boot */
 saveDB();
+setRailOptions();
+setLevelOptions();
 resetFlow();
 renderAll();
 </script>
