@@ -23,6 +23,7 @@
 
       --good:#38d27a;
       --bad:#ff5964;
+      --warn:#ffcc66;
 
       --radius:18px;
       --shadow: 0 12px 40px rgba(0,0,0,.55);
@@ -41,7 +42,7 @@
       overflow-x:hidden;
     }
 
-    .wrap{max-width:1100px;margin:26px auto;padding:0 16px 48px}
+    .wrap{max-width:1200px;margin:26px auto;padding:0 16px 48px}
     .topbar{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap}
     .brand{display:flex;gap:12px;align-items:center}
     .logo{
@@ -73,8 +74,29 @@
     .dot{width:8px;height:8px;border-radius:999px;background:var(--bad)}
     .dot.ok{background:var(--good)}
 
+    .tabs{
+      margin-top:14px;
+      display:flex;gap:10px;flex-wrap:wrap;
+    }
+    .tabbtn{
+      padding:10px 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      color: var(--text);
+      cursor:pointer;
+      font-weight:750;
+      font-size:12px;
+    }
+    .tabbtn.active{
+      border-color: rgba(246,213,122,.35);
+      background: rgba(246,213,122,.12);
+    }
+
     .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;margin-top:16px}
     @media(max-width:980px){.grid{grid-template-columns:1fr}}
+
+    .gridOne{display:grid;grid-template-columns:1fr;gap:16px;margin-top:16px}
 
     .card{
       background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
@@ -88,6 +110,7 @@
       display:flex;align-items:center;justify-content:space-between;gap:12px;
       border-bottom:1px solid rgba(255,255,255,.08);
       background: rgba(0,0,0,.18);
+      flex-wrap:wrap;
     }
     .card .hd b{font-size:13px;letter-spacing:.2px}
     .card .bd{padding:14px}
@@ -196,6 +219,128 @@
     .toast.show{display:block}
     .toast.ok{border-color:rgba(56,210,122,.35);color:#bff1d2}
     .toast.bad{border-color:rgba(255,89,100,.35);color:#ffd0d3}
+
+    /* Aisle Map */
+    .mapTop{
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap:12px;
+      align-items:end;
+    }
+    @media(max-width:980px){.mapTop{grid-template-columns:1fr}}
+    .seg{
+      display:flex;gap:8px;flex-wrap:wrap;
+      align-items:center;
+    }
+    .chip{
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      color: var(--text);
+      font-weight:750;
+      font-size:12px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .chip.on{
+      border-color: rgba(246,213,122,.35);
+      background: rgba(246,213,122,.12);
+    }
+
+    .mapGridWrap{
+      margin-top:12px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      border-radius: 16px;
+      overflow:auto;
+    }
+    .mapGrid{
+      min-width: 980px;
+      display:grid;
+      grid-template-columns: 80px repeat(21, minmax(44px, 1fr));
+      gap:8px;
+      padding:12px;
+    }
+    .mapHdr{
+      font-size:11px;
+      color: rgba(233,238,245,.75);
+      text-align:center;
+      padding:8px 6px;
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:12px;
+      background: rgba(255,255,255,.04);
+      position:sticky;
+      top:0;
+      backdrop-filter: blur(6px);
+      z-index:1;
+    }
+    .mapRowLbl{
+      font-size:12px;
+      font-weight:800;
+      color: rgba(233,238,245,.90);
+      display:flex;align-items:center;justify-content:center;
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:12px;
+      background: rgba(255,255,255,.04);
+      padding:8px;
+      position:sticky;
+      left:0;
+      z-index:1;
+      backdrop-filter: blur(6px);
+    }
+    .cell{
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:12px;
+      background: rgba(255,255,255,.03);
+      padding:8px 8px 7px;
+      cursor:pointer;
+      transition: transform .08s ease, border-color .08s ease, background .08s ease;
+      min-height:46px;
+      display:flex;flex-direction:column;justify-content:center;align-items:center;
+      gap:4px;
+      text-align:center;
+    }
+    .cell:hover{
+      transform: translateY(-1px);
+      border-color: rgba(246,213,122,.22);
+      background: rgba(246,213,122,.06);
+    }
+    .cell .c1{font-size:12px;font-weight:900}
+    .cell .c2{font-size:10px;color:rgba(233,238,245,.68)}
+    .cell.empty .c1{color:rgba(233,238,245,.55);font-weight:800}
+    .cell.inOnly{border-color: rgba(56,210,122,.25); background: rgba(56,210,122,.05)}
+    .cell.outOnly{border-color: rgba(255,89,100,.25); background: rgba(255,89,100,.06)}
+    .cell.mixed{border-color: rgba(255,204,102,.30); background: rgba(255,204,102,.06)}
+
+    .drawer{
+      margin-top:12px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.20);
+      padding:12px;
+    }
+    .drawerTop{
+      display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;
+    }
+    .drawerTitle{
+      font-weight:900;
+      letter-spacing:.2px;
+    }
+    .drawerSub{color:var(--muted);font-size:12px;margin-top:4px}
+    .drawerList{
+      margin-top:10px;
+      display:flex;flex-direction:column;gap:10px;
+    }
+    .miniRow{
+      display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;
+      padding:10px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.03);
+    }
+    .miniLeft .t{font-weight:900;font-size:12px}
+    .miniLeft .s{font-size:11px;color:var(--muted);margin-top:4px}
   </style>
 </head>
 
@@ -216,12 +361,20 @@
       </div>
     </div>
 
-    <div class="grid">
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tabbtn active" id="tabSave">Save / Update</button>
+      <button class="tabbtn" id="tabSearch">Search</button>
+      <button class="tabbtn" id="tabMap">Aisle View</button>
+    </div>
+
+    <!-- SAVE + SEARCH (two-column) -->
+    <div class="grid" id="viewSaveSearch">
       <!-- LEFT: SAVE / UPDATE -->
       <div class="card">
         <div class="hd">
           <b>Save / Update a Tag</b>
-          <span class="small" id="modeTxt">Step 1: Pick aisle → rail → level</span>
+          <span class="small" id="modeTxt">Pick aisle → rail → level</span>
         </div>
         <div class="bd">
           <div class="row">
@@ -286,8 +439,8 @@
           </div>
 
           <div class="help" style="margin-top:12px">
-            <b>Outbound auto-delete:</b> Your SQL function <code>public.purge_outbound_older_than(5)</code> deletes outbound tags older than 5 days.
-            Run it from Supabase SQL Editor whenever you want (daily/weekly).
+            <b>Outbound auto-delete:</b> Run this anytime in Supabase SQL Editor:
+            <code>select public.purge_outbound_older_than(5);</code>
           </div>
         </div>
       </div>
@@ -315,6 +468,57 @@
         </div>
       </div>
     </div>
+
+    <!-- AISLE VIEW (one-column) -->
+    <div class="gridOne" id="viewMap" style="display:none">
+      <div class="card">
+        <div class="hd">
+          <b>Aisle View</b>
+          <span class="small">Click a cell to see tags + photos. Use “Add tag here” to prefill the form.</span>
+        </div>
+        <div class="bd">
+          <div class="mapTop">
+            <div>
+              <label>Aisle</label>
+              <select id="mapAisleSel"></select>
+            </div>
+
+            <div>
+              <label>Filter</label>
+              <div class="seg">
+                <div class="chip on" id="fAll">All</div>
+                <div class="chip" id="fIn">Inbound</div>
+                <div class="chip" id="fOut">Outbound</div>
+              </div>
+            </div>
+
+            <div class="btnrow" style="margin-top:0">
+              <button class="secondary" id="mapRefreshBtn" type="button">Refresh aisle</button>
+              <button class="secondary" id="mapRecentBtn" type="button">Jump to latest tag (loads its cell)</button>
+            </div>
+          </div>
+
+          <div class="mapGridWrap">
+            <div class="mapGrid" id="mapGrid"></div>
+          </div>
+
+          <div class="drawer" id="cellDrawer" style="display:none">
+            <div class="drawerTop">
+              <div>
+                <div class="drawerTitle" id="drawerTitle">—</div>
+                <div class="drawerSub" id="drawerSub">—</div>
+              </div>
+              <div class="btnrow" style="margin-top:0">
+                <button class="secondary" id="drawerAddBtn" type="button">Add tag here</button>
+                <button class="secondary" id="drawerCloseBtn" type="button">Close</button>
+              </div>
+            </div>
+            <div class="drawerList" id="drawerList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
 <script>
@@ -330,8 +534,18 @@ const PHOTO_BUCKET = "warehouse-photos";
  * ========================================================= */
 const $ = (id)=>document.getElementById(id);
 const ui = {
+  // tabs
+  tabSave: $("tabSave"),
+  tabSearch: $("tabSearch"),
+  tabMap: $("tabMap"),
+  viewSaveSearch: $("viewSaveSearch"),
+  viewMap: $("viewMap"),
+
+  // conn
   connDot: $("connDot"),
   connTxt: $("connTxt"),
+
+  // save form
   aisleSel: $("aisleSel"),
   railSel: $("railSel"),
   levelSel: $("levelSel"),
@@ -346,15 +560,34 @@ const ui = {
   toast: $("toast"),
   modeTxt: $("modeTxt"),
 
+  // search
   searchInput: $("searchInput"),
   searchBtn: $("searchBtn"),
   refreshBtn: $("refreshBtn"),
   recentBtn: $("recentBtn"),
   results: $("results"),
 
+  // KPIs
   kpiTotal: $("kpiTotal"),
   kpiInbound: $("kpiInbound"),
   kpiOutbound: $("kpiOutbound"),
+
+  // map
+  mapAisleSel: $("mapAisleSel"),
+  mapGrid: $("mapGrid"),
+  mapRefreshBtn: $("mapRefreshBtn"),
+  mapRecentBtn: $("mapRecentBtn"),
+  fAll: $("fAll"),
+  fIn: $("fIn"),
+  fOut: $("fOut"),
+
+  // drawer
+  cellDrawer: $("cellDrawer"),
+  drawerTitle: $("drawerTitle"),
+  drawerSub: $("drawerSub"),
+  drawerList: $("drawerList"),
+  drawerAddBtn: $("drawerAddBtn"),
+  drawerCloseBtn: $("drawerCloseBtn"),
 };
 
 function toast(msg, type=""){
@@ -369,17 +602,22 @@ function setConn(ok, msg){
   ui.connTxt.textContent = msg;
 }
 
-function normTag(s){
-  return (s||"").trim();
-}
+function normTag(s){ return (s||"").trim(); }
 function safePathPart(s){
   return (s||"").trim()
     .replace(/[^\w.\-]+/g, "_")
     .replace(/_+/g, "_")
     .slice(0, 80) || "TAG";
 }
-
 function pad2(n){ return String(n).padStart(2,"0"); }
+function escapeHtml(s){
+  return String(s||"")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
 
 /** =========================================================
  *  Supabase
@@ -387,10 +625,9 @@ function pad2(n){ return String(n).padStart(2,"0"); }
 let sb = null;
 
 /** =========================================================
- *  Dropdowns + Back button state
+ *  Back button state
  * ========================================================= */
-let historyStack = []; // store snapshots for Back button
-
+let historyStack = [];
 function snapshotState(){
   return {
     aisle: ui.aisleSel.value,
@@ -402,7 +639,7 @@ function snapshotState(){
 }
 function pushHistory(){
   historyStack.push(snapshotState());
-  if(historyStack.length > 25) historyStack.shift();
+  if(historyStack.length > 30) historyStack.shift();
 }
 function restoreState(s){
   if(!s) return;
@@ -420,10 +657,31 @@ function back(){
 }
 
 /** =========================================================
- *  Load aisles / build rails/levels
+ *  Tabs
+ * ========================================================= */
+function setTab(which){
+  ui.tabSave.classList.toggle("active", which==="save");
+  ui.tabSearch.classList.toggle("active", which==="search");
+  ui.tabMap.classList.toggle("active", which==="map");
+
+  ui.viewSaveSearch.style.display = (which==="map") ? "none" : "";
+  ui.viewMap.style.display = (which==="map") ? "" : "none";
+
+  if(which==="search"){
+    // bring attention to search box
+    setTimeout(()=>ui.searchInput.focus(), 50);
+  }
+  if(which==="map"){
+    // build map if needed
+    setTimeout(()=>refreshMap(), 50);
+  }
+}
+
+/** =========================================================
+ *  Load aisles / rails / levels
  * ========================================================= */
 async function loadAisles(){
-  // Build rails + levels generically
+  // rails + levels for form
   ui.railSel.innerHTML = "";
   for(let i=1;i<=21;i++){
     const opt = document.createElement("option");
@@ -431,7 +689,6 @@ async function loadAisles(){
     opt.textContent = `Rail ${i}`;
     ui.railSel.appendChild(opt);
   }
-
   ui.levelSel.innerHTML = "";
   for(let i=1;i<=5;i++){
     const opt = document.createElement("option");
@@ -440,42 +697,31 @@ async function loadAisles(){
     ui.levelSel.appendChild(opt);
   }
 
-  // Pull aisles from DB (falls back to AISLE-01..10 if empty)
   const { data, error } = await sb
     .from("aisles")
     .select("name")
     .order("name", { ascending: true });
 
+  const fallback = ()=>{
+    const names = [];
+    for(let i=1;i<=10;i++) names.push(`AISLE-${pad2(i)}`);
+    return names;
+  };
+
+  const aisles = (!error && (data||[]).length) ? (data||[]).map(x=>x.name).filter(Boolean) : fallback();
+
   ui.aisleSel.innerHTML = "";
-  if(error){
-    // fallback
-    for(let i=1;i<=10;i++){
-      const name = `AISLE-${pad2(i)}`;
-      const opt = document.createElement("option");
-      opt.value = name; opt.textContent = name;
-      ui.aisleSel.appendChild(opt);
-    }
-    toast("Could not load aisles table (using default AISLE-01..10).", "bad");
-    return;
+  ui.mapAisleSel.innerHTML = "";
+  for(const name of aisles){
+    const opt1 = document.createElement("option");
+    opt1.value = name; opt1.textContent = name;
+    ui.aisleSel.appendChild(opt1);
+
+    const opt2 = document.createElement("option");
+    opt2.value = name; opt2.textContent = name;
+    ui.mapAisleSel.appendChild(opt2);
   }
 
-  const list = (data||[]).map(x=>x.name).filter(Boolean);
-  if(!list.length){
-    for(let i=1;i<=10;i++){
-      const name = `AISLE-${pad2(i)}`;
-      const opt = document.createElement("option");
-      opt.value = name; opt.textContent = name;
-      ui.aisleSel.appendChild(opt);
-    }
-  } else {
-    for(const name of list){
-      const opt = document.createElement("option");
-      opt.value = name; opt.textContent = name;
-      ui.aisleSel.appendChild(opt);
-    }
-  }
-
-  // defaults
   ui.railSel.value = "1";
   ui.levelSel.value = "1";
 }
@@ -484,16 +730,13 @@ async function loadAisles(){
  *  DB ops
  * ========================================================= */
 async function upsertPalletTag({tag_id, aisle_name, rail, level, status, notes}){
-  // Uses your unique index: (aisle_name, rail, level, tag_id)
   const payload = { tag_id, aisle_name, rail, level, status, notes };
-
   const { data, error } = await sb
     .from("pallet_tags")
     .upsert(payload, { onConflict: "aisle_name,rail,level,tag_id" })
     .select("*")
     .limit(1)
     .single();
-
   if(error) throw error;
   return data;
 }
@@ -511,14 +754,11 @@ async function uploadPhotoAndLink(palletTagRow, file){
   const cleanName = safePathPart(file.name.replace(/\.[^/.]+$/, ""));
   const object_path = `${aisle}/${rail}/${level}/${tag}/${ts}_${cleanName}.${ext}`;
 
-  // upload
   const { error: upErr } = await sb.storage
     .from(PHOTO_BUCKET)
     .upload(object_path, file, { upsert: false, contentType: file.type || "image/jpeg" });
-
   if(upErr) throw upErr;
 
-  // insert metadata
   const { data, error } = await sb
     .from("tag_photos")
     .insert({
@@ -531,7 +771,6 @@ async function uploadPhotoAndLink(palletTagRow, file){
     .select("*")
     .limit(1)
     .single();
-
   if(error) throw error;
   return data;
 }
@@ -563,10 +802,8 @@ async function saveWithStatus(status){
     const level = parseInt(ui.levelSel.value, 10);
     const notes = (ui.notesInput.value || "").trim() || null;
 
-    // 1) upsert location/status
     const row = await upsertPalletTag({ tag_id, aisle_name, rail, level, status, notes });
 
-    // 2) optional photo upload
     const file = ui.photoInput.files?.[0] || null;
     if(file){
       await uploadPhotoAndLink(row, file);
@@ -575,6 +812,11 @@ async function saveWithStatus(status){
 
     toast(`Saved ${tag_id} → ${aisle_name} / Rail ${rail} / Level ${level} (${status}).`, "ok");
     await refreshKPIs();
+
+    // keep map in sync if it's open
+    if(ui.viewMap.style.display !== "none"){
+      await refreshMap({ keepDrawer:true });
+    }
   }catch(err){
     console.error(err);
     toast(`Save failed: ${err.message || err}`, "bad");
@@ -583,13 +825,6 @@ async function saveWithStatus(status){
     ui.outBtn.disabled = false;
     ui.inBtn.disabled = false;
   }
-}
-
-async function markOutbound(){
-  await saveWithStatus("OUTBOUND");
-}
-async function markInbound(){
-  await saveWithStatus("INBOUND");
 }
 
 /** =========================================================
@@ -605,7 +840,6 @@ async function fetchPhotosForTagIds(palletTagIds){
 
   if(error) throw error;
 
-  // map: tagId -> [paths...]
   const map = new Map();
   for(const row of (data||[])){
     if(!map.has(row.pallet_tag_id)) map.set(row.pallet_tag_id, []);
@@ -645,12 +879,12 @@ function renderResults(rows, photoMap){
       <div class="thumbs" id="thumbs_${r.id}"></div>
       <div class="btnrow" style="margin-top:10px">
         <button class="secondary" data-act="fill" data-id="${r.id}">Load into form</button>
+        <button class="secondary" data-act="map" data-id="${r.id}">Open in Aisle View</button>
         <button class="secondary" data-act="in" data-id="${r.id}">Mark Inbound</button>
         <button class="secondary" data-act="out" data-id="${r.id}">Mark Outbound</button>
       </div>
     `;
 
-    // thumbnails
     const thumbs = div.querySelector(`#thumbs_${CSS.escape(r.id)}`);
     if(photos.length){
       for(const p of photos.slice(0,6)){
@@ -664,7 +898,6 @@ function renderResults(rows, photoMap){
       thumbs.innerHTML = `<div class="small">No photos saved for this tag.</div>`;
     }
 
-    // actions
     div.addEventListener("click", async (e)=>{
       const btn = e.target.closest("button");
       if(!btn) return;
@@ -678,7 +911,15 @@ function renderResults(rows, photoMap){
         ui.railSel.value = String(r.rail);
         ui.levelSel.value = String(r.level);
         ui.notesInput.value = r.notes || "";
+        setTab("save");
         toast("Loaded into form. You can update and resave.", "ok");
+      }
+
+      if(act === "map"){
+        setTab("map");
+        ui.mapAisleSel.value = r.aisle_name;
+        await refreshMap();
+        openCellDrawer(r.aisle_name, r.rail, r.level);
       }
 
       if(act === "in"){
@@ -706,15 +947,6 @@ function renderResults(rows, photoMap){
 
     ui.results.appendChild(div);
   }
-}
-
-function escapeHtml(s){
-  return String(s||"")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
 }
 
 async function doSearch(tag){
@@ -773,7 +1005,6 @@ async function recentTags(){
  * ========================================================= */
 async function refreshKPIs(){
   try{
-    // total
     const total = await sb.from("pallet_tags").select("id", { count:"exact", head:true });
     const inbound = await sb.from("pallet_tags").select("id", { count:"exact", head:true }).eq("status","INBOUND");
     const outbound = await sb.from("pallet_tags").select("id", { count:"exact", head:true }).eq("status","OUTBOUND");
@@ -783,6 +1014,247 @@ async function refreshKPIs(){
     ui.kpiOutbound.textContent = (outbound.count ?? "—");
   }catch(err){
     console.error(err);
+  }
+}
+
+/** =========================================================
+ *  AISLE VIEW
+ * ========================================================= */
+let mapFilter = "ALL"; // ALL | INBOUND | OUTBOUND
+let aisleCache = {
+  aisle: null,
+  rows: [],
+  byCell: new Map(),   // key: "r|l" => array rows
+  photoMap: new Map(), // pallet_tag_id => [paths]
+};
+let openCell = null; // {aisle, rail, level}
+
+function setFilter(f){
+  mapFilter = f;
+  ui.fAll.classList.toggle("on", f==="ALL");
+  ui.fIn.classList.toggle("on", f==="INBOUND");
+  ui.fOut.classList.toggle("on", f==="OUTBOUND");
+  refreshMap({ keepDrawer:true });
+}
+
+function cellKey(rail, level){ return `${rail}|${level}`; }
+
+async function loadAisleRows(aisleName){
+  // fetch all tags for this aisle (optionally filtered)
+  let q = sb.from("pallet_tags").select("*").eq("aisle_name", aisleName);
+  if(mapFilter === "INBOUND") q = q.eq("status","INBOUND");
+  if(mapFilter === "OUTBOUND") q = q.eq("status","OUTBOUND");
+
+  const { data, error } = await q.order("updated_at", { ascending:false });
+  if(error) throw error;
+
+  const rows = data || [];
+  const ids = rows.map(r=>r.id);
+  const photoMap = await fetchPhotosForTagIds(ids);
+
+  // group by cell
+  const byCell = new Map();
+  for(const r of rows){
+    const k = cellKey(r.rail, r.level);
+    if(!byCell.has(k)) byCell.set(k, []);
+    byCell.get(k).push(r);
+  }
+
+  aisleCache = { aisle: aisleName, rows, byCell, photoMap };
+}
+
+function buildMapGrid(){
+  const g = ui.mapGrid;
+  g.innerHTML = "";
+
+  // top-left blank
+  const blank = document.createElement("div");
+  blank.className = "mapHdr";
+  blank.textContent = "Level \\ Rail";
+  g.appendChild(blank);
+
+  // headers rail 1..21
+  for(let rail=1; rail<=21; rail++){
+    const h = document.createElement("div");
+    h.className = "mapHdr";
+    h.textContent = `R${rail}`;
+    g.appendChild(h);
+  }
+
+  // levels 5..1 (top is L5)
+  for(let level=5; level>=1; level--){
+    const lbl = document.createElement("div");
+    lbl.className = "mapRowLbl";
+    lbl.textContent = `L${level}`;
+    g.appendChild(lbl);
+
+    for(let rail=1; rail<=21; rail++){
+      const k = cellKey(rail, level);
+      const list = aisleCache.byCell.get(k) || [];
+      const inboundCount = list.filter(x=>x.status==="INBOUND").length;
+      const outboundCount = list.filter(x=>x.status==="OUTBOUND").length;
+
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      cell.dataset.rail = String(rail);
+      cell.dataset.level = String(level);
+
+      if(!list.length) cell.classList.add("empty");
+      if(list.length){
+        if(inboundCount && outboundCount) cell.classList.add("mixed");
+        else if(inboundCount) cell.classList.add("inOnly");
+        else if(outboundCount) cell.classList.add("outOnly");
+      }
+
+      const top = list.length ? `${list.length}` : "—";
+      const sub = list.length
+        ? `${inboundCount} in • ${outboundCount} out`
+        : "empty";
+
+      cell.innerHTML = `<div class="c1">${top}</div><div class="c2">${sub}</div>`;
+      cell.addEventListener("click", ()=>{
+        openCellDrawer(aisleCache.aisle, rail, level);
+      });
+
+      g.appendChild(cell);
+    }
+  }
+}
+
+async function refreshMap(opts={}){
+  try{
+    const aisleName = ui.mapAisleSel.value;
+    if(!aisleName) return;
+
+    await loadAisleRows(aisleName);
+    buildMapGrid();
+
+    // keep drawer open if requested
+    if(opts.keepDrawer && openCell && openCell.aisle === aisleName){
+      openCellDrawer(openCell.aisle, openCell.rail, openCell.level, { silent:true });
+    } else {
+      // hide drawer on change
+      ui.cellDrawer.style.display = "none";
+      openCell = null;
+    }
+  }catch(err){
+    console.error(err);
+    toast(`Aisle view failed: ${err.message || err}`, "bad");
+  }
+}
+
+function openCellDrawer(aisleName, rail, level, opts={}){
+  openCell = { aisle: aisleName, rail, level };
+
+  const k = cellKey(rail, level);
+  const list = aisleCache.byCell.get(k) || [];
+
+  ui.drawerTitle.textContent = `${aisleName} • Rail ${rail} • Level ${level}`;
+  ui.drawerSub.textContent = `Showing ${list.length} tag(s) (${mapFilter === "ALL" ? "all" : mapFilter.toLowerCase()}).`;
+  ui.drawerList.innerHTML = "";
+
+  if(!list.length){
+    ui.drawerList.innerHTML = `<div class="small">No tags saved in this spot. Click “Add tag here”.</div>`;
+    ui.cellDrawer.style.display = "";
+    if(!opts.silent) toast("Cell opened.", "ok");
+    return;
+  }
+
+  for(const r of list){
+    const photos = aisleCache.photoMap.get(r.id) || [];
+    const badgeClass = r.status === "OUTBOUND" ? "out" : "in";
+    const badgeTxt = r.status === "OUTBOUND" ? "OUTBOUND" : "INBOUND";
+
+    const item = document.createElement("div");
+    item.className = "miniRow";
+
+    const thumbs = photos.slice(0,3).map(p=>{
+      const url = publicUrl(p);
+      return `<div class="thumb" style="width:96px;height:70px"><img src="${url}" loading="lazy" alt="photo"></div>`;
+    }).join("");
+
+    item.innerHTML = `
+      <div class="miniLeft">
+        <div class="t">${escapeHtml(r.tag_id)}</div>
+        <div class="s">
+          <span class="badge ${badgeClass}" style="padding:6px 9px">${badgeTxt}</span>
+          &nbsp;• Updated ${new Date(r.updated_at || r.created_at).toLocaleString()}
+          ${r.outbound_at ? `<br>Outbound at ${new Date(r.outbound_at).toLocaleString()}` : ``}
+          ${r.notes ? `<br>Notes: ${escapeHtml(r.notes)}` : ``}
+        </div>
+        ${thumbs ? `<div class="thumbs" style="margin-top:8px">${thumbs}</div>` : `<div class="small" style="margin-top:8px">No photos for this tag.</div>`}
+      </div>
+      <div class="btnrow" style="margin-top:0">
+        <button class="secondary" data-act="load">Load</button>
+        <button class="secondary" data-act="in">Inbound</button>
+        <button class="secondary" data-act="out">Outbound</button>
+      </div>
+    `;
+
+    item.addEventListener("click", async (e)=>{
+      const btn = e.target.closest("button");
+      if(!btn) return;
+      const act = btn.getAttribute("data-act");
+      if(!act) return;
+
+      if(act === "load"){
+        pushHistory();
+        ui.tagInput.value = r.tag_id;
+        ui.aisleSel.value = r.aisle_name;
+        ui.railSel.value = String(r.rail);
+        ui.levelSel.value = String(r.level);
+        ui.notesInput.value = r.notes || "";
+        setTab("save");
+        toast("Loaded into form.", "ok");
+      }
+
+      if(act === "in"){
+        pushHistory();
+        ui.tagInput.value = r.tag_id;
+        ui.aisleSel.value = r.aisle_name;
+        ui.railSel.value = String(r.rail);
+        ui.levelSel.value = String(r.level);
+        ui.notesInput.value = r.notes || "";
+        await saveWithStatus("INBOUND");
+      }
+
+      if(act === "out"){
+        pushHistory();
+        ui.tagInput.value = r.tag_id;
+        ui.aisleSel.value = r.aisle_name;
+        ui.railSel.value = String(r.rail);
+        ui.levelSel.value = String(r.level);
+        ui.notesInput.value = r.notes || "";
+        await saveWithStatus("OUTBOUND");
+      }
+    });
+
+    ui.drawerList.appendChild(item);
+  }
+
+  ui.cellDrawer.style.display = "";
+  if(!opts.silent) toast("Cell opened.", "ok");
+}
+
+async function jumpToLatestTagCell(){
+  try{
+    const { data, error } = await sb
+      .from("pallet_tags")
+      .select("*")
+      .order("updated_at", { ascending:false })
+      .limit(1)
+      .single();
+
+    if(error) throw error;
+    if(!data) return;
+
+    setTab("map");
+    ui.mapAisleSel.value = data.aisle_name;
+    await refreshMap();
+    openCellDrawer(data.aisle_name, data.rail, data.level);
+  }catch(err){
+    console.error(err);
+    toast(`Could not jump to latest: ${err.message || err}`, "bad");
   }
 }
 
@@ -803,9 +1275,16 @@ async function init(){
   }
 }
 
+/** =========================================================
+ *  Wire events
+ * ========================================================= */
+ui.tabSave.addEventListener("click", ()=>setTab("save"));
+ui.tabSearch.addEventListener("click", ()=>setTab("search"));
+ui.tabMap.addEventListener("click", ()=>setTab("map"));
+
 ui.saveBtn.addEventListener("click", ()=>saveWithStatus("INBOUND"));
-ui.outBtn.addEventListener("click", markOutbound);
-ui.inBtn.addEventListener("click", markInbound);
+ui.outBtn.addEventListener("click", ()=>saveWithStatus("OUTBOUND"));
+ui.inBtn.addEventListener("click", ()=>saveWithStatus("INBOUND"));
 ui.backBtn.addEventListener("click", back);
 ui.clearBtn.addEventListener("click", ()=>{
   pushHistory();
@@ -824,11 +1303,34 @@ ui.searchInput.addEventListener("keydown", (e)=>{
 ui.refreshBtn.addEventListener("click", refreshKPIs);
 ui.recentBtn.addEventListener("click", recentTags);
 
-// push history when user changes dropdowns (so Back is useful)
+// history helps Back
 ["change","input"].forEach(evt=>{
   ui.aisleSel.addEventListener(evt, pushHistory);
   ui.railSel.addEventListener(evt, pushHistory);
   ui.levelSel.addEventListener(evt, pushHistory);
+});
+
+// map events
+ui.mapAisleSel.addEventListener("change", ()=>refreshMap());
+ui.mapRefreshBtn.addEventListener("click", ()=>refreshMap());
+ui.mapRecentBtn.addEventListener("click", jumpToLatestTagCell);
+ui.fAll.addEventListener("click", ()=>setFilter("ALL"));
+ui.fIn.addEventListener("click", ()=>setFilter("INBOUND"));
+ui.fOut.addEventListener("click", ()=>setFilter("OUTBOUND"));
+
+ui.drawerCloseBtn.addEventListener("click", ()=>{
+  ui.cellDrawer.style.display = "none";
+  openCell = null;
+});
+ui.drawerAddBtn.addEventListener("click", ()=>{
+  if(!openCell){ toast("Open a cell first.", "bad"); return; }
+  pushHistory();
+  ui.aisleSel.value = openCell.aisle;
+  ui.railSel.value = String(openCell.rail);
+  ui.levelSel.value = String(openCell.level);
+  setTab("save");
+  ui.tagInput.focus();
+  toast("Prefilled location. Now type/scan tag and save.", "ok");
 });
 
 init();
