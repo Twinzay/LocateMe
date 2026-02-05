@@ -3,1375 +3,1130 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>LocateMe — Warehouse Tag & Photo Tracker</title>
+  <title>LocateMe — Warehouse Pallet & Photo Tracker</title>
 
   <!-- Supabase JS (UMD) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- ZXing for camera barcode scan (UMD) -->
+  <script src="https://unpkg.com/@zxing/browser@0.1.5/umd/zxing-browser.min.js"></script>
+  <!-- jsPDF for PDF exports -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
   <style>
     :root{
-      --bg:#050608;
+      --bg:#07080b;
       --panel:rgba(255,255,255,.06);
-      --panel2:rgba(255,255,255,.04);
+      --panel2:rgba(255,255,255,.09);
       --stroke:rgba(255,255,255,.12);
-      --text:#E9EEF5;
-      --muted:rgba(233,238,245,.72);
-
-      --gold1:#f6d57a;
+      --text:#e9eef5;
+      --muted:rgba(233,238,245,.70);
+      --gold1:#ffcf5a;
       --gold2:#caa24d;
-      --gold3:#8b6b23;
-
-      --good:#38d27a;
+      --ok:#38d27a;
       --bad:#ff5964;
       --warn:#ffcc66;
-
+      --shadow: 0 12px 40px rgba(0,0,0,.45);
       --radius:18px;
-      --shadow: 0 12px 40px rgba(0,0,0,.55);
     }
-
     *{box-sizing:border-box}
-    html,body{height:100%}
     body{
       margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
       color:var(--text);
-      background: radial-gradient(1200px 600px at 20% -10%, rgba(246,213,122,.22), transparent 55%),
-                  radial-gradient(900px 520px at 80% 0%, rgba(202,162,77,.18), transparent 55%),
-                  radial-gradient(800px 500px at 50% 110%, rgba(139,107,35,.18), transparent 60%),
-                  linear-gradient(180deg, #050608, #07090c 40%, #050608);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background: radial-gradient(1200px 600px at 10% 0%, rgba(255,207,90,.16), transparent 60%),
+                  radial-gradient(900px 500px at 90% 30%, rgba(202,162,77,.14), transparent 55%),
+                  linear-gradient(160deg, #050506, #090a0f 55%, #06070a);
+      min-height:100vh;
       overflow-x:hidden;
     }
-
-    .wrap{max-width:1200px;margin:26px auto;padding:0 16px 48px}
-    .topbar{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-    .brand{display:flex;gap:12px;align-items:center}
-    .logo{
-      width:44px;height:44px;border-radius:14px;
-      background: linear-gradient(135deg, rgba(246,213,122,.25), rgba(202,162,77,.12));
-      border:1px solid rgba(246,213,122,.35);
-      box-shadow: var(--shadow);
-      position:relative;
-      overflow:hidden;
+    .waves{
+      position:fixed; inset:-120px -120px auto -120px; height:520px; pointer-events:none; opacity:.9; z-index:-1;
+      filter: blur(0px);
     }
-    .logo:before{
+    .waves:before,.waves:after{
       content:"";
-      position:absolute;inset:-40%;
-      background: linear-gradient(90deg, transparent, rgba(246,213,122,.55), transparent);
-      transform:rotate(25deg);
-      opacity:.55;
+      position:absolute; inset:0;
+      background-image:
+        radial-gradient(900px 280px at 15% 30%, rgba(255,207,90,.35), transparent 60%),
+        radial-gradient(800px 260px at 80% 15%, rgba(202,162,77,.32), transparent 60%),
+        radial-gradient(700px 250px at 55% 70%, rgba(255,207,90,.18), transparent 60%);
+      transform: rotate(-6deg);
     }
-    h1{margin:0;font-size:18px;letter-spacing:.2px}
-    .sub{margin:2px 0 0;color:var(--muted);font-size:12px}
-
+    header{
+      position:sticky; top:0; z-index:10;
+      backdrop-filter: blur(14px);
+      background: linear-gradient(180deg, rgba(10,10,14,.75), rgba(10,10,14,.25));
+      border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    .wrap{max-width:1180px; margin:0 auto; padding:18px 18px;}
+    .top{
+      display:flex; gap:14px; align-items:center; justify-content:space-between; flex-wrap:wrap;
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px;
+    }
+    .logo{
+      width:44px; height:44px; border-radius:14px;
+      background: linear-gradient(135deg, rgba(255,207,90,.95), rgba(202,162,77,.9));
+      box-shadow: 0 12px 28px rgba(255,207,90,.12);
+    }
+    h1{margin:0; font-size:18px; letter-spacing:.4px}
+    .sub{margin:2px 0 0 0; color:var(--muted); font-size:12px}
     .pill{
-      display:inline-flex;align-items:center;gap:8px;
-      padding:8px 12px;border-radius:999px;
-      background: rgba(255,255,255,.04);
+      display:inline-flex; align-items:center; gap:8px;
+      padding:10px 12px; border-radius:999px;
+      background: rgba(255,255,255,.06);
       border:1px solid rgba(255,255,255,.10);
-      color:var(--muted);
-      font-size:12px;
+      box-shadow: var(--shadow);
+      font-size:12px; color:var(--muted);
     }
-    .dot{width:8px;height:8px;border-radius:999px;background:var(--bad)}
-    .dot.ok{background:var(--good)}
-
-    .tabs{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
-    .tabbtn{
-      padding:10px 12px;border-radius:999px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.05);
-      color: var(--text);
-      cursor:pointer;
-      font-weight:750;
-      font-size:12px;
+    .dot{width:8px; height:8px; border-radius:50%; background: var(--warn);}
+    .dot.ok{background: var(--ok);}
+    .grid{
+      display:grid; gap:14px;
+      grid-template-columns: 1.2fr .8fr;
+      align-items:start;
+      margin-top:18px;
     }
-    .tabbtn.active{border-color: rgba(246,213,122,.35);background: rgba(246,213,122,.12)}
-
-    .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;margin-top:16px}
-    @media(max-width:980px){.grid{grid-template-columns:1fr}}
-    .gridOne{display:grid;grid-template-columns:1fr;gap:16px;margin-top:16px}
-
+    @media (max-width: 980px){
+      .grid{grid-template-columns:1fr}
+    }
     .card{
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       overflow:hidden;
     }
     .card .hd{
-      padding:14px 14px 10px;
-      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:14px 16px;
+      background: rgba(255,255,255,.05);
       border-bottom:1px solid rgba(255,255,255,.08);
-      background: rgba(0,0,0,.18);
-      flex-wrap:wrap;
+      display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
     }
-    .card .hd b{font-size:13px;letter-spacing:.2px}
-    .card .bd{padding:14px}
-
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    @media(max-width:680px){.row{grid-template-columns:1fr}}
-
-    label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}
-    input, select, textarea{
-      width:100%;
-      padding:11px 12px;
-      border-radius:14px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(0,0,0,.30);
+    .card .bd{padding:16px;}
+    .title{font-weight:700; letter-spacing:.25px}
+    .muted{color:var(--muted)}
+    .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+    input, select, button, textarea{
+      font: inherit;
       color: var(--text);
-      outline:none;
     }
-    textarea{min-height:88px;resize:vertical}
-
-    .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
-    button{
-      appearance:none;border:0;cursor:pointer;
-      padding:11px 14px;border-radius:14px;
-      font-weight:650;
-      color:#0b0c0f;
-      background: linear-gradient(135deg, var(--gold1), var(--gold2));
-      box-shadow: 0 10px 26px rgba(202,162,77,.25);
-    }
-    button.secondary{
-      color:var(--text);
-      background: rgba(255,255,255,.06);
+    input, select, textarea{
+      background: rgba(0,0,0,.25);
       border:1px solid rgba(255,255,255,.12);
-      box-shadow:none;
-      font-weight:600;
+      border-radius: 12px;
+      padding: 11px 12px;
+      outline: none;
+      width: 100%;
     }
-    button.danger{
-      color:#fff;
-      background: rgba(255,89,100,.18);
-      border:1px solid rgba(255,89,100,.35);
-      box-shadow:none;
+    textarea{min-height:70px; resize:vertical}
+    input:focus, select:focus, textarea:focus{border-color: rgba(255,207,90,.45); box-shadow: 0 0 0 3px rgba(255,207,90,.12);}
+    .btn{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.08);
+      border-radius: 14px;
+      padding: 10px 12px;
+      cursor:pointer;
+      transition: transform .08s ease, background .2s ease;
+      display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      user-select:none;
     }
-    button:disabled{opacity:.55;cursor:not-allowed}
-
-    .help{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.35}
-    .hr{height:1px;background:rgba(255,255,255,.08);margin:14px 0}
-
-    .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-    @media(max-width:700px){.kpis{grid-template-columns:1fr}}
-    .kpi{
-      padding:12px;border-radius:16px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.22);
+    .btn:hover{background: rgba(255,255,255,.11)}
+    .btn:active{transform: translateY(1px)}
+    .btn.gold{
+      border-color: rgba(255,207,90,.35);
+      background: linear-gradient(135deg, rgba(255,207,90,.22), rgba(202,162,77,.14));
     }
-    .kpi .n{font-size:18px;font-weight:800}
-    .kpi .t{font-size:12px;color:var(--muted);margin-top:4px}
-
-    .results{display:flex;flex-direction:column;gap:12px}
-    .res{
-      padding:12px;border-radius:16px;
+    .btn.ok{
+      border-color: rgba(56,210,122,.35);
+      background: rgba(56,210,122,.12);
+    }
+    .btn.bad{
+      border-color: rgba(255,89,100,.35);
+      background: rgba(255,89,100,.12);
+    }
+    .btn.small{padding:8px 10px; border-radius:12px; font-size:12px}
+    .btn:disabled{opacity:.5; cursor:not-allowed}
+    .cols{display:grid; grid-template-columns: 1fr 1fr; gap:10px}
+    @media (max-width: 560px){.cols{grid-template-columns:1fr}}
+    .map{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap:10px;
+    }
+    .tile{
+      padding:12px 12px;
+      border-radius: 16px;
       border:1px solid rgba(255,255,255,.10);
       background: rgba(0,0,0,.20);
+      cursor:pointer;
+      transition: transform .08s ease, background .2s ease, border-color .2s ease;
     }
-    .res .top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
-    .tag{
-      display:inline-flex;align-items:center;gap:8px;
-      padding:7px 10px;border-radius:999px;
-      background: rgba(246,213,122,.10);
-      border:1px solid rgba(246,213,122,.20);
-      color: var(--text);
-      font-size:12px;
-      font-weight:700;
+    .tile:hover{background: rgba(255,255,255,.07); border-color: rgba(255,207,90,.20)}
+    .tile:active{transform: translateY(1px)}
+    .tile.sel{
+      border-color: rgba(255,207,90,.40);
+      box-shadow: 0 0 0 3px rgba(255,207,90,.12);
+      background: rgba(255,207,90,.08);
     }
-    .meta{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.35}
-    .badge{
-      display:inline-flex;align-items:center;gap:8px;
-      padding:7px 10px;border-radius:999px;
-      font-size:12px;font-weight:800;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.06);
-      color:var(--text);
+    .crumb{
+      display:flex; flex-wrap:wrap; gap:8px; align-items:center;
+      color:var(--muted); font-size:12px;
     }
-    .badge.in{border-color:rgba(56,210,122,.35);background:rgba(56,210,122,.10)}
-    .badge.out{border-color:rgba(255,89,100,.35);background:rgba(255,89,100,.12)}
-
-    .thumbs{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .crumb b{color:var(--text)}
+    .thumbs{display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:10px; margin-top:10px}
     .thumb{
-      width:120px;height:86px;border-radius:14px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.04);
-      overflow:hidden;
-      position:relative;
-      cursor: zoom-in;
-    }
-    .thumb img{width:100%;height:100%;object-fit:cover;display:block}
-    .small{font-size:11px;color:var(--muted)}
-    .toast{
-      margin-top:10px;
-      padding:10px 12px;
-      border-radius:14px;
-      background: rgba(0,0,0,.26);
+      border-radius:16px; overflow:hidden;
       border:1px solid rgba(255,255,255,.10);
-      color: var(--muted);
-      font-size:12px;
+      background: rgba(0,0,0,.25);
+    }
+    .thumb img{width:100%; height:160px; object-fit:cover; display:block}
+    .badge{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:6px 10px; border-radius:999px; font-size:12px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+    }
+    .badge.recent{
+      border-color: rgba(255,204,102,.45);
+      background: rgba(255,204,102,.14);
+      color: #ffe6aa;
+    }
+    table{
+      width:100%;
+      border-collapse: collapse;
+      overflow:hidden;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.10);
+    }
+    th, td{
+      padding:10px 10px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      font-size:13px;
+      vertical-align: top;
+    }
+    th{color:var(--muted); font-weight:700; background: rgba(255,255,255,.04)}
+    tr:hover td{background: rgba(255,255,255,.03)}
+    .right{display:flex; gap:10px; align-items:center; justify-content:flex-end; flex-wrap:wrap}
+    .note{font-size:12px; color:var(--muted)}
+    .hr{height:1px; background: rgba(255,255,255,.10); margin:14px 0}
+    .videoWrap{
       display:none;
+      margin-top:10px;
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:16px;
+      overflow:hidden;
+      background: rgba(0,0,0,.20);
+    }
+    video{width:100%; height:240px; object-fit:cover; display:block}
+    .toast{
+      position:fixed; bottom:18px; left:18px; right:18px;
+      max-width: 820px;
+      margin:0 auto;
+      padding:12px 14px;
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.55);
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      display:none;
+      z-index:999;
+      font-size:13px;
     }
     .toast.show{display:block}
-    .toast.ok{border-color:rgba(56,210,122,.35);color:#bff1d2}
-    .toast.bad{border-color:rgba(255,89,100,.35);color:#ffd0d3}
-
-    /* Aisle Map */
-    .mapTop{
-      display:grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap:12px;
-      align-items:end;
-    }
-    @media(max-width:980px){.mapTop{grid-template-columns:1fr}}
-    .seg{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-    .chip{
-      padding:8px 10px;border-radius:999px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.05);
-      color: var(--text);
-      font-weight:750;font-size:12px;
-      cursor:pointer;user-select:none;
-    }
-    .chip.on{border-color: rgba(246,213,122,.35);background: rgba(246,213,122,.12)}
-
-    .mapGridWrap{
-      margin-top:12px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.18);
-      border-radius: 16px;
-      overflow:auto;
-    }
-    .mapGrid{
-      min-width: 980px;
-      display:grid;
-      grid-template-columns: 80px repeat(21, minmax(44px, 1fr));
-      gap:8px;
-      padding:12px;
-    }
-    .mapHdr{
-      font-size:11px;color: rgba(233,238,245,.75);
-      text-align:center;
-      padding:8px 6px;
-      border:1px solid rgba(255,255,255,.10);
-      border-radius:12px;
-      background: rgba(255,255,255,.04);
-      position:sticky;top:0;
-      backdrop-filter: blur(6px);
-      z-index:1;
-    }
-    .mapRowLbl{
-      font-size:12px;font-weight:800;color: rgba(233,238,245,.90);
-      display:flex;align-items:center;justify-content:center;
-      border:1px solid rgba(255,255,255,.10);
-      border-radius:12px;
-      background: rgba(255,255,255,.04);
-      padding:8px;
-      position:sticky;left:0;
-      z-index:1;
-      backdrop-filter: blur(6px);
-    }
-    .cell{
-      border:1px solid rgba(255,255,255,.10);
-      border-radius:12px;
-      background: rgba(255,255,255,.03);
-      padding:8px 8px 7px;
-      cursor:pointer;
-      transition: transform .08s ease, border-color .08s ease, background .08s ease;
-      min-height:46px;
-      display:flex;flex-direction:column;justify-content:center;align-items:center;
-      gap:4px;text-align:center;
-    }
-    .cell:hover{
-      transform: translateY(-1px);
-      border-color: rgba(246,213,122,.22);
-      background: rgba(246,213,122,.06);
-    }
-    .cell .c1{font-size:12px;font-weight:900}
-    .cell .c2{font-size:10px;color:rgba(233,238,245,.68)}
-    .cell.empty .c1{color:rgba(233,238,245,.55);font-weight:800}
-    .cell.inOnly{border-color: rgba(56,210,122,.25); background: rgba(56,210,122,.05)}
-    .cell.outOnly{border-color: rgba(255,89,100,.25); background: rgba(255,89,100,.06)}
-    .cell.mixed{border-color: rgba(255,204,102,.30); background: rgba(255,204,102,.06)}
-
-    .drawer{
-      margin-top:12px;
-      border-radius:16px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.20);
-      padding:12px;
-    }
-    .drawerTop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
-    .drawerTitle{font-weight:900;letter-spacing:.2px}
-    .drawerSub{color:var(--muted);font-size:12px;margin-top:4px}
-    .drawerList{margin-top:10px;display:flex;flex-direction:column;gap:10px}
-    .miniRow{
-      display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;
-      padding:10px;
-      border-radius:14px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.03);
-    }
-    .miniLeft .t{font-weight:900;font-size:12px}
-    .miniLeft .s{font-size:11px;color:var(--muted);margin-top:4px}
-
-    /* Modal */
-    .modal{
-      position:fixed;inset:0;
-      background: rgba(0,0,0,.78);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      padding:18px;
-      z-index:9999;
-    }
-    .modal.show{display:flex}
-    .modalInner{
-      max-width:1100px;
-      width:100%;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(10,10,12,.9);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
-      overflow:hidden;
-    }
-    .modalTop{
-      display:flex;align-items:center;justify-content:space-between;gap:12px;
-      padding:12px 14px;
-      border-bottom:1px solid rgba(255,255,255,.10);
-    }
-    .modalTop b{font-size:13px}
-    .modalBody{padding:12px}
-    .modalBody img{
-      width:100%;
-      height:auto;
-      display:block;
-      border-radius:14px;
-      border:1px solid rgba(255,255,255,.10);
-    }
-    .xBtn{
-      background: rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.12);
-      color: var(--text);
-      padding:10px 12px;
-      border-radius:12px;
-      cursor:pointer;
-      font-weight:800;
-    }
+    .toast b{color:var(--text)}
+    .toast .small{display:block; margin-top:4px; color:var(--muted); font-size:12px}
   </style>
 </head>
-
 <body>
+  <div class="waves"></div>
+
+  <header>
+    <div class="wrap">
+      <div class="top">
+        <div class="brand">
+          <div class="logo"></div>
+          <div>
+            <h1>LocateMe</h1>
+            <div class="sub">Internal pallet + photo tracker (Aisle → Rail → Level → Photo)</div>
+          </div>
+        </div>
+        <div class="pill" id="connPill">
+          <span class="dot" id="connDot"></span>
+          <span id="connText">Connecting…</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
   <div class="wrap">
-    <div class="topbar">
-      <div class="brand">
-        <div class="logo"></div>
-        <div>
-          <h1>LocateMe — Warehouse Tag & Photo Tracker</h1>
-          <div class="sub">Save tag → aisle → rail → level with photos. Search any tag to see where it is + what it looks like.</div>
-        </div>
-      </div>
-
-      <div class="pill">
-        <span class="dot" id="connDot"></span>
-        <span id="connTxt">Connecting…</span>
-      </div>
-    </div>
-
-    <div class="tabs">
-      <button class="tabbtn active" id="tabSave">Save / Update</button>
-      <button class="tabbtn" id="tabSearch">Search</button>
-      <button class="tabbtn" id="tabMap">Aisle View</button>
-    </div>
-
-    <div class="grid" id="viewSaveSearch">
-      <!-- SAVE -->
+    <div class="grid">
+      <!-- LEFT: Tag + location flow -->
       <div class="card">
         <div class="hd">
-          <b>Save / Update a Tag</b>
-          <span class="small">Pick aisle → rail → level</span>
+          <div>
+            <div class="title">Add / Move a Tag</div>
+            <div class="muted" style="font-size:12px">Scan or type a tag → pick aisle → rail → level → add photo → save</div>
+          </div>
+          <div class="right">
+            <button class="btn small" id="btnBack" disabled>⬅ Back</button>
+            <button class="btn small" id="btnReset">Reset</button>
+          </div>
         </div>
         <div class="bd">
-          <div class="row">
+
+          <div class="cols">
             <div>
-              <label>Aisle</label>
-              <select id="aisleSel"></select>
-            </div>
-            <div>
-              <label>Rail (1–21)</label>
-              <select id="railSel"></select>
-            </div>
-          </div>
+              <label class="note">Tag ID</label>
+              <div class="row">
+                <input id="tagInput" placeholder="Type or scan tag (ex: R-11966.14.23)" />
+              </div>
+              <div class="row" style="margin-top:10px">
+                <button class="btn gold" id="btnCam">📱 Camera Scan</button>
+                <button class="btn" id="btnFind">🔍 Find Tag</button>
+              </div>
 
-          <div class="row" style="margin-top:12px">
-            <div>
-              <label>Level (1–5)</label>
-              <select id="levelSel"></select>
-            </div>
-            <div>
-              <label>Tag ID (type or scan)</label>
-              <input id="tagInput" placeholder="Example: R-11966.14.23" autocomplete="off" />
-            </div>
-          </div>
-
-          <div class="row" style="margin-top:12px">
-            <div>
-              <label>Photo (optional)</label>
-              <input id="photoInput" type="file" accept="image/*" />
-              <div class="help">Tip: take a clear pic of the barcode label + what the pallet looks like.</div>
-            </div>
-            <div>
-              <label>Notes (optional)</label>
-              <textarea id="notesInput" placeholder="Any extra notes…"></textarea>
-            </div>
-          </div>
-
-          <div class="btnrow">
-            <button id="saveBtn">Save (Inbound)</button>
-            <button class="secondary" id="outBtn" type="button">Mark Outbound</button>
-            <button class="secondary" id="inBtn" type="button">Mark Inbound</button>
-            <button class="secondary" id="moveBtn" type="button">Move Tag (no photo)</button>
-            <button class="secondary" id="clearBtn" type="button">Clear</button>
-          </div>
-
-          <div class="toast" id="toast"></div>
-
-          <div class="hr"></div>
-
-          <div class="kpis">
-            <div class="kpi">
-              <div class="n" id="kpiTotal">—</div>
-              <div class="t">Total tags saved</div>
-            </div>
-            <div class="kpi">
-              <div class="n" id="kpiInbound">—</div>
-              <div class="t">Inbound</div>
-            </div>
-            <div class="kpi">
-              <div class="n" id="kpiOutbound">—</div>
-              <div class="t">Outbound (auto-delete with SQL purge)</div>
-            </div>
-          </div>
-
-          <div class="help" style="margin-top:12px">
-            Cleanup (run anytime in Supabase SQL Editor):
-            <code>select public.purge_outbound_older_than(5);</code>
-          </div>
-        </div>
-      </div>
-
-      <!-- SEARCH -->
-      <div class="card">
-        <div class="hd">
-          <b>Search</b>
-          <span class="small">Exact / starts with / contains</span>
-        </div>
-        <div class="bd">
-          <label>Tag search</label>
-          <div class="row" style="grid-template-columns:1fr 160px;gap:10px">
-            <input id="searchInput" placeholder="Type tag (example: R-11966)" autocomplete="off" />
-            <select id="searchMode">
-              <option value="contains">Contains</option>
-              <option value="starts">Starts with</option>
-              <option value="exact">Exact</option>
-            </select>
-          </div>
-
-          <div class="btnrow" style="margin-top:10px">
-            <button id="searchBtn">Search</button>
-            <button class="secondary" id="recentBtn" type="button">Recent (25)</button>
-            <button class="secondary" id="refreshBtn" type="button">Refresh KPIs</button>
-          </div>
-
-          <div class="hr"></div>
-          <div class="results" id="results"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- AISLE VIEW -->
-    <div class="gridOne" id="viewMap" style="display:none">
-      <div class="card">
-        <div class="hd">
-          <b>Aisle View</b>
-          <span class="small">Click a cell to see tags + photos</span>
-        </div>
-        <div class="bd">
-          <div class="mapTop">
-            <div>
-              <label>Aisle</label>
-              <select id="mapAisleSel"></select>
-            </div>
-
-            <div>
-              <label>Filter</label>
-              <div class="seg">
-                <div class="chip on" id="fAll">All</div>
-                <div class="chip" id="fIn">Inbound</div>
-                <div class="chip" id="fOut">Outbound</div>
+              <div class="videoWrap" id="videoWrap">
+                <video id="video" muted playsinline></video>
+                <div class="row" style="padding:10px">
+                  <button class="btn small" id="btnStopCam">Stop Camera</button>
+                  <span class="note">Point at barcode/QR — it will auto-fill the Tag</span>
+                </div>
               </div>
             </div>
 
-            <div class="btnrow" style="margin-top:0">
-              <button class="secondary" id="mapRefreshBtn" type="button">Refresh aisle</button>
-              <button class="secondary" id="mapRecentBtn" type="button">Jump to latest tag</button>
+            <div>
+              <label class="note">Status</label>
+              <div class="row">
+                <span class="badge" id="statusBadge">—</span>
+                <span class="badge recent" id="recentBadge" style="display:none">Recently moved</span>
+              </div>
+              <div class="row" style="margin-top:10px">
+                <button class="btn ok" id="btnMarkInbound" disabled>✅ Mark INBOUND</button>
+                <button class="btn bad" id="btnMarkOutbound" disabled>🚚 Mark OUTBOUND</button>
+              </div>
+              <div class="note" style="margin-top:10px">
+                OUTBOUND tags auto-purge after 5 days (daily auto-check).
+              </div>
             </div>
           </div>
 
-          <div class="mapGridWrap">
-            <div class="mapGrid" id="mapGrid"></div>
+          <div class="hr"></div>
+
+          <div class="crumb" id="crumb">
+            Step: <b id="stepLabel">Pick an Aisle</b>
+            <span>•</span>
+            Selected: <span><b id="crumbAisle">—</b></span>
+            <span>→</span>
+            <span><b id="crumbRail">—</b></span>
+            <span>→</span>
+            <span><b id="crumbLevel">—</b></span>
           </div>
 
-          <div class="drawer" id="cellDrawer" style="display:none">
-            <div class="drawerTop">
+          <div style="margin-top:12px">
+            <div id="stepAisle">
+              <div class="note" style="margin-bottom:8px">Click an aisle:</div>
+              <div class="map" id="aisleMap"></div>
+              <div class="note" style="margin-top:10px">
+                Aisles come from the <code>aisles</code> table. Add more anytime.
+              </div>
+            </div>
+
+            <div id="stepRail" style="display:none">
+              <div class="note" style="margin-bottom:8px">Pick a rail (1–21):</div>
+              <div class="map" id="railMap"></div>
+            </div>
+
+            <div id="stepLevel" style="display:none">
+              <div class="note" style="margin-bottom:8px">Pick a level (1–5):</div>
+              <div class="map" id="levelMap"></div>
+            </div>
+
+            <div id="stepPhoto" style="display:none">
+              <div class="cols">
+                <div>
+                  <label class="note">Add Photo (required)</label>
+                  <input type="file" id="photoInput" accept="image/*" capture="environment" />
+                  <div class="note" style="margin-top:8px">
+                    Photo uploads to Storage bucket <b>warehouse-photos</b> and links to this tag.
+                  </div>
+                </div>
+                <div>
+                  <label class="note">Notes (optional)</label>
+                  <textarea id="notesInput" placeholder="Anything helpful (ex: left side near door, top wrap ripped, etc)"></textarea>
+                </div>
+              </div>
+              <div class="row" style="margin-top:12px">
+                <button class="btn gold" id="btnSave" disabled>💾 Save Tag Location</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="hr"></div>
+
+          <div id="foundBox" style="display:none">
+            <div class="row" style="justify-content:space-between; gap:10px">
               <div>
-                <div class="drawerTitle" id="drawerTitle">—</div>
-                <div class="drawerSub" id="drawerSub">—</div>
+                <div class="title">Tag Details</div>
+                <div class="muted" id="foundMeta" style="font-size:12px"></div>
               </div>
-              <div class="btnrow" style="margin-top:0">
-                <button class="secondary" id="drawerAddBtn" type="button">Add tag here</button>
-                <button class="secondary" id="drawerCloseBtn" type="button">Close</button>
+              <div class="row">
+                <button class="btn small" id="btnTagPdf">🧾 Tag PDF</button>
               </div>
             </div>
-            <div class="drawerList" id="drawerList"></div>
+            <div class="thumbs" id="foundThumbs"></div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- RIGHT: Search + reports -->
+      <div class="card">
+        <div class="hd">
+          <div>
+            <div class="title">Search + Reports</div>
+            <div class="muted" style="font-size:12px">Search by tag or list what’s INBOUND</div>
+          </div>
+          <div class="right">
+            <button class="btn small" id="btnPdf">🧾 PDF Report</button>
+            <button class="btn small" id="btnRefresh">↻ Refresh</button>
+          </div>
+        </div>
+        <div class="bd">
+
+          <div class="cols">
+            <div>
+              <label class="note">Filter</label>
+              <select id="statusFilter">
+                <option value="INBOUND">INBOUND</option>
+                <option value="OUTBOUND">OUTBOUND</option>
+                <option value="ALL">ALL</option>
+              </select>
+            </div>
+            <div>
+              <label class="note">Search Tag</label>
+              <input id="searchInput" placeholder="Search tag (partial works)" />
+            </div>
+          </div>
+
+          <div class="row" style="margin-top:10px">
+            <button class="btn" id="btnSearch">Search</button>
+            <span class="note" id="listNote">—</span>
+          </div>
+
+          <div style="margin-top:12px; overflow:auto; max-height: 520px;">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:26%">Tag</th>
+                  <th style="width:24%">Location</th>
+                  <th style="width:20%">Status</th>
+                  <th style="width:20%">Updated</th>
+                  <th style="width:10%">Action</th>
+                </tr>
+              </thead>
+              <tbody id="rows"></tbody>
+            </table>
+          </div>
+
+          <div class="note" style="margin-top:10px">
+            Recently moved = updated within last 24 hours.
           </div>
         </div>
       </div>
     </div>
-
   </div>
 
-  <!-- PHOTO MODAL -->
-  <div class="modal" id="modal">
-    <div class="modalInner">
-      <div class="modalTop">
-        <b id="modalTitle">Photo</b>
-        <button class="xBtn" id="modalClose">Close</button>
-      </div>
-      <div class="modalBody">
-        <img id="modalImg" alt="photo"/>
-      </div>
-    </div>
-  </div>
+  <div class="toast" id="toast"></div>
 
 <script>
-/** =========================================================
- *  CONFIG (YOUR SUPABASE)
- * ========================================================= */
+/** ==========================================================
+ *  CONFIG (your Supabase)
+ * ========================================================== */
 const SB_URL = "https://ojdfaguhteddwaxyobnl.supabase.co";
-const SB_ANON = "sb_publishable_S4Z3E2phukZklKtBuRPLjA_RB4Faij2";
-const PHOTO_BUCKET = "warehouse-photos";
+const SB_KEY = "sb_publishable_S4Z3E2phukZklKtBuRPLjA_RB4Faij2";
+const BUCKET = "warehouse-photos";
+const AUTO_PURGE_DAYS = 5;           // delete OUTBOUND older than this many days
+const AUTO_PURGE_INTERVAL_HRS = 24;  // run purge once per day per device
 
-/** =========================================================
- *  UI helpers
- * ========================================================= */
-const $ = (id)=>document.getElementById(id);
+const sb = supabase.createClient(SB_URL, SB_KEY);
+
+/** ==========================================================
+ *  UI refs
+ * ========================================================== */
 const ui = {
-  // tabs
-  tabSave: $("tabSave"),
-  tabSearch: $("tabSearch"),
-  tabMap: $("tabMap"),
-  viewSaveSearch: $("viewSaveSearch"),
-  viewMap: $("viewMap"),
+  connDot: document.getElementById("connDot"),
+  connText: document.getElementById("connText"),
+  toast: document.getElementById("toast"),
 
-  // conn
-  connDot: $("connDot"),
-  connTxt: $("connTxt"),
+  tagInput: document.getElementById("tagInput"),
+  btnCam: document.getElementById("btnCam"),
+  videoWrap: document.getElementById("videoWrap"),
+  video: document.getElementById("video"),
+  btnStopCam: document.getElementById("btnStopCam"),
+  btnFind: document.getElementById("btnFind"),
 
-  // save
-  aisleSel: $("aisleSel"),
-  railSel: $("railSel"),
-  levelSel: $("levelSel"),
-  tagInput: $("tagInput"),
-  photoInput: $("photoInput"),
-  notesInput: $("notesInput"),
-  saveBtn: $("saveBtn"),
-  outBtn: $("outBtn"),
-  inBtn: $("inBtn"),
-  moveBtn: $("moveBtn"),
-  clearBtn: $("clearBtn"),
-  toast: $("toast"),
+  btnBack: document.getElementById("btnBack"),
+  btnReset: document.getElementById("btnReset"),
 
-  // search
-  searchInput: $("searchInput"),
-  searchMode: $("searchMode"),
-  searchBtn: $("searchBtn"),
-  recentBtn: $("recentBtn"),
-  refreshBtn: $("refreshBtn"),
-  results: $("results"),
+  statusBadge: document.getElementById("statusBadge"),
+  recentBadge: document.getElementById("recentBadge"),
+  btnMarkInbound: document.getElementById("btnMarkInbound"),
+  btnMarkOutbound: document.getElementById("btnMarkOutbound"),
 
-  // KPIs
-  kpiTotal: $("kpiTotal"),
-  kpiInbound: $("kpiInbound"),
-  kpiOutbound: $("kpiOutbound"),
+  stepLabel: document.getElementById("stepLabel"),
+  crumbAisle: document.getElementById("crumbAisle"),
+  crumbRail: document.getElementById("crumbRail"),
+  crumbLevel: document.getElementById("crumbLevel"),
 
-  // map
-  mapAisleSel: $("mapAisleSel"),
-  mapGrid: $("mapGrid"),
-  mapRefreshBtn: $("mapRefreshBtn"),
-  mapRecentBtn: $("mapRecentBtn"),
-  fAll: $("fAll"),
-  fIn: $("fIn"),
-  fOut: $("fOut"),
+  stepAisle: document.getElementById("stepAisle"),
+  stepRail: document.getElementById("stepRail"),
+  stepLevel: document.getElementById("stepLevel"),
+  stepPhoto: document.getElementById("stepPhoto"),
 
-  // drawer
-  cellDrawer: $("cellDrawer"),
-  drawerTitle: $("drawerTitle"),
-  drawerSub: $("drawerSub"),
-  drawerList: $("drawerList"),
-  drawerAddBtn: $("drawerAddBtn"),
-  drawerCloseBtn: $("drawerCloseBtn"),
+  aisleMap: document.getElementById("aisleMap"),
+  railMap: document.getElementById("railMap"),
+  levelMap: document.getElementById("levelMap"),
 
-  // modal
-  modal: $("modal"),
-  modalImg: $("modalImg"),
-  modalTitle: $("modalTitle"),
-  modalClose: $("modalClose"),
+  photoInput: document.getElementById("photoInput"),
+  notesInput: document.getElementById("notesInput"),
+  btnSave: document.getElementById("btnSave"),
+
+  foundBox: document.getElementById("foundBox"),
+  foundMeta: document.getElementById("foundMeta"),
+  foundThumbs: document.getElementById("foundThumbs"),
+  btnTagPdf: document.getElementById("btnTagPdf"),
+
+  statusFilter: document.getElementById("statusFilter"),
+  searchInput: document.getElementById("searchInput"),
+  btnSearch: document.getElementById("btnSearch"),
+  btnRefresh: document.getElementById("btnRefresh"),
+  btnPdf: document.getElementById("btnPdf"),
+  listNote: document.getElementById("listNote"),
+  rows: document.getElementById("rows"),
 };
 
-function toast(msg, type=""){
-  ui.toast.className = "toast show " + (type||"");
-  ui.toast.textContent = msg;
-  clearTimeout(toast._t);
-  toast._t = setTimeout(()=> ui.toast.className = "toast", 4500);
+/** ==========================================================
+ *  State
+ * ========================================================== */
+const state = {
+  step: "AISLE", // AISLE | RAIL | LEVEL | PHOTO
+  history: [],
+  selected: { aisle:null, rail:null, level:null },
+  currentTagRow: null,     // pallet_tags row when found/created
+  currentPhotos: [],
+  cam: { reader:null, stopFn:null, running:false },
+  list: [],
+};
+
+function toast(msg, small=""){
+  ui.toast.innerHTML = `<b>${msg}</b>${small ? `<span class="small">${small}</span>` : ""}`;
+  ui.toast.classList.add("show");
+  setTimeout(()=>ui.toast.classList.remove("show"), 3800);
 }
-function setConn(ok, msg){
+
+function setConnected(ok, msg){
   ui.connDot.classList.toggle("ok", !!ok);
-  ui.connTxt.textContent = msg;
-}
-function normTag(s){ return (s||"").trim(); }
-function safePathPart(s){
-  return (s||"").trim().replace(/[^\w.\-]+/g, "_").replace(/_+/g, "_").slice(0, 80) || "TAG";
-}
-function pad2(n){ return String(n).padStart(2,"0"); }
-function escapeHtml(s){
-  return String(s||"")
-    .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;").replaceAll("'","&#039;");
-}
-async function copyText(txt){
-  try{ await navigator.clipboard.writeText(txt); toast("Copied.", "ok"); }
-  catch{ toast("Copy failed (browser blocked).", "bad"); }
+  ui.connText.textContent = msg;
 }
 
-function showModal(title, imgUrl){
-  ui.modalTitle.textContent = title || "Photo";
-  ui.modalImg.src = imgUrl;
-  ui.modal.classList.add("show");
-}
-function hideModal(){
-  ui.modal.classList.remove("show");
-  ui.modalImg.src = "";
-}
-ui.modalClose.addEventListener("click", hideModal);
-ui.modal.addEventListener("click", (e)=>{ if(e.target === ui.modal) hideModal(); });
+function norm(s){ return (s||"").trim(); }
 
-/** =========================================================
- *  Supabase
- * ========================================================= */
-let sb = null;
-
-/** =========================================================
- *  Tabs
- * ========================================================= */
-function setTab(which){
-  ui.tabSave.classList.toggle("active", which==="save");
-  ui.tabSearch.classList.toggle("active", which==="search");
-  ui.tabMap.classList.toggle("active", which==="map");
-
-  ui.viewSaveSearch.style.display = (which==="map") ? "none" : "";
-  ui.viewMap.style.display = (which==="map") ? "" : "none";
-  if(which==="search") setTimeout(()=>ui.searchInput.focus(), 50);
-  if(which==="map") setTimeout(()=>refreshMap(), 50);
+function isRecent(ts){
+  if(!ts) return false;
+  const t = new Date(ts).getTime();
+  return (Date.now() - t) <= 24*60*60*1000;
 }
 
-/** =========================================================
- *  Load aisles / rails / levels
- * ========================================================= */
+/** ==========================================================
+ *  Auto purge (runs once/day from any device that opens page)
+ * ========================================================== */
+async function maybeAutoPurge(){
+  const key = "locateme_last_purge_at";
+  const last = parseInt(localStorage.getItem(key) || "0", 10);
+  const due = !last || (Date.now() - last) > AUTO_PURGE_INTERVAL_HRS*60*60*1000;
+  if(!due) return;
+
+  // Call the RPC
+  try{
+    const { data, error } = await sb.rpc("purge_outbound_older_than", { days: AUTO_PURGE_DAYS });
+    if(error) throw error;
+    localStorage.setItem(key, String(Date.now()));
+    toast("Auto-purge ran", `Deleted ${data?.pallet_tags_deleted ?? 0} OUTBOUND tags older than ${AUTO_PURGE_DAYS} days.`);
+  }catch(e){
+    // Don’t block app if purge fails
+    console.warn("Auto-purge failed:", e);
+  }
+}
+
+/** ==========================================================
+ *  Load aisles + build clickable map
+ * ========================================================== */
 async function loadAisles(){
-  ui.railSel.innerHTML = "";
-  for(let i=1;i<=21;i++){
-    const opt = document.createElement("option");
-    opt.value = String(i);
-    opt.textContent = `Rail ${i}`;
-    ui.railSel.appendChild(opt);
-  }
-
-  ui.levelSel.innerHTML = "";
-  for(let i=1;i<=5;i++){
-    const opt = document.createElement("option");
-    opt.value = String(i);
-    opt.textContent = `Level ${i}`;
-    ui.levelSel.appendChild(opt);
-  }
-
   const { data, error } = await sb.from("aisles").select("name").order("name", { ascending:true });
+  if(error) throw error;
+  ui.aisleMap.innerHTML = "";
+  (data||[]).forEach(a=>{
+    const div = document.createElement("div");
+    div.className = "tile";
+    div.textContent = a.name;
+    div.onclick = ()=>pickAisle(a.name, div);
+    ui.aisleMap.appendChild(div);
+  });
+}
 
-  const fallback = ()=>{
-    const names=[];
-    for(let i=1;i<=10;i++) names.push(`AISLE-${pad2(i)}`);
-    return names;
-  };
-
-  const aisles = (!error && (data||[]).length) ? (data||[]).map(x=>x.name).filter(Boolean) : fallback();
-
-  ui.aisleSel.innerHTML = "";
-  ui.mapAisleSel.innerHTML = "";
-  for(const name of aisles){
-    const a1 = document.createElement("option"); a1.value = name; a1.textContent = name;
-    const a2 = document.createElement("option"); a2.value = name; a2.textContent = name;
-    ui.aisleSel.appendChild(a1);
-    ui.mapAisleSel.appendChild(a2);
+/** ==========================================================
+ *  Build Rail + Level maps
+ * ========================================================== */
+function buildRailMap(){
+  ui.railMap.innerHTML = "";
+  for(let i=1;i<=21;i++){
+    const div = document.createElement("div");
+    div.className = "tile";
+    div.textContent = "Rail " + i;
+    div.onclick = ()=>pickRail(i, div);
+    ui.railMap.appendChild(div);
   }
-
-  ui.railSel.value = "1";
-  ui.levelSel.value = "1";
+}
+function buildLevelMap(){
+  ui.levelMap.innerHTML = "";
+  for(let i=1;i<=5;i++){
+    const div = document.createElement("div");
+    div.className = "tile";
+    div.textContent = "Level " + i;
+    div.onclick = ()=>pickLevel(i, div);
+    ui.levelMap.appendChild(div);
+  }
 }
 
-/** =========================================================
- *  Storage helpers
- * ========================================================= */
-function publicUrl(path){
-  const { data } = sb.storage.from(PHOTO_BUCKET).getPublicUrl(path);
-  return data?.publicUrl || "";
+/** ==========================================================
+ *  Step navigation
+ * ========================================================== */
+function pushHistory(){
+  state.history.push({
+    step: state.step,
+    selected: { ...state.selected }
+  });
+  ui.btnBack.disabled = state.history.length === 0;
+}
+function goStep(step){
+  state.step = step;
+  ui.stepAisle.style.display = (step==="AISLE") ? "" : "none";
+  ui.stepRail.style.display  = (step==="RAIL")  ? "" : "none";
+  ui.stepLevel.style.display = (step==="LEVEL") ? "" : "none";
+  ui.stepPhoto.style.display = (step==="PHOTO") ? "" : "none";
+  ui.stepLabel.textContent = ({
+    AISLE:"Pick an Aisle",
+    RAIL:"Pick a Rail",
+    LEVEL:"Pick a Level",
+    PHOTO:"Add Photo + Save"
+  })[step] || "—";
+
+  ui.crumbAisle.textContent = state.selected.aisle || "—";
+  ui.crumbRail.textContent  = state.selected.rail ? ("Rail " + state.selected.rail) : "—";
+  ui.crumbLevel.textContent = state.selected.level ? ("Level " + state.selected.level) : "—";
+
+  ui.btnSave.disabled = !(state.selected.aisle && state.selected.rail && state.selected.level && ui.photoInput.files?.length && norm(ui.tagInput.value));
 }
 
-/** =========================================================
- *  DB ops
- * ========================================================= */
-function validateFormBasics(){
-  const tag_id = normTag(ui.tagInput.value);
-  if(!tag_id) return { ok:false, msg:"Enter a Tag ID first." };
-  if(!ui.aisleSel.value) return { ok:false, msg:"Select an aisle." };
-  const rail = parseInt(ui.railSel.value, 10);
-  const level = parseInt(ui.levelSel.value, 10);
-  if(!Number.isFinite(rail) || rail < 1 || rail > 21) return { ok:false, msg:"Rail must be 1–21." };
-  if(!Number.isFinite(level) || level < 1 || level > 5) return { ok:false, msg:"Level must be 1–5." };
-  return { ok:true, tag_id, rail, level, aisle_name: ui.aisleSel.value };
+function clearSelections(fromStep="AISLE"){
+  if(fromStep==="AISLE"){ state.selected = { aisle:null, rail:null, level:null }; }
+  if(fromStep==="RAIL"){ state.selected.rail = null; state.selected.level = null; }
+  if(fromStep==="LEVEL"){ state.selected.level = null; }
+  // clear tile selection UI
+  [...document.querySelectorAll(".tile.sel")].forEach(x=>x.classList.remove("sel"));
+  goStep(fromStep);
 }
 
-async function upsertPalletTag({tag_id, aisle_name, rail, level, status, notes}){
-  const payload = { tag_id, aisle_name, rail, level, status, notes };
-  const { data, error } = await sb
-    .from("pallet_tags")
-    .upsert(payload, { onConflict: "aisle_name,rail,level,tag_id" })
-    .select("*")
-    .limit(1)
-    .single();
-  if(error) throw error;
-  return data;
+function pickAisle(name, el){
+  pushHistory();
+  state.selected.aisle = name;
+  // highlight selection
+  [...ui.aisleMap.querySelectorAll(".tile")].forEach(x=>x.classList.remove("sel"));
+  el.classList.add("sel");
+  goStep("RAIL");
+}
+function pickRail(n, el){
+  pushHistory();
+  state.selected.rail = n;
+  [...ui.railMap.querySelectorAll(".tile")].forEach(x=>x.classList.remove("sel"));
+  el.classList.add("sel");
+  goStep("LEVEL");
+}
+function pickLevel(n, el){
+  pushHistory();
+  state.selected.level = n;
+  [...ui.levelMap.querySelectorAll(".tile")].forEach(x=>x.classList.remove("sel"));
+  el.classList.add("sel");
+  goStep("PHOTO");
 }
 
-async function updateMoveTag({tag_id, aisle_name, rail, level}){
-  const { data, error } = await sb
-    .from("pallet_tags")
-    .update({ aisle_name, rail, level, updated_at: new Date().toISOString() })
-    .eq("tag_id", tag_id)
-    .select("*")
-    .limit(1)
-    .single();
-  if(error) throw error;
-  return data;
-}
+/** ==========================================================
+ *  Camera scanning (ZXing)
+ * ========================================================== */
+async function startCamera(){
+  if(state.cam.running) return;
 
-async function uploadPhotoAndLink(palletTagRow, file){
-  if(!file) return null;
-
-  const tag = safePathPart(palletTagRow.tag_id);
-  const aisle = safePathPart(palletTagRow.aisle_name);
-  const rail = `R${pad2(palletTagRow.rail)}`;
-  const level = `L${palletTagRow.level}`;
-  const ts = Date.now();
-
-  const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
-  const cleanName = safePathPart(file.name.replace(/\.[^/.]+$/, ""));
-  const object_path = `${aisle}/${rail}/${level}/${tag}/${ts}_${cleanName}.${ext}`;
-
-  const { error: upErr } = await sb.storage
-    .from(PHOTO_BUCKET)
-    .upload(object_path, file, { upsert:false, contentType: file.type || "image/jpeg" });
-  if(upErr) throw upErr;
-
-  const { data, error } = await sb
-    .from("tag_photos")
-    .insert({
-      pallet_tag_id: palletTagRow.id,
-      bucket: PHOTO_BUCKET,
-      object_path,
-      file_name: file.name,
-      content_type: file.type || null
-    })
-    .select("*")
-    .limit(1)
-    .single();
-  if(error) throw error;
-  return data;
-}
-
-async function saveWithStatus(status){
-  const v = validateFormBasics();
-  if(!v.ok){ toast(v.msg, "bad"); ui.tagInput.focus(); return; }
-
-  ui.saveBtn.disabled = ui.outBtn.disabled = ui.inBtn.disabled = ui.moveBtn.disabled = true;
   try{
-    const notes = (ui.notesInput.value || "").trim() || null;
-    const row = await upsertPalletTag({ tag_id:v.tag_id, aisle_name:v.aisle_name, rail:v.rail, level:v.level, status, notes });
+    ui.videoWrap.style.display = "block";
+    state.cam.reader = new ZXingBrowser.BrowserMultiFormatReader();
+    state.cam.running = true;
 
-    const file = ui.photoInput.files?.[0] || null;
-    if(file){
-      await uploadPhotoAndLink(row, file);
-      ui.photoInput.value = "";
-    }
+    const devices = await ZXingBrowser.BrowserCodeReader.listVideoInputDevices();
+    const deviceId = devices?.[0]?.deviceId;
 
-    toast(`Saved ${v.tag_id} → ${v.aisle_name} / Rail ${v.rail} / Level ${v.level} (${status}).`, "ok");
-    await refreshKPIs();
-  }catch(err){
-    console.error(err);
-    toast(`Save failed: ${err.message || err}`, "bad");
-  }finally{
-    ui.saveBtn.disabled = ui.outBtn.disabled = ui.inBtn.disabled = ui.moveBtn.disabled = false;
+    // decode continuously
+    state.cam.stopFn = await state.cam.reader.decodeFromVideoDevice(
+      deviceId || null,
+      ui.video,
+      (result, err) => {
+        if(result){
+          const text = result.getText();
+          ui.tagInput.value = text;
+          toast("Scanned", text);
+          stopCamera();
+          // auto-find on scan
+          findTag();
+        }
+      }
+    );
+  }catch(e){
+    console.error(e);
+    toast("Camera error", "Allow camera permission and retry.");
+    stopCamera();
   }
 }
-
-async function moveTagNoPhoto(){
-  const v = validateFormBasics();
-  if(!v.ok){ toast(v.msg, "bad"); ui.tagInput.focus(); return; }
-
-  ui.moveBtn.disabled = true;
+function stopCamera(){
   try{
-    // Make sure tag exists first
-    const { data: existing, error: exErr } = await sb
-      .from("pallet_tags")
-      .select("*")
-      .eq("tag_id", v.tag_id)
-      .limit(1)
-      .maybeSingle();
-    if(exErr) throw exErr;
-    if(!existing){
-      toast("That tag isn’t saved yet. Use Save first.", "bad");
-      return;
-    }
-
-    const moved = await updateMoveTag({ tag_id:v.tag_id, aisle_name:v.aisle_name, rail:v.rail, level:v.level });
-    toast(`Moved ${moved.tag_id} → ${moved.aisle_name} / Rail ${moved.rail} / Level ${moved.level} (photos kept).`, "ok");
-    await refreshKPIs();
-    await doSearch(v.tag_id);
-  }catch(err){
-    console.error(err);
-    toast(`Move failed: ${err.message || err}`, "bad");
-  }finally{
-    ui.moveBtn.disabled = false;
-  }
+    if(state.cam.stopFn) state.cam.stopFn();
+    if(state.cam.reader) state.cam.reader.reset();
+  }catch(_){}
+  state.cam.running = false;
+  state.cam.stopFn = null;
+  ui.videoWrap.style.display = "none";
 }
 
-/** =========================================================
- *  Photos query + rendering
- * ========================================================= */
-async function fetchPhotosForTagIds(palletTagIds){
-  if(!palletTagIds.length) return new Map();
-  const { data, error } = await sb
-    .from("tag_photos")
-    .select("pallet_tag_id, object_path, created_at")
-    .in("pallet_tag_id", palletTagIds)
-    .order("created_at", { ascending:false });
+/** ==========================================================
+ *  Tag lookup + details
+ * ========================================================== */
+function setTagUI(row, photos){
+  state.currentTagRow = row || null;
+  state.currentPhotos = photos || [];
 
-  if(error) throw error;
-
-  const map = new Map();
-  for(const row of (data||[])){
-    if(!map.has(row.pallet_tag_id)) map.set(row.pallet_tag_id, []);
-    map.get(row.pallet_tag_id).push(row.object_path);
-  }
-  return map;
-}
-
-function renderResults(rows, photoMap){
-  ui.results.innerHTML = "";
-  if(!rows.length){
-    ui.results.innerHTML = `<div class="small">No matches found.</div>`;
+  if(!row){
+    ui.statusBadge.textContent = "—";
+    ui.recentBadge.style.display = "none";
+    ui.btnMarkInbound.disabled = true;
+    ui.btnMarkOutbound.disabled = true;
+    ui.foundBox.style.display = "none";
     return;
   }
 
-  for(const r of rows){
-    const photos = photoMap.get(r.id) || [];
-    const badgeClass = r.status === "OUTBOUND" ? "out" : "in";
-    const badgeTxt = r.status === "OUTBOUND" ? "OUTBOUND" : "INBOUND";
+  ui.statusBadge.textContent = row.status || "—";
+  ui.recentBadge.style.display = isRecent(row.updated_at) ? "" : "none";
 
+  ui.btnMarkInbound.disabled = false;
+  ui.btnMarkOutbound.disabled = false;
+
+  ui.foundBox.style.display = "";
+  ui.foundMeta.textContent =
+    `${row.tag_id} • ${row.aisle_name} / Rail ${row.rail} / Level ${row.level} • updated ${new Date(row.updated_at).toLocaleString()}`;
+
+  ui.foundThumbs.innerHTML = "";
+  (photos||[]).forEach(p=>{
+    const url = sb.storage.from(BUCKET).getPublicUrl(p.object_path)?.data?.publicUrl;
     const div = document.createElement("div");
-    div.className = "res";
-
-    div.innerHTML = `
-      <div class="top">
-        <div>
-          <div class="tag">${escapeHtml(r.tag_id)}</div>
-          <div class="meta">
-            <b>Location:</b> ${escapeHtml(r.aisle_name)} • Rail ${r.rail} • Level ${r.level}<br>
-            <b>Updated:</b> ${new Date(r.updated_at || r.created_at).toLocaleString()}
-            ${r.outbound_at ? `<br><b>Outbound at:</b> ${new Date(r.outbound_at).toLocaleString()}` : ``}
-            ${r.notes ? `<br><b>Notes:</b> ${escapeHtml(r.notes)}` : ``}
-          </div>
-        </div>
-        <div class="badge ${badgeClass}">${badgeTxt}</div>
-      </div>
-
-      <div class="thumbs" id="thumbs_${r.id}"></div>
-
-      <div class="btnrow" style="margin-top:10px">
-        <button class="secondary" data-act="fill" data-id="${r.id}">Load into form</button>
-        <button class="secondary" data-act="map" data-id="${r.id}">Open in Aisle View</button>
-        <button class="secondary" data-act="copytag" data-id="${r.id}">Copy tag</button>
-        <button class="secondary" data-act="copyloc" data-id="${r.id}">Copy location</button>
-        <button class="secondary" data-act="addphoto" data-id="${r.id}">Add photo</button>
-        <button class="secondary" data-act="in" data-id="${r.id}">Inbound</button>
-        <button class="secondary" data-act="out" data-id="${r.id}">Outbound</button>
-      </div>
-    `;
-
-    const thumbs = div.querySelector(`#thumbs_${CSS.escape(r.id)}`);
-    if(photos.length){
-      for(const p of photos.slice(0,8)){
-        const t = document.createElement("div");
-        t.className = "thumb";
-        const url = publicUrl(p);
-        t.innerHTML = `<img src="${url}" alt="photo" loading="lazy" />`;
-        t.addEventListener("click", (e)=>{
-          e.stopPropagation();
-          showModal(`${r.tag_id} — ${r.aisle_name} / R${r.rail} / L${r.level}`, url);
-        });
-        thumbs.appendChild(t);
-      }
-    } else {
-      thumbs.innerHTML = `<div class="small">No photos saved for this tag.</div>`;
-    }
-
-    div.addEventListener("click", async (e)=>{
-      const btn = e.target.closest("button");
-      if(!btn) return;
-
-      const act = btn.getAttribute("data-act");
-      if(!act) return;
-
-      if(act === "fill"){
-        ui.tagInput.value = r.tag_id;
-        ui.aisleSel.value = r.aisle_name;
-        ui.railSel.value = String(r.rail);
-        ui.levelSel.value = String(r.level);
-        ui.notesInput.value = r.notes || "";
-        setTab("save");
-        toast("Loaded into form.", "ok");
-      }
-
-      if(act === "map"){
-        setTab("map");
-        ui.mapAisleSel.value = r.aisle_name;
-        await refreshMap();
-        openCellDrawer(r.aisle_name, r.rail, r.level);
-      }
-
-      if(act === "copytag"){
-        await copyText(r.tag_id);
-      }
-
-      if(act === "copyloc"){
-        await copyText(`${r.aisle_name} / Rail ${r.rail} / Level ${r.level}`);
-      }
-
-      if(act === "addphoto"){
-        // Use the Save form photo input, but link to THIS tag row without changing location/status
-        setTab("save");
-        ui.tagInput.value = r.tag_id;
-        ui.aisleSel.value = r.aisle_name;
-        ui.railSel.value = String(r.rail);
-        ui.levelSel.value = String(r.level);
-        ui.notesInput.value = r.notes || "";
-        toast("Pick a photo, then click Save (it will attach to this tag).", "ok");
-      }
-
-      if(act === "in"){
-        ui.tagInput.value = r.tag_id;
-        ui.aisleSel.value = r.aisle_name;
-        ui.railSel.value = String(r.rail);
-        ui.levelSel.value = String(r.level);
-        ui.notesInput.value = r.notes || "";
-        await saveWithStatus("INBOUND");
-        await doSearch(ui.searchInput.value);
-      }
-
-      if(act === "out"){
-        ui.tagInput.value = r.tag_id;
-        ui.aisleSel.value = r.aisle_name;
-        ui.railSel.value = String(r.rail);
-        ui.levelSel.value = String(r.level);
-        ui.notesInput.value = r.notes || "";
-        await saveWithStatus("OUTBOUND");
-        await doSearch(ui.searchInput.value);
-      }
-    });
-
-    ui.results.appendChild(div);
-  }
+    div.className = "thumb";
+    div.innerHTML = `<img src="${url}" alt="photo">`;
+    ui.foundThumbs.appendChild(div);
+  });
 }
 
-/** =========================================================
- *  Search modes
- * ========================================================= */
-async function doSearch(raw){
-  const q = normTag(raw);
-  if(!q){ toast("Type a tag to search.", "bad"); return; }
+async function findTag(){
+  const tag = norm(ui.tagInput.value);
+  if(!tag){ toast("Missing tag", "Type or scan a tag first."); return; }
 
-  ui.searchBtn.disabled = true;
-  ui.results.innerHTML = `<div class="small">Searching…</div>`;
+  // Get most recent record for that tag (either inbound/outbound)
+  const { data: rows, error } = await sb
+    .from("pallet_tags")
+    .select("*")
+    .eq("tag_id", tag)
+    .order("updated_at", { ascending:false })
+    .limit(1);
+
+  if(error){ toast("Find error", error.message); return; }
+  const row = rows?.[0] || null;
+
+  if(!row){
+    toast("Not found", "No record yet. Pick location + photo then Save.");
+    setTagUI(null, []);
+    return;
+  }
+
+  // Photos for this row
+  const { data: photos, error: pe } = await sb
+    .from("tag_photos")
+    .select("*")
+    .eq("pallet_tag_id", row.id)
+    .order("created_at", { ascending:false });
+
+  if(pe){ toast("Photo load error", pe.message); return; }
+
+  // Update selection breadcrumb to match found row (optional convenience)
+  state.selected.aisle = row.aisle_name;
+  state.selected.rail  = row.rail;
+  state.selected.level = row.level;
+  goStep("PHOTO");
+
+  setTagUI(row, photos || []);
+  toast("Loaded", `${row.aisle_name} / Rail ${row.rail} / Level ${row.level}`);
+}
+
+/** ==========================================================
+ *  Save (insert or update latest INBOUND row)
+ * ========================================================== */
+async function saveTag(){
+  const tag = norm(ui.tagInput.value);
+  if(!tag){ toast("Missing tag", "Type or scan a tag first."); return; }
+  if(!(state.selected.aisle && state.selected.rail && state.selected.level)){
+    toast("Missing location", "Pick aisle → rail → level."); return;
+  }
+  const file = ui.photoInput.files?.[0];
+  if(!file){ toast("Missing photo", "Add a photo before saving."); return; }
+
+  ui.btnSave.disabled = true;
 
   try{
-    const mode = ui.searchMode.value;
+    // 1) Find latest row for this tag (prefer INBOUND)
+    const { data: existingRows, error: exErr } = await sb
+      .from("pallet_tags")
+      .select("*")
+      .eq("tag_id", tag)
+      .order("updated_at", { ascending:false })
+      .limit(5);
 
-    let query = sb.from("pallet_tags").select("*").order("updated_at", { ascending:false }).limit(50);
+    if(exErr) throw exErr;
 
-    if(mode === "exact"){
-      query = query.eq("tag_id", q);
-    } else if(mode === "starts"){
-      // Case-insensitive "starts with"
-      query = query.ilike("tag_id", `${q}%`);
+    const existingInbound = (existingRows||[]).find(r => r.status === "INBOUND") || null;
+    let tagRow = null;
+
+    const payload = {
+      tag_id: tag,
+      aisle_name: state.selected.aisle,
+      rail: state.selected.rail,
+      level: state.selected.level,
+      status: "INBOUND",
+      notes: norm(ui.notesInput.value) || null
+    };
+
+    if(existingInbound){
+      // Update the current inbound record
+      const { data: upd, error: uErr } = await sb
+        .from("pallet_tags")
+        .update(payload)
+        .eq("id", existingInbound.id)
+        .select("*")
+        .single();
+      if(uErr) throw uErr;
+      tagRow = upd;
     } else {
-      // contains
-      query = query.ilike("tag_id", `%${q}%`);
+      // Insert new
+      const { data: ins, error: iErr } = await sb
+        .from("pallet_tags")
+        .insert(payload)
+        .select("*")
+        .single();
+      if(iErr) throw iErr;
+      tagRow = ins;
     }
 
-    const { data, error } = await query;
-    if(error) throw error;
+    // 2) Upload photo to storage
+    const safeTag = tag.replace(/[^a-zA-Z0-9._-]+/g, "_");
+    const path = `${state.selected.aisle}/R${state.selected.rail}/L${state.selected.level}/${safeTag}_${Date.now()}.jpg`;
 
-    const rows = data || [];
-    const ids = rows.map(r=>r.id);
-    const photoMap = await fetchPhotosForTagIds(ids);
-    renderResults(rows, photoMap);
-  }catch(err){
-    console.error(err);
-    ui.results.innerHTML = `<div class="small">Search failed.</div>`;
-    toast(`Search failed: ${err.message || err}`, "bad");
+    const { error: upErr } = await sb
+      .storage
+      .from(BUCKET)
+      .upload(path, file, { upsert: false, contentType: file.type || "image/jpeg" });
+
+    if(upErr) throw upErr;
+
+    // 3) Link photo row
+    const { error: linkErr } = await sb
+      .from("tag_photos")
+      .insert({
+        pallet_tag_id: tagRow.id,
+        bucket: BUCKET,
+        object_path: path,
+        file_name: file.name || null,
+        content_type: file.type || null
+      });
+
+    if(linkErr) throw linkErr;
+
+    ui.photoInput.value = "";
+    ui.notesInput.value = "";
+
+    toast("Saved", `${tagRow.aisle_name} / Rail ${tagRow.rail} / Level ${tagRow.level}`);
+
+    // Refresh details + list
+    await findTag();
+    await loadList();
+
+  }catch(e){
+    console.error(e);
+    toast("Save failed", e.message || String(e));
   }finally{
-    ui.searchBtn.disabled = false;
+    ui.btnSave.disabled = false;
   }
 }
 
-async function recentTags(){
-  ui.results.innerHTML = `<div class="small">Loading recent…</div>`;
-  try{
+/** ==========================================================
+ *  Mark OUTBOUND / INBOUND
+ * ========================================================== */
+async function markStatus(next){
+  const tag = norm(ui.tagInput.value);
+  if(!tag){ toast("Missing tag", "Type or scan a tag first."); return; }
+
+  // target: currentTagRow if loaded; else latest row
+  let row = state.currentTagRow;
+  if(!row){
     const { data, error } = await sb
       .from("pallet_tags")
       .select("*")
+      .eq("tag_id", tag)
       .order("updated_at", { ascending:false })
-      .limit(25);
-    if(error) throw error;
-
-    const rows = data || [];
-    const ids = rows.map(r=>r.id);
-    const photoMap = await fetchPhotosForTagIds(ids);
-    renderResults(rows, photoMap);
-  }catch(err){
-    console.error(err);
-    toast(`Recent failed: ${err.message || err}`, "bad");
-    ui.results.innerHTML = `<div class="small">Could not load recent.</div>`;
+      .limit(1);
+    if(error){ toast("Status error", error.message); return; }
+    row = data?.[0];
   }
+  if(!row){ toast("Not found", "Save the tag first."); return; }
+
+  const { error } = await sb
+    .from("pallet_tags")
+    .update({ status: next })
+    .eq("id", row.id);
+
+  if(error){ toast("Update failed", error.message); return; }
+
+  toast("Updated", `${tag} marked ${next}`);
+  await findTag();
+  await loadList();
 }
 
-/** =========================================================
- *  KPIs
- * ========================================================= */
-async function refreshKPIs(){
-  try{
-    const total = await sb.from("pallet_tags").select("id", { count:"exact", head:true });
-    const inbound = await sb.from("pallet_tags").select("id", { count:"exact", head:true }).eq("status","INBOUND");
-    const outbound = await sb.from("pallet_tags").select("id", { count:"exact", head:true }).eq("status","OUTBOUND");
+/** ==========================================================
+ *  List + Search + PDF
+ * ========================================================== */
+async function loadList(){
+  const status = ui.statusFilter.value;
+  const q = norm(ui.searchInput.value);
 
-    ui.kpiTotal.textContent = (total.count ?? "—");
-    ui.kpiInbound.textContent = (inbound.count ?? "—");
-    ui.kpiOutbound.textContent = (outbound.count ?? "—");
-  }catch(err){
-    console.error(err);
+  let query = sb.from("pallet_tags").select("*");
+
+  if(status !== "ALL"){
+    query = query.eq("status", status);
   }
+  if(q){
+    // partial match
+    query = query.ilike("tag_id", `%${q}%`);
+  }
+
+  const { data, error } = await query
+    .order("updated_at", { ascending:false })
+    .limit(200);
+
+  if(error){ toast("List error", error.message); return; }
+
+  state.list = data || [];
+  ui.listNote.textContent = `${state.list.length} result(s)`;
+  renderRows();
 }
 
-/** =========================================================
- *  AISLE VIEW
- * ========================================================= */
-let mapFilter = "ALL"; // ALL | INBOUND | OUTBOUND
-let aisleCache = { aisle:null, rows:[], byCell:new Map(), photoMap:new Map() };
-let openCell = null; // {aisle, rail, level}
+function renderRows(){
+  ui.rows.innerHTML = "";
+  state.list.forEach(r=>{
+    const tr = document.createElement("tr");
+    const recent = isRecent(r.updated_at);
 
-function setFilter(f){
-  mapFilter = f;
-  ui.fAll.classList.toggle("on", f==="ALL");
-  ui.fIn.classList.toggle("on", f==="INBOUND");
-  ui.fOut.classList.toggle("on", f==="OUTBOUND");
-  refreshMap({ keepDrawer:true });
-}
-function cellKey(rail, level){ return `${rail}|${level}`; }
+    const statusCell = recent
+      ? `<span class="badge recent">${r.status} • recent</span>`
+      : `<span class="badge">${r.status}</span>`;
 
-async function loadAisleRows(aisleName){
-  let q = sb.from("pallet_tags").select("*").eq("aisle_name", aisleName);
-  if(mapFilter === "INBOUND") q = q.eq("status","INBOUND");
-  if(mapFilter === "OUTBOUND") q = q.eq("status","OUTBOUND");
-
-  const { data, error } = await q.order("updated_at", { ascending:false });
-  if(error) throw error;
-
-  const rows = data || [];
-  const ids = rows.map(r=>r.id);
-  const photoMap = await fetchPhotosForTagIds(ids);
-
-  const byCell = new Map();
-  for(const r of rows){
-    const k = cellKey(r.rail, r.level);
-    if(!byCell.has(k)) byCell.set(k, []);
-    byCell.get(k).push(r);
-  }
-
-  aisleCache = { aisle: aisleName, rows, byCell, photoMap };
-}
-
-function buildMapGrid(){
-  const g = ui.mapGrid;
-  g.innerHTML = "";
-
-  const blank = document.createElement("div");
-  blank.className = "mapHdr";
-  blank.textContent = "Level \\ Rail";
-  g.appendChild(blank);
-
-  for(let rail=1; rail<=21; rail++){
-    const h = document.createElement("div");
-    h.className = "mapHdr";
-    h.textContent = `R${rail}`;
-    g.appendChild(h);
-  }
-
-  for(let level=5; level>=1; level--){
-    const lbl = document.createElement("div");
-    lbl.className = "mapRowLbl";
-    lbl.textContent = `L${level}`;
-    g.appendChild(lbl);
-
-    for(let rail=1; rail<=21; rail++){
-      const k = cellKey(rail, level);
-      const list = aisleCache.byCell.get(k) || [];
-      const inboundCount = list.filter(x=>x.status==="INBOUND").length;
-      const outboundCount = list.filter(x=>x.status==="OUTBOUND").length;
-
-      const cell = document.createElement("div");
-      cell.className = "cell";
-      if(!list.length) cell.classList.add("empty");
-      if(list.length){
-        if(inboundCount && outboundCount) cell.classList.add("mixed");
-        else if(inboundCount) cell.classList.add("inOnly");
-        else if(outboundCount) cell.classList.add("outOnly");
-      }
-
-      const top = list.length ? `${list.length}` : "—";
-      const sub = list.length ? `${inboundCount} in • ${outboundCount} out` : "empty";
-
-      cell.innerHTML = `<div class="c1">${top}</div><div class="c2">${sub}</div>`;
-      cell.addEventListener("click", ()=>openCellDrawer(aisleCache.aisle, rail, level));
-      g.appendChild(cell);
-    }
-  }
-}
-
-async function refreshMap(opts={}){
-  try{
-    const aisleName = ui.mapAisleSel.value;
-    if(!aisleName) return;
-
-    await loadAisleRows(aisleName);
-    buildMapGrid();
-
-    if(opts.keepDrawer && openCell && openCell.aisle === aisleName){
-      openCellDrawer(openCell.aisle, openCell.rail, openCell.level, { silent:true });
-    } else {
-      ui.cellDrawer.style.display = "none";
-      openCell = null;
-    }
-  }catch(err){
-    console.error(err);
-    toast(`Aisle view failed: ${err.message || err}`, "bad");
-  }
-}
-
-function openCellDrawer(aisleName, rail, level, opts={}){
-  openCell = { aisle:aisleName, rail, level };
-  const k = cellKey(rail, level);
-  const list = aisleCache.byCell.get(k) || [];
-
-  ui.drawerTitle.textContent = `${aisleName} • Rail ${rail} • Level ${level}`;
-  ui.drawerSub.textContent = `Showing ${list.length} tag(s) (${mapFilter === "ALL" ? "all" : mapFilter.toLowerCase()}).`;
-  ui.drawerList.innerHTML = "";
-
-  if(!list.length){
-    ui.drawerList.innerHTML = `<div class="small">No tags saved in this spot. Click “Add tag here”.</div>`;
-    ui.cellDrawer.style.display = "";
-    if(!opts.silent) toast("Cell opened.", "ok");
-    return;
-  }
-
-  for(const r of list){
-    const photos = aisleCache.photoMap.get(r.id) || [];
-    const badgeClass = r.status === "OUTBOUND" ? "out" : "in";
-    const badgeTxt = r.status === "OUTBOUND" ? "OUTBOUND" : "INBOUND";
-
-    const thumbs = photos.slice(0,3).map(p=>{
-      const url = publicUrl(p);
-      return `<div class="thumb" style="width:96px;height:70px" data-url="${escapeHtml(url)}" data-title="${escapeHtml(r.tag_id)}"><img src="${url}" loading="lazy" alt="photo"></div>`;
-    }).join("");
-
-    const item = document.createElement("div");
-    item.className = "miniRow";
-    item.innerHTML = `
-      <div class="miniLeft">
-        <div class="t">${escapeHtml(r.tag_id)}</div>
-        <div class="s">
-          <span class="badge ${badgeClass}" style="padding:6px 9px">${badgeTxt}</span>
-          &nbsp;• Updated ${new Date(r.updated_at || r.created_at).toLocaleString()}
-          ${r.outbound_at ? `<br>Outbound at ${new Date(r.outbound_at).toLocaleString()}` : ``}
-          ${r.notes ? `<br>Notes: ${escapeHtml(r.notes)}` : ``}
-        </div>
-        ${thumbs ? `<div class="thumbs" style="margin-top:8px">${thumbs}</div>` : `<div class="small" style="margin-top:8px">No photos for this tag.</div>`}
-      </div>
-      <div class="btnrow" style="margin-top:0">
-        <button class="secondary" data-act="load">Load</button>
-        <button class="secondary" data-act="copy">Copy</button>
-        <button class="secondary" data-act="in">Inbound</button>
-        <button class="secondary" data-act="out">Outbound</button>
-      </div>
+    tr.innerHTML = `
+      <td><b>${escapeHtml(r.tag_id)}</b></td>
+      <td>${escapeHtml(r.aisle_name)} / Rail ${r.rail} / Level ${r.level}</td>
+      <td>${statusCell}</td>
+      <td>${new Date(r.updated_at).toLocaleString()}</td>
+      <td>
+        <button class="btn small" data-act="open" data-id="${r.id}">Open</button>
+      </td>
     `;
+    ui.rows.appendChild(tr);
+  });
 
-    item.querySelectorAll(".thumb").forEach(th=>{
-      th.addEventListener("click",(e)=>{
-        e.stopPropagation();
-        showModal(`${r.tag_id} — ${r.aisle_name} / R${r.rail} / L${r.level}`, th.getAttribute("data-url"));
-      });
-    });
-
-    item.addEventListener("click", async (e)=>{
-      const btn = e.target.closest("button");
-      if(!btn) return;
-      const act = btn.getAttribute("data-act");
-      if(!act) return;
-
-      if(act === "load"){
-        ui.tagInput.value = r.tag_id;
-        ui.aisleSel.value = r.aisle_name;
-        ui.railSel.value = String(r.rail);
-        ui.levelSel.value = String(r.level);
-        ui.notesInput.value = r.notes || "";
-        setTab("save");
-        toast("Loaded into form.", "ok");
-      }
-
-      if(act === "copy"){
-        await copyText(`${r.tag_id} — ${r.aisle_name} / Rail ${r.rail} / Level ${r.level}`);
-      }
-
-      if(act === "in"){
-        ui.tagInput.value = r.tag_id;
-        ui.aisleSel.value = r.aisle_name;
-        ui.railSel.value = String(r.rail);
-        ui.levelSel.value = String(r.level);
-        ui.notesInput.value = r.notes || "";
-        await saveWithStatus("INBOUND");
-      }
-
-      if(act === "out"){
-        ui.tagInput.value = r.tag_id;
-        ui.aisleSel.value = r.aisle_name;
-        ui.railSel.value = String(r.rail);
-        ui.levelSel.value = String(r.level);
-        ui.notesInput.value = r.notes || "";
-        await saveWithStatus("OUTBOUND");
-      }
-    });
-
-    ui.drawerList.appendChild(item);
-  }
-
-  ui.cellDrawer.style.display = "";
-  if(!opts.silent) toast("Cell opened.", "ok");
+  ui.rows.querySelectorAll("button[data-act='open']").forEach(btn=>{
+    btn.onclick = async ()=>{
+      const id = btn.getAttribute("data-id");
+      const row = state.list.find(x=>x.id===id);
+      ui.tagInput.value = row.tag_id;
+      await findTag();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+  });
 }
 
-async function jumpToLatestTagCell(){
-  try{
-    const { data, error } = await sb.from("pallet_tags").select("*").order("updated_at",{ascending:false}).limit(1).single();
-    if(error) throw error;
-    if(!data) return;
-
-    setTab("map");
-    ui.mapAisleSel.value = data.aisle_name;
-    await refreshMap();
-    openCellDrawer(data.aisle_name, data.rail, data.level);
-  }catch(err){
-    console.error(err);
-    toast(`Could not jump to latest: ${err.message || err}`, "bad");
-  }
+function escapeHtml(s){
+  return String(s||"").replace(/[&<>"']/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
 }
 
-/** =========================================================
- *  Init + events
- * ========================================================= */
-async function init(){
-  try{
-    sb = supabase.createClient(SB_URL, SB_ANON);
-    setConn(true, "Connected");
-    await loadAisles();
-    await refreshKPIs();
-    await recentTags();
-  }catch(err){
-    console.error(err);
-    setConn(false, "Not connected");
-    toast(`Init failed: ${err.message || err}`, "bad");
+async function exportListPdf(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:"pt", format:"letter" });
+
+  const title = `LocateMe Report (${ui.statusFilter.value})`;
+  doc.setFont("helvetica","bold");
+  doc.setFontSize(16);
+  doc.text(title, 40, 50);
+
+  doc.setFont("helvetica","normal");
+  doc.setFontSize(10);
+  doc.text(`Generated: ${new Date().toLocaleString()}`, 40, 68);
+  doc.text(`Results: ${state.list.length}`, 40, 84);
+
+  let y = 110;
+  const lineH = 16;
+
+  doc.setFont("helvetica","bold");
+  doc.text("TAG", 40, y);
+  doc.text("LOCATION", 200, y);
+  doc.text("STATUS", 470, y);
+  doc.setFont("helvetica","normal");
+  y += 10;
+
+  doc.setDrawColor(180);
+  doc.line(40, y, 572, y);
+  y += 18;
+
+  for(const r of state.list){
+    const loc = `${r.aisle_name} / R${r.rail} / L${r.level}`;
+    if(y > 740){
+      doc.addPage();
+      y = 60;
+    }
+    doc.text(String(r.tag_id).slice(0,24), 40, y);
+    doc.text(loc.slice(0,34), 200, y);
+    doc.text(String(r.status), 470, y);
+    y += lineH;
   }
+
+  doc.save(`locateme_report_${ui.statusFilter.value}_${Date.now()}.pdf`);
 }
 
-ui.tabSave.addEventListener("click", ()=>setTab("save"));
-ui.tabSearch.addEventListener("click", ()=>setTab("search"));
-ui.tabMap.addEventListener("click", ()=>setTab("map"));
+async function exportTagPdf(){
+  const row = state.currentTagRow;
+  if(!row){ toast("No tag loaded", "Find a tag first."); return; }
 
-ui.saveBtn.addEventListener("click", ()=>saveWithStatus("INBOUND"));
-ui.outBtn.addEventListener("click", ()=>saveWithStatus("OUTBOUND"));
-ui.inBtn.addEventListener("click", ()=>saveWithStatus("INBOUND"));
-ui.moveBtn.addEventListener("click", moveTagNoPhoto);
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:"pt", format:"letter" });
 
-ui.clearBtn.addEventListener("click", ()=>{
+  doc.setFont("helvetica","bold");
+  doc.setFontSize(18);
+  doc.text(`Tag Report`, 40, 52);
+
+  doc.setFontSize(12);
+  doc.text(`Tag: ${row.tag_id}`, 40, 82);
+  doc.text(`Location: ${row.aisle_name} / Rail ${row.rail} / Level ${row.level}`, 40, 102);
+  doc.text(`Status: ${row.status}`, 40, 122);
+  doc.text(`Updated: ${new Date(row.updated_at).toLocaleString()}`, 40, 142);
+
+  // Attempt to embed first photo thumbnail if available
+  const first = state.currentPhotos?.[0];
+  if(first){
+    const url = sb.storage.from(BUCKET).getPublicUrl(first.object_path)?.data?.publicUrl;
+    try{
+      const img = await fetch(url).then(r=>r.blob()).then(blob=>blobToDataURL(blob));
+      doc.text(`Photo:`, 40, 172);
+      doc.addImage(img, "JPEG", 40, 184, 260, 180);
+    }catch(_){
+      doc.text(`Photo URL: ${url}`, 40, 172);
+    }
+  }
+
+  doc.save(`locateme_tag_${row.tag_id}_${Date.now()}.pdf`);
+}
+
+function blobToDataURL(blob){
+  return new Promise((res, rej)=>{
+    const r = new FileReader();
+    r.onload = ()=>res(r.result);
+    r.onerror = rej;
+    r.readAsDataURL(blob);
+  });
+}
+
+/** ==========================================================
+ *  Wiring
+ * ========================================================== */
+ui.btnCam.onclick = startCamera;
+ui.btnStopCam.onclick = stopCamera;
+ui.btnFind.onclick = findTag;
+
+ui.btnBack.onclick = ()=>{
+  const prev = state.history.pop();
+  ui.btnBack.disabled = state.history.length === 0;
+  if(!prev) return;
+  state.step = prev.step;
+  state.selected = prev.selected;
+  goStep(prev.step);
+};
+
+ui.btnReset.onclick = ()=>{
+  state.history = [];
+  ui.btnBack.disabled = true;
   ui.tagInput.value = "";
-  ui.notesInput.value = "";
   ui.photoInput.value = "";
-  ui.railSel.value = "1";
-  ui.levelSel.value = "1";
-  toast("Cleared form.", "ok");
-});
+  ui.notesInput.value = "";
+  setTagUI(null, []);
+  clearSelections("AISLE");
+  toast("Reset", "Ready for next tag.");
+};
 
-ui.searchBtn.addEventListener("click", ()=>doSearch(ui.searchInput.value));
-ui.searchInput.addEventListener("keydown",(e)=>{
-  if(e.key === "Enter"){ e.preventDefault(); doSearch(ui.searchInput.value); }
-});
-ui.recentBtn.addEventListener("click", recentTags);
-ui.refreshBtn.addEventListener("click", refreshKPIs);
+ui.photoInput.addEventListener("change", ()=>goStep(state.step)); // refresh save enabled state
+ui.tagInput.addEventListener("input", ()=>goStep(state.step));
 
-ui.mapAisleSel.addEventListener("change", ()=>refreshMap());
-ui.mapRefreshBtn.addEventListener("click", ()=>refreshMap());
-ui.mapRecentBtn.addEventListener("click", jumpToLatestTagCell);
-ui.fAll.addEventListener("click", ()=>setFilter("ALL"));
-ui.fIn.addEventListener("click", ()=>setFilter("INBOUND"));
-ui.fOut.addEventListener("click", ()=>setFilter("OUTBOUND"));
+ui.btnSave.onclick = saveTag;
 
-ui.drawerCloseBtn.addEventListener("click", ()=>{
-  ui.cellDrawer.style.display = "none";
-  openCell = null;
-});
-ui.drawerAddBtn.addEventListener("click", ()=>{
-  if(!openCell){ toast("Open a cell first.", "bad"); return; }
-  ui.aisleSel.value = openCell.aisle;
-  ui.railSel.value = String(openCell.rail);
-  ui.levelSel.value = String(openCell.level);
-  setTab("save");
-  ui.tagInput.focus();
-  toast("Prefilled location. Now scan/type tag and save.", "ok");
-});
+ui.btnMarkOutbound.onclick = ()=>markStatus("OUTBOUND");
+ui.btnMarkInbound.onclick  = ()=>markStatus("INBOUND");
 
-init();
+ui.btnSearch.onclick = loadList;
+ui.btnRefresh.onclick = loadList;
+ui.statusFilter.onchange = loadList;
+ui.searchInput.addEventListener("keydown", (e)=>{ if(e.key==="Enter") loadList(); });
+
+ui.btnPdf.onclick = exportListPdf;
+ui.btnTagPdf.onclick = exportTagPdf;
+
+/** ==========================================================
+ *  Boot
+ * ========================================================== */
+(async function init(){
+  try{
+    setConnected(true, "Connected to Supabase");
+    buildRailMap();
+    buildLevelMap();
+    await loadAisles();
+    clearSelections("AISLE");
+    await maybeAutoPurge();
+    await loadList();
+    toast("Ready", "Scan a tag or type it in, then click an aisle.");
+  }catch(e){
+    console.error(e);
+    setConnected(false, "Connection error");
+    toast("Startup error", e.message || String(e));
+  }
+})();
 </script>
 </body>
 </html>
