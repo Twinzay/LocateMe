@@ -108,7 +108,6 @@
     }
     .pinhead{display:flex; align-items:center; justify-content:space-between; gap:10px}
     .pinhead .big{font-weight:900; font-size:18px}
-    .hint{font-size:12px;color:var(--muted); margin-top:6px}
     .actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px}
     .divider{height:1px;background:rgba(255,255,255,.10);margin:12px 0}
 
@@ -153,11 +152,8 @@
   <div id="pinOverlay" class="overlay">
     <div class="pinbox">
       <div class="pinhead">
-        <div>
-          <div class="big">Warehouse Access</div>
-          <div class="hint">Enter PIN to unlock LocateMe</div>
-        </div>
-        <span class="pill">Supabase-secured</span>
+        <div class="big">Enter PIN</div>
+        <span class="pill">Warehouse</span>
       </div>
 
       <label>PIN</label>
@@ -284,12 +280,12 @@
 const SUPABASE_URL = "https://ojdfaguhteddwaxyobnl.supabase.co";
 const SUPABASE_ANON = "sb_publishable_S4Z3E2phukZklKtBuRPLjA_RB4Faij2";
 
-// PIN-only auth (shared user):
-const WAREHOUSE_EMAIL = "warehouseps26@gmail.com"; // <-- CHANGE THIS to the user you created in Supabase Auth
-
 const BUCKET = "warehouse-photos";
 const RAIL_MAX = 21;
 const LEVEL_MAX = 5;
+
+// Hard PIN (no Supabase auth; overlay-only lock)
+const PIN_CODE = "2026";
 
 // Warehouse aisle order (matches your drawing vibe)
 const AISLE_ORDER = [
@@ -369,20 +365,16 @@ function fillNumericSelect(sel, max){
   }
 }
 
-async function ensureSession(){
-  const { data } = await sb.auth.getSession();
-  return data.session;
-}
-
 async function loadAisles(){
   const { data, error } = await sb.from("aisles").select("name").order("name", {ascending:true});
   if(error){
     ui.aisleSel.innerHTML = `<option value="">(Aisles table error)</option>`;
     existingAisles = new Set();
+    ui.aisleWarn.innerHTML = `<span class="bad">${error.message}</span>`;
     return;
   }
   existingAisles = new Set((data||[]).map(x=>x.name));
-  // show in dropdown using your preferred order first, then anything else:
+
   const ordered = [];
   for(const n of AISLE_ORDER){
     if(existingAisles.has(n)) ordered.push(n);
@@ -395,7 +387,6 @@ async function loadAisles(){
   }else{
     ui.aisleSel.innerHTML = ordered.map(n=>`<option value="${n}">${n}</option>`).join("");
   }
-
   showAisleMissingWarning();
 }
 
@@ -409,6 +400,7 @@ function showAisleMissingWarning(){
 }
 
 async function signedUrl(path){
+  // If your bucket is PUBLIC, this will still work; if PRIVATE, it may require auth policies.
   const { data, error } = await sb.storage.from(BUCKET).createSignedUrl(path, 60 * 10);
   if(error) return null;
   return data.signedUrl;
@@ -429,35 +421,22 @@ async function uploadPhoto(file, tagId){
 }
 
 /** ================================
- *  PIN LOGIN
+ *  PIN (overlay-only)
  * ================================ */
-async function unlockWithPin(pin){
+function unlockWithPin(pin){
   pin = safe(pin);
-  if(!pin) return msg(ui.pinMsg, "Enter a PIN.");
-  ui.pinBtn.disabled = true;
-  ui.pinBtn.textContent = "Unlocking...";
-
-  const { error } = await sb.auth.signInWithPassword({
-    email: WAREHOUSE_EMAIL,
-    password: pin
-  });
-
-  ui.pinBtn.disabled = false;
-  ui.pinBtn.textContent = "Unlock";
-
-  if(error){
-    msg(ui.pinMsg, "Wrong PIN or user not created yet.");
+  if(!pin) return msg(ui.pinMsg, "Enter PIN.");
+  if(pin !== PIN_CODE){
+    msg(ui.pinMsg, "Wrong PIN.");
     return;
   }
-
   ui.overlay.style.display = "none";
   ui.logoutBtn.style.display = "";
   setConn("ok");
-  await initApp();
+  initApp();
 }
 
-async function lockApp(){
-  await sb.auth.signOut();
+function lockApp(){
   ui.overlay.style.display = "flex";
   ui.logoutBtn.style.display = "none";
   setConn("locked");
@@ -477,7 +456,7 @@ async function saveTag(){
 
   if(!tagId) return msg(ui.saveMsg, "Tag ID is required.");
   if(!aisle) return msg(ui.saveMsg, "Pick an aisle.");
-  if(!existingAisles.has(aisle)) return msg(ui.saveMsg, `Aisle "${aisle}" doesn't exist yet. Click “Create missing aisles…”.`);
+  if(existingAisles.size && !existingAisles.has(aisle)) return msg(ui.saveMsg, `Aisle "${aisle}" doesn't exist yet. Click “Create missing aisles…”.`);
   if(!(rail>=1 && rail<=RAIL_MAX)) return msg(ui.saveMsg, "Rail out of range.");
   if(!(level>=1 && level<=LEVEL_MAX)) return msg(ui.saveMsg, "Level out of range.");
 
@@ -503,7 +482,6 @@ async function saveTag(){
 
     if(file){
       const up = await uploadPhoto(file, tagId);
-
       const { error: phErr } = await sb
         .from("tag_photos")
         .insert([{
@@ -513,7 +491,6 @@ async function saveTag(){
           file_name: up.fileName,
           content_type: up.contentType
         }]);
-
       if(phErr) throw phErr;
     }
 
@@ -681,7 +658,6 @@ function svgEl(tag, attrs={}){
 }
 
 function aisleColor(aisle){
-  // subtle difference per aisle
   const base = [
     "rgba(56,210,122,.18)",
     "rgba(246,213,122,.18)",
@@ -700,8 +676,6 @@ function hash(s){
 }
 
 function buildMap(){
-  // Layout: stack aisle rows similar to your drawing
-  // AEX at top as special (bigger)
   const width = 1080;
   const pad = 18;
   const cellW = 28;
@@ -709,7 +683,6 @@ function buildMap(){
   const gapY = 14;
   const labelW = 150;
 
-  // Row config: approximate your sketch (top clusters, mid clusters, bottom Bugatti long)
   const rows = [
     { aisle:"AEX", rails: RAIL_MAX, height: 58, note:"Top zone" },
     { aisle:"Maserati", rails: 6, height: cellH, note:"Top right" },
@@ -723,10 +696,9 @@ function buildMap(){
     { aisle:"Bugatti", rails: RAIL_MAX, height: cellH, note:"Bottom long" },
   ];
 
-  // compute svg height
   let y = pad;
   for(const r of rows){
-    y += 32;                 // row title band
+    y += 32;
     y += r.height;
     y += gapY;
   }
@@ -734,13 +706,11 @@ function buildMap(){
 
   const svg = svgEl("svg", { viewBox:`0 0 ${width} ${height}` });
 
-  // Outer warehouse frame
   svg.appendChild(svgEl("rect", {
     x: 8, y: 8, width: width-16, height: height-16,
     rx: 18, fill:"rgba(0,0,0,.12)", stroke:"rgba(255,255,255,.14)", "stroke-width":"2"
   }));
 
-  // Doors / zones (A/B/C)
   const door = (x,y,label)=>{
     const g = svgEl("g");
     g.appendChild(svgEl("rect",{x, y, width:90, height:32, rx:12, fill:"rgba(255,255,255,.05)", stroke:"rgba(255,255,255,.14)"}));
@@ -753,17 +723,14 @@ function buildMap(){
   door(width-120, height/2-16, "B");
   door(width-120, height-110, "C");
 
-  // Dumpster label near C (like your sketch)
   const dump = svgEl("text",{x:width-120, y:height-70, class:"tiny"});
   dump.textContent = "Dumpster";
   svg.appendChild(dump);
 
-  // Draw each aisle row with clickable rail cells
   let curY = pad + 12;
   for(const r of rows){
     const aisle = r.aisle;
 
-    // title band
     const titleBand = svgEl("rect",{
       x: pad, y: curY, width: width - pad*2 - 130, height: 28,
       rx: 12, fill:"rgba(255,255,255,.05)", stroke:"rgba(255,255,255,.10)"
@@ -780,14 +747,12 @@ function buildMap(){
 
     curY += 32;
 
-    // row background
     const rowW = labelW + (RAIL_MAX * cellW) + 12;
     svg.appendChild(svgEl("rect",{
       x: pad, y: curY, width: rowW, height: r.height,
       rx: 14, fill:"rgba(0,0,0,.18)", stroke:"rgba(255,255,255,.10)"
     }));
 
-    // left label column
     svg.appendChild(svgEl("rect",{
       x: pad+8, y: curY+8, width: labelW-10, height: r.height-16,
       rx: 12, fill: aisleColor(aisle), stroke:"rgba(255,255,255,.12)"
@@ -799,11 +764,9 @@ function buildMap(){
     subt.textContent = `click rails →`;
     svg.appendChild(subt);
 
-    // rail cells
     const startX = pad + labelW;
     const startY = curY + 10;
 
-    // Use r.rails for how many are visually “active”, but still allow up to 21 by drawing all
     for(let rail=1; rail<=RAIL_MAX; rail++){
       const active = rail <= (r.rails || RAIL_MAX);
       const x = startX + (rail-1)*cellW;
@@ -821,14 +784,9 @@ function buildMap(){
         "data-active": active ? "1" : "0"
       });
 
-      rect.addEventListener("click", ()=>{
-        // Still allow selecting any rail 1-21 even if row "active" is shorter
-        pickFromMap(aisle, rail);
-      });
-
+      rect.addEventListener("click", ()=> pickFromMap(aisle, rail));
       svg.appendChild(rect);
 
-      // number
       const num = svgEl("text",{x:x+(cellW-4)/2, y:yCell+15, "text-anchor":"middle", class:"tiny"});
       num.textContent = rail;
       svg.appendChild(num);
@@ -839,8 +797,6 @@ function buildMap(){
 
   ui.mapHost.innerHTML = "";
   ui.mapHost.appendChild(svg);
-
-  // Apply highlight to current dropdown selection
   syncMapToDropdown();
 }
 
@@ -849,7 +805,6 @@ function pickFromMap(aisle, rail){
   ui.mapPick.textContent = `${aisle} • Rail ${rail}`;
   ui.aisleSel.value = aisle;
   ui.railSel.value = String(rail);
-  // leave level to user (as you wanted)
   pushHistory();
   syncMapToDropdown();
 }
@@ -859,11 +814,9 @@ function syncMapToDropdown(){
   const rail = parseInt(ui.railSel.value, 10) || 0;
   ui.mapPick.textContent = aisle && rail ? `${aisle} • Rail ${rail}` : "No selection";
 
-  // highlight selected cell in svg
   const svg = ui.mapHost.querySelector("svg");
   if(!svg) return;
 
-  // reset all
   svg.querySelectorAll(".railCell").forEach(r=>{
     const active = r.getAttribute("data-active")==="1";
     r.setAttribute("fill", active ? "rgba(255,255,255,.08)" : "rgba(255,255,255,.03)");
@@ -911,7 +864,6 @@ async function initApp(){
   await loadAisles();
   buildMap();
 
-  // record selection history as user changes
   ["change"].forEach(evt=>{
     ui.aisleSel.addEventListener(evt, ()=>{ pushHistory(); syncMapToDropdown(); });
     ui.railSel.addEventListener(evt, ()=>{ pushHistory(); syncMapToDropdown(); });
@@ -919,7 +871,6 @@ async function initApp(){
     ui.statusSel.addEventListener(evt, pushHistory);
   });
 
-  // daily auto-purge (runs at most once per day per device)
   const k = "locateme_last_purge";
   const last = parseInt(localStorage.getItem(k) || "0", 10);
   const now = Date.now();
@@ -931,16 +882,13 @@ async function initApp(){
   }
 }
 
-(async function boot(){
-  const sess = await ensureSession();
-  if(sess){
-    ui.overlay.style.display = "none";
-    ui.logoutBtn.style.display = "";
-    setConn("ok");
-    await initApp();
-  }else{
-    setConn("locked");
-  }
+/** ================================
+ *  Boot (always locked)
+ * ================================ */
+(function boot(){
+  ui.overlay.style.display = "flex";
+  ui.logoutBtn.style.display = "none";
+  setConn("locked");
 })();
 
 /** ================================
