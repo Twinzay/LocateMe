@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>LocateMe — Warehouse Tag Locator</title>
+  <title>LocateMe Ops — Warehouse + Fleet + Logistics</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -22,6 +22,7 @@
       --ok:#38d27a;
       --bad:#ff5964;
       --warn:#ffcc66;
+      --info:#7fb6ff;
     }
     *{box-sizing:border-box}
     body{
@@ -32,51 +33,82 @@
                   linear-gradient(180deg, #050507, #07080b 60%, #060709);
       overflow-x:hidden;
     }
-    .wrap{max-width:1200px;margin:28px auto;padding:0 16px 60px}
+    .wrap{max-width:1280px;margin:28px auto;padding:0 16px 70px}
     .topbar{
       display:flex; align-items:center; justify-content:space-between; gap:12px;
       padding:14px 16px; border:1px solid var(--stroke); border-radius:var(--radius);
       background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
       box-shadow:var(--shadow);
+      position:sticky; top:12px; z-index:10;
+      backdrop-filter: blur(10px);
     }
     .brand{display:flex; align-items:center; gap:10px}
     .dot{width:10px;height:10px;border-radius:999px;background:linear-gradient(180deg,var(--gold1),var(--gold2))}
-    .title{font-weight:800; letter-spacing:.3px}
+    .title{font-weight:900; letter-spacing:.3px}
     .sub{color:var(--muted); font-size:12px}
+    .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
     .btn{
       appearance:none; border:1px solid var(--stroke); color:var(--text);
       background:rgba(255,255,255,.06); padding:10px 12px; border-radius:14px;
       cursor:pointer;
     }
     .btn:hover{background:rgba(255,255,255,.10)}
+    .btn:disabled{opacity:.55; cursor:not-allowed}
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 10px; border-radius:999px; border:1px solid var(--stroke);
+      background:rgba(0,0,0,.25);
+      font-size:12px; color:var(--muted);
+      white-space:nowrap;
+    }
+    .ok{color:var(--ok)}
+    .bad{color:var(--bad)}
+    .warn{color:var(--warn)}
+    .info{color:var(--info)}
+    .gold{color:var(--gold1)}
+    .small{font-size:12px;color:var(--muted)}
+    .divider{height:1px;background:rgba(255,255,255,.10);margin:12px 0}
+
+    .tabs{
+      display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;
+    }
+    .tab{
+      border:1px solid var(--stroke);
+      background:rgba(0,0,0,.22);
+      padding:10px 12px;
+      border-radius:14px;
+      cursor:pointer;
+      font-weight:800;
+      color:rgba(234,236,239,.85);
+    }
+    .tab.active{
+      background:linear-gradient(180deg, rgba(246,213,122,.16), rgba(0,0,0,.22));
+      border-color:rgba(246,213,122,.35);
+      color:var(--text);
+    }
+
     .grid{display:grid; grid-template-columns: 1.1fr .9fr; gap:14px; margin-top:14px}
     @media (max-width: 980px){ .grid{grid-template-columns:1fr} }
+
+    .grid3{display:grid; grid-template-columns: 1fr 1fr 1fr; gap:14px; margin-top:14px}
+    @media (max-width: 980px){ .grid3{grid-template-columns:1fr} }
+
     .card{
       border:1px solid var(--stroke); border-radius:var(--radius);
       background:linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.04));
       box-shadow:var(--shadow);
       padding:14px;
     }
-    .h{font-weight:800; margin:0 0 8px}
-    .row{display:flex; gap:10px; flex-wrap:wrap}
+    .h{font-weight:900; margin:0 0 8px}
     label{display:block; font-size:12px; color:var(--muted); margin:10px 0 6px}
     input, select, textarea{
       width:100%; padding:10px 12px; border-radius:14px;
       border:1px solid var(--stroke); outline:none;
       background:rgba(0,0,0,.25); color:var(--text);
     }
-    textarea{min-height:80px; resize:vertical}
-    .small{font-size:12px;color:var(--muted)}
-    .pill{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:8px 10px; border-radius:999px; border:1px solid var(--stroke);
-      background:rgba(0,0,0,.25);
-      font-size:12px; color:var(--muted);
-    }
-    .ok{color:var(--ok)}
-    .bad{color:var(--bad)}
-    .warn{color:var(--warn)}
-    .gold{color:var(--gold1)}
+    textarea{min-height:90px; resize:vertical}
+    .actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px}
+
     .list{display:flex; flex-direction:column; gap:10px; margin-top:10px}
     .item{
       border:1px solid var(--stroke); border-radius:16px; padding:12px;
@@ -85,6 +117,18 @@
     .itemTop{display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap}
     .tag{font-weight:900; letter-spacing:.2px}
     .meta{color:var(--muted); font-size:12px}
+    .kpi{
+      display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; margin-top:10px;
+    }
+    @media (max-width: 980px){ .kpi{grid-template-columns:1fr 1fr} }
+    .kcard{
+      border:1px solid var(--stroke); border-radius:16px; padding:12px;
+      background:rgba(0,0,0,.22);
+    }
+    .knum{font-weight:900; font-size:18px}
+    .klabel{font-size:12px;color:var(--muted)}
+
+    /* Photos */
     .photos{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}
     .photo{
       width:170px; border-radius:14px; border:1px solid var(--stroke);
@@ -92,6 +136,8 @@
     }
     .photo img{width:100%; height:120px; object-fit:cover; display:block}
     .photo .cap{padding:8px 10px; font-size:12px; color:var(--muted)}
+
+    /* Overlay PIN */
     .overlay{
       position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
       background:rgba(0,0,0,.72);
@@ -99,7 +145,7 @@
       z-index:50;
     }
     .pinbox{
-      width:min(520px, 92vw);
+      width:min(560px, 92vw);
       border:1px solid rgba(255,255,255,.18);
       border-radius:22px;
       background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
@@ -108,8 +154,6 @@
     }
     .pinhead{display:flex; align-items:center; justify-content:space-between; gap:10px}
     .pinhead .big{font-weight:900; font-size:18px}
-    .actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px}
-    .divider{height:1px;background:rgba(255,255,255,.10);margin:12px 0}
 
     /* MAP */
     .mapWrap{
@@ -145,19 +189,38 @@
     .railCell:hover{opacity:.9}
     .labelText{font-size:11px; fill:rgba(234,236,239,.85)}
     .tiny{font-size:10px; fill:rgba(234,236,239,.65)}
+
+    /* Modal camera */
+    .modal{
+      position:fixed; inset:0; display:none; align-items:center; justify-content:center;
+      background:rgba(0,0,0,.72);
+      backdrop-filter: blur(8px);
+      z-index:60;
+    }
+    .modalbox{
+      width:min(720px, 96vw);
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:22px;
+      background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
+      box-shadow:0 30px 90px rgba(0,0,0,.65);
+      padding:14px;
+    }
+    video{width:100%; border-radius:16px; border:1px solid rgba(255,255,255,.12); background:rgba(0,0,0,.35)}
   </style>
 </head>
 <body>
-  <!-- PIN Gate -->
+
+  <!-- MASTER PIN Gate -->
   <div id="pinOverlay" class="overlay">
     <div class="pinbox">
       <div class="pinhead">
         <div class="big">Enter PIN</div>
-        <span class="pill">Warehouse</span>
+        <span class="pill">LocateMe Ops</span>
       </div>
+      <div class="small" style="margin-top:8px;">Access required to view or edit anything.</div>
 
       <label>PIN</label>
-      <input id="pinInput" inputmode="numeric" placeholder="PIN" />
+      <input id="pinInput" inputmode="numeric" placeholder="Enter PIN" />
 
       <div class="actions">
         <button class="btn" id="pinBtn">Unlock</button>
@@ -168,109 +231,438 @@
     </div>
   </div>
 
+  <!-- Camera Modal -->
+  <div id="camModal" class="modal">
+    <div class="modalbox">
+      <div class="row" style="justify-content:space-between;">
+        <div>
+          <div class="title" style="font-weight:900;">Scan Tag</div>
+          <div class="small">Point the camera at the barcode/QR. If your device supports it, it will fill Tag ID.</div>
+        </div>
+        <button class="btn" id="camClose">Close</button>
+      </div>
+      <div class="divider"></div>
+      <video id="camVideo" playsinline></video>
+      <div class="actions">
+        <button class="btn" id="camStart">Start Camera</button>
+        <button class="btn" id="camStop">Stop</button>
+        <span id="camMsg" class="pill"><span class="gold">●</span> Idle</span>
+      </div>
+    </div>
+  </div>
+
   <div class="wrap">
     <div class="topbar">
       <div class="brand">
         <span class="dot"></span>
         <div>
-          <div class="title">LocateMe</div>
-          <div class="sub">PIN-locked warehouse tag locator + clickable map</div>
+          <div class="title">LocateMe Ops</div>
+          <div class="sub">Warehouse + Fleet + Logistics • manager-ready • photo proof • audit trails</div>
         </div>
       </div>
+
       <div class="row">
         <span id="connPill" class="pill"><span class="gold">●</span> Locked</span>
-        <button class="btn" id="logoutBtn" style="display:none;">Lock</button>
+        <span id="rolePill" class="pill"><span class="info">●</span> Mode: Manager</span>
+        <button class="btn" id="lockBtn" style="display:none;">Lock</button>
       </div>
     </div>
 
-    <div class="grid">
-      <!-- Add / Update -->
-      <div class="card">
-        <h3 class="h">Save / Update a Tag</h3>
-        <div class="small">Pick aisle → rail (1–21) → level (1–5), add photo, save.</div>
+    <div class="tabs">
+      <div class="tab active" data-tab="warehouse">Warehouse</div>
+      <div class="tab" data-tab="fleet">Fleet</div>
+      <div class="tab" data-tab="logistics">Logistics</div>
+      <div class="tab" data-tab="dashboard">Ops Dashboard</div>
+    </div>
 
-        <label>Tag ID</label>
-        <input id="tagId" placeholder="Type (camera scan later) or paste the tag" />
+    <!-- ===================== WAREHOUSE TAB ===================== -->
+    <div id="tab-warehouse" class="tabpane">
 
-        <div class="row">
-          <div style="flex:1; min-width:220px;">
-            <label>Aisle</label>
-            <select id="aisleSel"></select>
-          </div>
-          <div style="flex:.7; min-width:160px;">
-            <label>Rail</label>
-            <select id="railSel"></select>
-          </div>
-          <div style="flex:.7; min-width:160px;">
-            <label>Level</label>
-            <select id="levelSel"></select>
-          </div>
-        </div>
+      <div class="grid">
+        <div class="card">
+          <h3 class="h">Warehouse: Save / Update a Tag</h3>
+          <div class="small">Pick aisle → rail (1–21) → level (1–5), add photo, save. <span class="warn">Editing requires Warehouse PIN.</span></div>
 
-        <label>Status</label>
-        <select id="statusSel">
-          <option value="INBOUND">INBOUND</option>
-          <option value="OUTBOUND">OUTBOUND</option>
-        </select>
+          <div class="divider"></div>
 
-        <label>Notes (optional)</label>
-        <textarea id="notes" placeholder="Anything helpful…"></textarea>
-
-        <label>Photo (optional)</label>
-        <input id="photoFile" type="file" accept="image/*" />
-
-        <div class="actions">
-          <button class="btn" id="saveBtn">Save</button>
-          <button class="btn" id="backBtn">Back (Undo last choice)</button>
-          <button class="btn" id="purgeBtn">Purge OUTBOUND &gt; 5 days</button>
-        </div>
-
-        <div id="saveMsg" class="small" style="margin-top:10px;"></div>
-      </div>
-
-      <!-- Right side: Map + Search -->
-      <div class="card">
-        <h3 class="h">Clickable Warehouse Map</h3>
-        <div class="small">Click an aisle row, then click a rail box. It fills Aisle + Rail.</div>
-
-        <div class="actions" style="margin-top:10px;">
-          <button class="btn" id="addAislesBtn">Create missing aisles in Supabase</button>
-          <button class="btn" id="centerSelectBtn">Select current dropdown on map</button>
-        </div>
-
-        <div id="aisleWarn" class="small" style="margin-top:10px;"></div>
-
-        <div class="divider"></div>
-
-        <div class="mapWrap">
-          <div class="mapHead">
-            <div class="mapLegend">
-              <span class="chip"><span class="swatch ais"></span> aisle row</span>
-              <span class="chip"><span class="swatch sel"></span> selected rail</span>
-              <span class="chip">Rails 1–21</span>
-              <span class="chip">Levels 1–5</span>
+          <div class="row">
+            <div style="flex:1; min-width:240px;">
+              <label>Warehouse PIN (to edit)</label>
+              <input id="whPin" inputmode="numeric" placeholder="Enter warehouse PIN to enable Save" />
             </div>
-            <span class="pill" id="mapPick">No selection</span>
+            <div style="flex:.5; min-width:180px; align-self:flex-end;">
+              <button class="btn" id="whUnlockBtn">Unlock Warehouse Edit</button>
+            </div>
+            <div style="flex:.6; min-width:240px; align-self:flex-end;">
+              <span id="whEditPill" class="pill"><span class="gold">●</span> View-only</span>
+            </div>
           </div>
-          <div id="mapHost"></div>
+
+          <label>Tag ID</label>
+          <div class="row">
+            <div style="flex:1; min-width:240px;">
+              <input id="tagId" placeholder="Type or paste the tag" />
+            </div>
+            <div style="flex:.5; min-width:160px;">
+              <button class="btn" id="scanBtn">📱 Scan</button>
+            </div>
+          </div>
+
+          <div class="row">
+            <div style="flex:1; min-width:220px;">
+              <label>Aisle</label>
+              <select id="aisleSel"></select>
+            </div>
+            <div style="flex:.7; min-width:160px;">
+              <label>Rail</label>
+              <select id="railSel"></select>
+            </div>
+            <div style="flex:.7; min-width:160px;">
+              <label>Level</label>
+              <select id="levelSel"></select>
+            </div>
+          </div>
+
+          <label>Status</label>
+          <select id="statusSel">
+            <option value="INBOUND">INBOUND</option>
+            <option value="OUTBOUND">OUTBOUND</option>
+          </select>
+
+          <label>Notes (optional)</label>
+          <textarea id="notes" placeholder="Anything helpful…"></textarea>
+
+          <label>Photo (optional)</label>
+          <input id="photoFile" type="file" accept="image/*" />
+
+          <div class="actions">
+            <button class="btn" id="saveBtn">Save</button>
+            <button class="btn" id="backBtn">Back (Undo last choice)</button>
+            <button class="btn" id="purgeBtn">Purge OUTBOUND &gt; 5 days</button>
+          </div>
+
+          <div id="saveMsg" class="small" style="margin-top:10px;"></div>
+        </div>
+
+        <div class="card">
+          <h3 class="h">Clickable Warehouse Map</h3>
+          <div class="small">Click an aisle row, then click a rail box. It fills Aisle + Rail.</div>
+
+          <div class="actions" style="margin-top:10px;">
+            <button class="btn" id="addAislesBtn">Create missing aisles</button>
+            <button class="btn" id="centerSelectBtn">Select current dropdown on map</button>
+          </div>
+
+          <div id="aisleWarn" class="small" style="margin-top:10px;"></div>
+
+          <div class="divider"></div>
+
+          <div class="mapWrap">
+            <div class="mapHead">
+              <div class="mapLegend">
+                <span class="chip"><span class="swatch ais"></span> aisle row</span>
+                <span class="chip"><span class="swatch sel"></span> selected rail</span>
+                <span class="chip">Rails 1–21</span>
+                <span class="chip">Levels 1–5</span>
+              </div>
+              <span class="pill" id="mapPick">No selection</span>
+            </div>
+            <div id="mapHost"></div>
+          </div>
+
+          <div class="divider"></div>
+
+          <h3 class="h" style="margin-top:0;">Search by Tag</h3>
+          <div class="small">Type a tag → pulls aisle/rail/level + photo(s). <span class="warn">Recently moved</span> highlights last 24 hours.</div>
+
+          <label>Search</label>
+          <input id="searchInput" placeholder="Tag ID…" />
+
+          <div class="actions">
+            <button class="btn" id="searchBtn">Search</button>
+            <button class="btn" id="recentBtn">Recently Updated</button>
+          </div>
+
+          <div id="results" class="list"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===================== FLEET TAB ===================== -->
+    <div id="tab-fleet" class="tabpane" style="display:none;">
+
+      <div class="grid3">
+        <div class="card">
+          <h3 class="h">Driver Profile (saved for future drives)</h3>
+          <div class="small">Drivers must save profile before logging a trip.</div>
+
+          <label>Driver Name</label>
+          <input id="drvName" placeholder="Full name" />
+
+          <div class="row">
+            <div style="flex:1; min-width:200px;">
+              <label>Date of Birth</label>
+              <input id="drvDob" type="date" />
+            </div>
+            <div style="flex:1; min-width:240px;">
+              <label>License #</label>
+              <input id="drvLic" placeholder="Driver license number" />
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn" id="drvSaveBtn">Save Driver Profile</button>
+          </div>
+
+          <div id="drvMsg" class="small" style="margin-top:10px;"></div>
+
+          <div class="divider"></div>
+
+          <h3 class="h" style="margin-top:0;">Pick Mode</h3>
+          <div class="small">Manager sees everything. Driver mode focuses on trip logging.</div>
+          <label>Mode</label>
+          <select id="modeSel">
+            <option value="MANAGER">Manager</option>
+            <option value="DRIVER">Driver</option>
+          </select>
+          <div class="actions">
+            <button class="btn" id="modeApplyBtn">Apply Mode</button>
+          </div>
+          <div id="modeMsg" class="small" style="margin-top:10px;"></div>
+        </div>
+
+        <div class="card">
+          <h3 class="h">Driver Trip Log</h3>
+          <div class="small">
+            Required: mileage out/in + inside cab photos before/after + notes + accountability checkbox.
+          </div>
+
+          <label>Select Vehicle</label>
+          <select id="vehSel"></select>
+
+          <div class="row">
+            <div style="flex:1; min-width:220px;">
+              <label>Mileage Before</label>
+              <input id="mileOut" type="number" inputmode="numeric" placeholder="e.g. 124883" />
+            </div>
+            <div style="flex:1; min-width:220px;">
+              <label>Mileage After</label>
+              <input id="mileIn" type="number" inputmode="numeric" placeholder="e.g. 125011" />
+            </div>
+          </div>
+
+          <label>Inside Cab Photo BEFORE</label>
+          <input id="cabBefore" type="file" accept="image/*" />
+
+          <label>Inside Cab Photo AFTER</label>
+          <input id="cabAfter" type="file" accept="image/*" />
+
+          <label>Trip Notes</label>
+          <textarea id="tripNotes" placeholder="Route, stops, issues, anything to know…"></textarea>
+
+          <div class="row" style="align-items:flex-start;">
+            <input id="ackBox" type="checkbox" style="width:auto; margin-top:14px;" />
+            <div class="small" style="margin-top:12px;">
+              <b>Accountability:</b> If damages are not stated BEFORE the ride, the driver may be held accountable if noticed by management.
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn" id="tripSaveBtn">Submit Trip</button>
+          </div>
+
+          <div id="tripMsg" class="small" style="margin-top:10px;"></div>
+        </div>
+
+        <div class="card">
+          <h3 class="h">Manager Fleet Tools</h3>
+          <div class="small">Vehicles, repairs, inspections, and trip history.</div>
+
+          <div class="actions">
+            <button class="btn" id="vehRefreshBtn">Refresh Vehicles</button>
+            <button class="btn" id="vehAddBtn">Add Vehicle</button>
+            <button class="btn" id="mtAddBtn">Create Repair Ticket</button>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="small">Quick Add Vehicle</div>
+          <div class="row">
+            <div style="flex:1; min-width:220px;">
+              <label>Unit # / Name</label>
+              <input id="vehUnit" placeholder="e.g. Truck-3" />
+            </div>
+            <div style="flex:1; min-width:220px;">
+              <label>Plate</label>
+              <input id="vehPlate" placeholder="Plate (optional)" />
+            </div>
+          </div>
+          <div class="row">
+            <div style="flex:1; min-width:220px;">
+              <label>Make/Model</label>
+              <input id="vehModel" placeholder="e.g. Ford Transit 250" />
+            </div>
+            <div style="flex:1; min-width:220px;">
+              <label>Current Mileage</label>
+              <input id="vehMiles" type="number" inputmode="numeric" placeholder="e.g. 125000" />
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn" id="vehCreateBtn">Save Vehicle</button>
+          </div>
+          <div id="vehMsg" class="small" style="margin-top:10px;"></div>
+
+          <div class="divider"></div>
+
+          <h3 class="h" style="margin-top:0;">Recent Trips</h3>
+          <div id="tripList" class="list"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===================== LOGISTICS TAB ===================== -->
+    <div id="tab-logistics" class="tabpane" style="display:none;">
+
+      <div class="grid">
+        <div class="card">
+          <h3 class="h">Create / Update Shipment</h3>
+          <div class="small">Track pickups, deliveries, PO/BOL, carrier, status, proof photos.</div>
+
+          <label>Shipment ID (internal)</label>
+          <input id="shId" placeholder="e.g. CLT-2026-001" />
+
+          <div class="row">
+            <div style="flex:1; min-width:220px;">
+              <label>Status</label>
+              <select id="shStatus">
+                <option value="PLANNED">PLANNED</option>
+                <option value="PICKUP_SCHEDULED">PICKUP_SCHEDULED</option>
+                <option value="IN_TRANSIT">IN_TRANSIT</option>
+                <option value="DELIVERED">DELIVERED</option>
+                <option value="EXCEPTION">EXCEPTION</option>
+                <option value="CANCELLED">CANCELLED</option>
+              </select>
+            </div>
+            <div style="flex:1; min-width:220px;">
+              <label>Carrier / Driver</label>
+              <input id="shCarrier" placeholder="Carrier or driver name" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div style="flex:1; min-width:220px;">
+              <label>PO #</label>
+              <input id="shPO" placeholder="PO (optional)" />
+            </div>
+            <div style="flex:1; min-width:220px;">
+              <label>BOL #</label>
+              <input id="shBOL" placeholder="BOL (optional)" />
+            </div>
+          </div>
+
+          <label>Pickup Location</label>
+          <input id="shPickup" placeholder="Pickup address / site" />
+
+          <label>Delivery Location</label>
+          <input id="shDrop" placeholder="Delivery address / site" />
+
+          <label>Notes</label>
+          <textarea id="shNotes" placeholder="Load details, access instructions, contact names, etc…"></textarea>
+
+          <label>Proof / Load Photo (optional)</label>
+          <input id="shPhoto" type="file" accept="image/*" />
+
+          <div class="actions">
+            <button class="btn" id="shSaveBtn">Save Shipment</button>
+            <button class="btn" id="shRefreshBtn">Refresh Shipments</button>
+          </div>
+
+          <div id="shMsg" class="small" style="margin-top:10px;"></div>
+        </div>
+
+        <div class="card">
+          <h3 class="h">Shipment Board</h3>
+          <div class="small">Search shipments fast and open details.</div>
+
+          <label>Search</label>
+          <input id="shSearch" placeholder="Shipment ID, PO, BOL, carrier…" />
+
+          <div class="actions">
+            <button class="btn" id="shSearchBtn">Search</button>
+            <button class="btn" id="shTodayBtn">Recently Updated</button>
+          </div>
+
+          <div id="shList" class="list"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===================== DASHBOARD TAB ===================== -->
+    <div id="tab-dashboard" class="tabpane" style="display:none;">
+
+      <div class="card">
+        <h3 class="h">Ops Dashboard</h3>
+        <div class="small">A quick “wow” view: live workload, fleet readiness, and warehouse movement.</div>
+
+        <div class="kpi">
+          <div class="kcard">
+            <div class="knum" id="kWarehouse">—</div>
+            <div class="klabel">Warehouse tags (total)</div>
+          </div>
+          <div class="kcard">
+            <div class="knum" id="kMoved">—</div>
+            <div class="klabel">Moved last 24h</div>
+          </div>
+          <div class="kcard">
+            <div class="knum" id="kFleet">—</div>
+            <div class="klabel">Fleet vehicles</div>
+          </div>
+          <div class="kcard">
+            <div class="knum" id="kShip">—</div>
+            <div class="klabel">Open shipments</div>
+          </div>
         </div>
 
         <div class="divider"></div>
 
-        <h3 class="h" style="margin-top:0;">Search by Tag</h3>
-        <div class="small">Type a tag → pulls aisle/rail/level + photo(s).</div>
-
-        <label>Search</label>
-        <input id="searchInput" placeholder="Tag ID…" />
-
-        <div class="actions">
-          <button class="btn" id="searchBtn">Search</button>
-          <button class="btn" id="recentBtn">Recently Updated</button>
+        <div class="grid">
+          <div class="card" style="margin:0;">
+            <h3 class="h">Latest Warehouse Movements</h3>
+            <div id="dashMoves" class="list"></div>
+          </div>
+          <div class="card" style="margin:0;">
+            <h3 class="h">Fleet: Latest Trips</h3>
+            <div id="dashTrips" class="list"></div>
+          </div>
         </div>
 
-        <div id="results" class="list"></div>
+        <div class="divider"></div>
+
+        <div class="grid">
+          <div class="card" style="margin:0;">
+            <h3 class="h">Logistics: Exceptions</h3>
+            <div class="small">Anything marked EXCEPTION bubbles here.</div>
+            <div id="dashExceptions" class="list"></div>
+          </div>
+          <div class="card" style="margin:0;">
+            <h3 class="h">Manager Notes</h3>
+            <div class="small">Use this for your daily plan or “handoff” notes.</div>
+            <textarea id="mgrNotes" placeholder="Today: …"></textarea>
+            <div class="actions">
+              <button class="btn" id="notesSaveBtn">Save Notes</button>
+              <button class="btn" id="notesLoadBtn">Load Notes</button>
+            </div>
+            <div id="notesMsg" class="small" style="margin-top:10px;"></div>
+          </div>
+        </div>
+
       </div>
+
     </div>
+
   </div>
 
 <script>
@@ -280,41 +672,65 @@
 const SUPABASE_URL = "https://ojdfaguhteddwaxyobnl.supabase.co";
 const SUPABASE_ANON = "sb_publishable_S4Z3E2phukZklKtBuRPLjA_RB4Faij2";
 
-const BUCKET = "warehouse-photos";
+// Buckets (create these in Supabase Storage)
+const BUCKET_WAREHOUSE = "warehouse-photos";
+const BUCKET_FLEET = "fleet-photos";
+const BUCKET_LOGISTICS = "logistics-photos";
+
 const RAIL_MAX = 21;
 const LEVEL_MAX = 5;
 
-// Hard PIN (no Supabase auth; overlay-only lock)
-const PIN_CODE = "2026";
+// MASTER PIN (site access)
+const PIN_MASTER = "9262";
 
-// Warehouse aisle order (matches your drawing vibe)
+// Warehouse edit PIN (only for saves/purge/creating aisles)
+const PIN_WAREHOUSE_EDIT = "2026";
+
+// Aisle order (your map)
 const AISLE_ORDER = [
-  "AEX",
-  "Maserati",
-  "Mercedes",
-  "Bentley",
-  "Pagani",
-  "Aston Martin",
-  "McLaren",
-  "Ferrari",
-  "Lamborghini",
-  "Bugatti"
+  "AEX","Maserati","Mercedes","Bentley","Pagani","Aston Martin","McLaren","Ferrari","Lamborghini","Bugatti"
 ];
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
 /** ================================
- *  UI
+ *  UI refs
  * ================================ */
 const ui = {
+  // overlay
   overlay: document.getElementById("pinOverlay"),
   pin: document.getElementById("pinInput"),
   pinBtn: document.getElementById("pinBtn"),
   pinClear: document.getElementById("pinClear"),
   pinMsg: document.getElementById("pinMsg"),
   connPill: document.getElementById("connPill"),
-  logoutBtn: document.getElementById("logoutBtn"),
+  lockBtn: document.getElementById("lockBtn"),
+  rolePill: document.getElementById("rolePill"),
 
+  // tabs
+  tabs: Array.from(document.querySelectorAll(".tab")),
+  panes: {
+    warehouse: document.getElementById("tab-warehouse"),
+    fleet: document.getElementById("tab-fleet"),
+    logistics: document.getElementById("tab-logistics"),
+    dashboard: document.getElementById("tab-dashboard"),
+  },
+
+  // camera
+  camModal: document.getElementById("camModal"),
+  camVideo: document.getElementById("camVideo"),
+  camStart: document.getElementById("camStart"),
+  camStop: document.getElementById("camStop"),
+  camClose: document.getElementById("camClose"),
+  camMsg: document.getElementById("camMsg"),
+  scanBtn: document.getElementById("scanBtn"),
+
+  // warehouse edit pin
+  whPin: document.getElementById("whPin"),
+  whUnlockBtn: document.getElementById("whUnlockBtn"),
+  whEditPill: document.getElementById("whEditPill"),
+
+  // warehouse fields
   tagId: document.getElementById("tagId"),
   aisleSel: document.getElementById("aisleSel"),
   railSel: document.getElementById("railSel"),
@@ -326,35 +742,109 @@ const ui = {
   backBtn: document.getElementById("backBtn"),
   purgeBtn: document.getElementById("purgeBtn"),
   saveMsg: document.getElementById("saveMsg"),
-
   searchInput: document.getElementById("searchInput"),
   searchBtn: document.getElementById("searchBtn"),
   recentBtn: document.getElementById("recentBtn"),
   results: document.getElementById("results"),
-
   mapHost: document.getElementById("mapHost"),
   mapPick: document.getElementById("mapPick"),
   aisleWarn: document.getElementById("aisleWarn"),
   addAislesBtn: document.getElementById("addAislesBtn"),
   centerSelectBtn: document.getElementById("centerSelectBtn"),
+
+  // fleet
+  drvName: document.getElementById("drvName"),
+  drvDob: document.getElementById("drvDob"),
+  drvLic: document.getElementById("drvLic"),
+  drvSaveBtn: document.getElementById("drvSaveBtn"),
+  drvMsg: document.getElementById("drvMsg"),
+
+  modeSel: document.getElementById("modeSel"),
+  modeApplyBtn: document.getElementById("modeApplyBtn"),
+  modeMsg: document.getElementById("modeMsg"),
+
+  vehSel: document.getElementById("vehSel"),
+  mileOut: document.getElementById("mileOut"),
+  mileIn: document.getElementById("mileIn"),
+  cabBefore: document.getElementById("cabBefore"),
+  cabAfter: document.getElementById("cabAfter"),
+  tripNotes: document.getElementById("tripNotes"),
+  ackBox: document.getElementById("ackBox"),
+  tripSaveBtn: document.getElementById("tripSaveBtn"),
+  tripMsg: document.getElementById("tripMsg"),
+
+  vehRefreshBtn: document.getElementById("vehRefreshBtn"),
+  vehAddBtn: document.getElementById("vehAddBtn"),
+  mtAddBtn: document.getElementById("mtAddBtn"),
+  vehUnit: document.getElementById("vehUnit"),
+  vehPlate: document.getElementById("vehPlate"),
+  vehModel: document.getElementById("vehModel"),
+  vehMiles: document.getElementById("vehMiles"),
+  vehCreateBtn: document.getElementById("vehCreateBtn"),
+  vehMsg: document.getElementById("vehMsg"),
+  tripList: document.getElementById("tripList"),
+
+  // logistics
+  shId: document.getElementById("shId"),
+  shStatus: document.getElementById("shStatus"),
+  shCarrier: document.getElementById("shCarrier"),
+  shPO: document.getElementById("shPO"),
+  shBOL: document.getElementById("shBOL"),
+  shPickup: document.getElementById("shPickup"),
+  shDrop: document.getElementById("shDrop"),
+  shNotes: document.getElementById("shNotes"),
+  shPhoto: document.getElementById("shPhoto"),
+  shSaveBtn: document.getElementById("shSaveBtn"),
+  shRefreshBtn: document.getElementById("shRefreshBtn"),
+  shMsg: document.getElementById("shMsg"),
+  shSearch: document.getElementById("shSearch"),
+  shSearchBtn: document.getElementById("shSearchBtn"),
+  shTodayBtn: document.getElementById("shTodayBtn"),
+  shList: document.getElementById("shList"),
+
+  // dashboard
+  kWarehouse: document.getElementById("kWarehouse"),
+  kMoved: document.getElementById("kMoved"),
+  kFleet: document.getElementById("kFleet"),
+  kShip: document.getElementById("kShip"),
+  dashMoves: document.getElementById("dashMoves"),
+  dashTrips: document.getElementById("dashTrips"),
+  dashExceptions: document.getElementById("dashExceptions"),
+  mgrNotes: document.getElementById("mgrNotes"),
+  notesSaveBtn: document.getElementById("notesSaveBtn"),
+  notesLoadBtn: document.getElementById("notesLoadBtn"),
+  notesMsg: document.getElementById("notesMsg"),
 };
+
+let appUnlocked = false;
+let warehouseEditUnlocked = false;
+let mode = localStorage.getItem("locateme_mode") || "MANAGER";
 
 let selectionHistory = [];
 let existingAisles = new Set();
-let lastMapSelection = { aisle: "", rail: 0 };
+let camStream = null;
+let camDetector = null;
 
 /** ================================
  *  Helpers
  * ================================ */
-function setConn(state){
-  ui.connPill.innerHTML = state === "ok"
+function safe(s){ return (s||"").toString().trim(); }
+
+function setConn(ok){
+  ui.connPill.innerHTML = ok
     ? `<span class="ok">●</span> Unlocked`
     : `<span class="gold">●</span> Locked`;
 }
+
+function setRolePill(){
+  ui.rolePill.innerHTML = (mode === "DRIVER")
+    ? `<span class="info">●</span> Mode: Driver`
+    : `<span class="info">●</span> Mode: Manager`;
+}
+
 function msg(el, text, good=false){
   el.innerHTML = good ? `<span class="ok">${text}</span>` : `<span class="bad">${text}</span>`;
 }
-function safe(s){ return (s||"").toString().trim(); }
 
 function fillNumericSelect(sel, max){
   sel.innerHTML = "";
@@ -365,6 +855,154 @@ function fillNumericSelect(sel, max){
   }
 }
 
+function setTab(tab){
+  ui.tabs.forEach(t=>t.classList.toggle("active", t.dataset.tab===tab));
+  Object.entries(ui.panes).forEach(([k,p])=> p.style.display = (k===tab) ? "" : "none");
+  localStorage.setItem("locateme_last_tab", tab);
+  if(tab==="dashboard") refreshDashboard();
+}
+
+async function signedUrl(bucket, path){
+  const { data, error } = await sb.storage.from(bucket).createSignedUrl(path, 60 * 10);
+  if(error) return null;
+  return data.signedUrl;
+}
+
+async function uploadPhoto(bucket, file, keyPrefix){
+  const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+  const objectPath = `${keyPrefix}/${Date.now()}_${Math.random().toString(16).slice(2)}.${ext}`;
+  const { error } = await sb.storage.from(bucket).upload(objectPath, file, {
+    cacheControl: "3600",
+    upsert: false,
+    contentType: file.type || "image/jpeg",
+  });
+  if(error) throw error;
+  return { objectPath, fileName: file.name, contentType: file.type };
+}
+
+function nowISO(){ return new Date().toISOString(); }
+function daysAgoISO(days){
+  return new Date(Date.now() - days*24*60*60*1000).toISOString();
+}
+
+/** ================================
+ *  MASTER PIN
+ * ================================ */
+function unlockMaster(pin){
+  pin = safe(pin);
+  if(!pin) return msg(ui.pinMsg, "Enter PIN.");
+  if(pin !== PIN_MASTER){
+    msg(ui.pinMsg, "Wrong PIN.");
+    return;
+  }
+  appUnlocked = true;
+  ui.overlay.style.display = "none";
+  ui.lockBtn.style.display = "";
+  setConn(true);
+  setRolePill();
+  initApp();
+}
+
+function lockAll(){
+  appUnlocked = false;
+  warehouseEditUnlocked = false;
+  ui.whEditPill.innerHTML = `<span class="gold">●</span> View-only`;
+  ui.overlay.style.display = "flex";
+  ui.lockBtn.style.display = "none";
+  setConn(false);
+}
+
+/** ================================
+ *  Warehouse Edit PIN
+ * ================================ */
+function unlockWarehouseEdit(){
+  const pin = safe(ui.whPin.value);
+  if(pin !== PIN_WAREHOUSE_EDIT){
+    msg(ui.saveMsg, "Warehouse PIN wrong — view-only mode.");
+    warehouseEditUnlocked = false;
+    ui.whEditPill.innerHTML = `<span class="gold">●</span> View-only`;
+    return;
+  }
+  warehouseEditUnlocked = true;
+  ui.whEditPill.innerHTML = `<span class="ok">●</span> Edit Enabled`;
+  msg(ui.saveMsg, "Warehouse editing enabled ✅", true);
+}
+
+/** ================================
+ *  Tabs
+ * ================================ */
+ui.tabs.forEach(t=>{
+  t.addEventListener("click", ()=> setTab(t.dataset.tab));
+});
+
+/** ================================
+ *  Camera Scan (Warehouse Tag ID)
+ * ================================ */
+function camSet(text, ok=false){
+  ui.camMsg.innerHTML = ok ? `<span class="ok">●</span> ${text}` : `<span class="gold">●</span> ${text}`;
+}
+
+async function camStart(){
+  try{
+    if(!navigator.mediaDevices?.getUserMedia){
+      camSet("Camera not supported on this device.");
+      return;
+    }
+    camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
+    ui.camVideo.srcObject = camStream;
+    await ui.camVideo.play();
+    camSet("Scanning…", true);
+
+    // BarcodeDetector support (fast + simple)
+    if("BarcodeDetector" in window){
+      const formats = ["qr_code","code_128","code_39","ean_13","ean_8","upc_a","upc_e","pdf417","data_matrix"];
+      camDetector = new BarcodeDetector({ formats });
+      scanLoop();
+    }else{
+      camSet("BarcodeDetector not available — type tag manually.");
+    }
+  }catch(e){
+    camSet(e.message || "Camera failed.");
+  }
+}
+
+async function scanLoop(){
+  if(!camDetector || !camStream) return;
+  try{
+    const codes = await camDetector.detect(ui.camVideo);
+    if(codes && codes.length){
+      const val = codes[0].rawValue || "";
+      if(val){
+        ui.tagId.value = val;
+        camSet("Captured ✅", true);
+        camStop();
+        ui.camModal.style.display = "none";
+      }
+    }
+  }catch(_){}
+  requestAnimationFrame(scanLoop);
+}
+
+function camStop(){
+  if(camStream){
+    camStream.getTracks().forEach(t=>t.stop());
+    camStream = null;
+  }
+  camDetector = null;
+  camSet("Idle");
+}
+
+ui.scanBtn.addEventListener("click", ()=>{
+  ui.camModal.style.display = "flex";
+  camSet("Idle");
+});
+ui.camClose.addEventListener("click", ()=>{ camStop(); ui.camModal.style.display = "none"; });
+ui.camStart.addEventListener("click", camStart);
+ui.camStop.addEventListener("click", camStop);
+
+/** ================================
+ *  Warehouse: Aisles
+ * ================================ */
 async function loadAisles(){
   const { data, error } = await sb.from("aisles").select("name").order("name", {ascending:true});
   if(error){
@@ -382,70 +1020,55 @@ async function loadAisles(){
   for(const n of Array.from(existingAisles).sort()){
     if(!ordered.includes(n)) ordered.push(n);
   }
-  if(ordered.length===0){
-    ui.aisleSel.innerHTML = `<option value="">(No aisles yet)</option>`;
-  }else{
-    ui.aisleSel.innerHTML = ordered.map(n=>`<option value="${n}">${n}</option>`).join("");
-  }
+  ui.aisleSel.innerHTML = ordered.length
+    ? ordered.map(n=>`<option value="${n}">${n}</option>`).join("")
+    : `<option value="">(No aisles yet)</option>`;
+
   showAisleMissingWarning();
 }
 
 function showAisleMissingWarning(){
   const missing = AISLE_ORDER.filter(a => !existingAisles.has(a));
-  if(missing.length){
-    ui.aisleWarn.innerHTML = `<span class="warn">Missing aisles:</span> ${missing.join(", ")}. Click “Create missing aisles…”`;
-  }else{
-    ui.aisleWarn.innerHTML = `<span class="ok">All map aisles exist in Supabase ✅</span>`;
-  }
+  ui.aisleWarn.innerHTML = missing.length
+    ? `<span class="warn">Missing aisles:</span> ${missing.join(", ")}`
+    : `<span class="ok">All map aisles exist ✅</span>`;
 }
 
-async function signedUrl(path){
-  // If your bucket is PUBLIC, this will still work; if PRIVATE, it may require auth policies.
-  const { data, error } = await sb.storage.from(BUCKET).createSignedUrl(path, 60 * 10);
-  if(error) return null;
-  return data.signedUrl;
-}
-
-async function uploadPhoto(file, tagId){
-  const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
-  const cleanTag = tagId.replace(/[^a-zA-Z0-9._-]/g, "_");
-  const objectPath = `${cleanTag}/${Date.now()}_${Math.random().toString(16).slice(2)}.${ext}`;
-
-  const { error: upErr } = await sb.storage.from(BUCKET).upload(objectPath, file, {
-    cacheControl: "3600",
-    upsert: false,
-    contentType: file.type || "image/jpeg",
-  });
-  if(upErr) throw upErr;
-  return { objectPath, fileName: file.name, contentType: file.type };
-}
-
-/** ================================
- *  PIN (overlay-only)
- * ================================ */
-function unlockWithPin(pin){
-  pin = safe(pin);
-  if(!pin) return msg(ui.pinMsg, "Enter PIN.");
-  if(pin !== PIN_CODE){
-    msg(ui.pinMsg, "Wrong PIN.");
+async function createMissingAisles(){
+  if(!warehouseEditUnlocked){
+    msg(ui.aisleWarn, "Warehouse edit locked. Enter Warehouse PIN to create aisles.");
     return;
   }
-  ui.overlay.style.display = "none";
-  ui.logoutBtn.style.display = "";
-  setConn("ok");
-  initApp();
-}
-
-function lockApp(){
-  ui.overlay.style.display = "flex";
-  ui.logoutBtn.style.display = "none";
-  setConn("locked");
+  const missing = AISLE_ORDER.filter(a => !existingAisles.has(a));
+  if(!missing.length){
+    msg(ui.aisleWarn, "Nothing to create — all aisles exist ✅", true);
+    return;
+  }
+  ui.addAislesBtn.disabled = true;
+  ui.addAislesBtn.textContent = "Creating...";
+  try{
+    const rows = missing.map(name => ({ name }));
+    const { error } = await sb.from("aisles").insert(rows);
+    if(error) throw error;
+    await loadAisles();
+    msg(ui.aisleWarn, "Created missing aisles ✅", true);
+  }catch(e){
+    msg(ui.aisleWarn, e.message || "Failed to create aisles.");
+  }finally{
+    ui.addAislesBtn.disabled = false;
+    ui.addAislesBtn.textContent = "Create missing aisles";
+  }
 }
 
 /** ================================
- *  Save / Update tag location
+ *  Warehouse: Save/Search/Purge
  * ================================ */
 async function saveTag(){
+  if(!warehouseEditUnlocked){
+    msg(ui.saveMsg, "Warehouse edit is locked. Enter Warehouse PIN to save.");
+    return;
+  }
+
   const tagId = safe(ui.tagId.value);
   const aisle = safe(ui.aisleSel.value);
   const rail = parseInt(ui.railSel.value, 10);
@@ -456,7 +1079,7 @@ async function saveTag(){
 
   if(!tagId) return msg(ui.saveMsg, "Tag ID is required.");
   if(!aisle) return msg(ui.saveMsg, "Pick an aisle.");
-  if(existingAisles.size && !existingAisles.has(aisle)) return msg(ui.saveMsg, `Aisle "${aisle}" doesn't exist yet. Click “Create missing aisles…”.`);
+  if(existingAisles.size && !existingAisles.has(aisle)) return msg(ui.saveMsg, `Aisle "${aisle}" doesn't exist yet.`);
   if(!(rail>=1 && rail<=RAIL_MAX)) return msg(ui.saveMsg, "Rail out of range.");
   if(!(level>=1 && level<=LEVEL_MAX)) return msg(ui.saveMsg, "Level out of range.");
 
@@ -481,12 +1104,12 @@ async function saveTag(){
     if(error) throw error;
 
     if(file){
-      const up = await uploadPhoto(file, tagId);
+      const up = await uploadPhoto(BUCKET_WAREHOUSE, file, tagId.replace(/[^a-zA-Z0-9._-]/g, "_"));
       const { error: phErr } = await sb
         .from("tag_photos")
         .insert([{
           pallet_tag_id: row.id,
-          bucket: BUCKET,
+          bucket: BUCKET_WAREHOUSE,
           object_path: up.objectPath,
           file_name: up.fileName,
           content_type: up.contentType
@@ -504,9 +1127,6 @@ async function saveTag(){
   }
 }
 
-/** ================================
- *  Search
- * ================================ */
 async function renderTagResults(tagId){
   ui.results.innerHTML = "";
   tagId = safe(tagId);
@@ -528,7 +1148,12 @@ async function renderTagResults(tagId){
     return;
   }
 
+  const movedCutoff = Date.now() - 24*60*60*1000;
+
   for(const r of data){
+    const updated = new Date(r.updated_at).getTime();
+    const moved = updated >= movedCutoff;
+
     const { data: photos } = await sb
       .from("tag_photos")
       .select("object_path, file_name, created_at")
@@ -539,7 +1164,7 @@ async function renderTagResults(tagId){
     const photoHtml = [];
     if(photos && photos.length){
       for(const p of photos){
-        const url = await signedUrl(p.object_path);
+        const url = await signedUrl(BUCKET_WAREHOUSE, p.object_path);
         if(!url) continue;
         photoHtml.push(`
           <div class="photo">
@@ -551,19 +1176,17 @@ async function renderTagResults(tagId){
     }
 
     ui.results.innerHTML += `
-      <div class="item">
+      <div class="item" style="${moved ? 'border-color: rgba(255,204,102,.45); box-shadow: 0 0 0 1px rgba(255,204,102,.12) inset;' : ''}">
         <div class="itemTop">
           <div>
-            <div class="tag">${r.tag_id}</div>
+            <div class="tag">${r.tag_id} ${moved ? `<span class="pill" style="margin-left:8px;"><span class="warn">●</span> Recently moved</span>` : ""}</div>
             <div class="meta">
               ${r.aisle_name} • Rail ${r.rail} • Level ${r.level}
               • <b class="${r.status==='OUTBOUND'?'bad':'ok'}">${r.status}</b>
             </div>
             ${r.notes ? `<div class="meta" style="margin-top:6px;">${r.notes}</div>` : ""}
           </div>
-          <div class="meta">
-            Updated: ${new Date(r.updated_at).toLocaleString()}
-          </div>
+          <div class="meta">Updated: ${new Date(r.updated_at).toLocaleString()}</div>
         </div>
         ${photoHtml.length ? `<div class="photos">${photoHtml.join("")}</div>` : `<div class="meta" style="margin-top:10px;">No photos</div>`}
       </div>
@@ -578,7 +1201,7 @@ async function renderRecent(){
     .from("pallet_tags")
     .select("tag_id, aisle_name, rail, level, status, updated_at")
     .order("updated_at", { ascending: false })
-    .limit(15);
+    .limit(20);
 
   if(error){
     ui.results.innerHTML = `<div class="item"><div class="bad">${error.message}</div></div>`;
@@ -589,34 +1212,38 @@ async function renderRecent(){
     return;
   }
 
-  ui.results.innerHTML = data.map(r => `
-    <div class="item">
-      <div class="itemTop">
-        <div>
-          <div class="tag">${r.tag_id}</div>
-          <div class="meta">${r.aisle_name} • Rail ${r.rail} • Level ${r.level} • <b class="${r.status==='OUTBOUND'?'bad':'ok'}">${r.status}</b></div>
+  ui.results.innerHTML = data.map(r => {
+    const moved = new Date(r.updated_at).getTime() >= (Date.now()-24*60*60*1000);
+    return `
+      <div class="item" style="${moved ? 'border-color: rgba(255,204,102,.45);' : ''}">
+        <div class="itemTop">
+          <div>
+            <div class="tag">${r.tag_id} ${moved ? `<span class="pill" style="margin-left:8px;"><span class="warn">●</span> Recently moved</span>` : ""}</div>
+            <div class="meta">${r.aisle_name} • Rail ${r.rail} • Level ${r.level} • <b class="${r.status==='OUTBOUND'?'bad':'ok'}">${r.status}</b></div>
+          </div>
+          <div class="meta">${new Date(r.updated_at).toLocaleString()}</div>
         </div>
-        <div class="meta">${new Date(r.updated_at).toLocaleString()}</div>
+        <div class="actions" style="margin-top:10px;">
+          <button class="btn" onclick="window.__openTag('${r.tag_id.replace(/'/g,"\\'")}')">Open</button>
+        </div>
       </div>
-      <div class="actions" style="margin-top:10px;">
-        <button class="btn" onclick="window.__openTag('${r.tag_id.replace(/'/g,"\\'")}')">Open</button>
-      </div>
-    </div>
-  `).join("");
+    `;
+  }).join("");
 }
 
 window.__openTag = (t)=>{ ui.searchInput.value=t; renderTagResults(t); };
 
-/** ================================
- *  Purge
- * ================================ */
 async function purgeOutbound(){
+  if(!warehouseEditUnlocked){
+    msg(ui.saveMsg, "Warehouse edit is locked. Enter Warehouse PIN to purge.");
+    return;
+  }
   ui.purgeBtn.disabled = true;
   ui.purgeBtn.textContent = "Purging...";
   try{
     const { data, error } = await sb.rpc("purge_outbound_older_than", { days: 5 });
     if(error) throw error;
-    msg(ui.saveMsg, `Purged ✅  Tags: ${data.pallet_tags_deleted} | Photos: ${data.tag_photos_deleted}`, true);
+    msg(ui.saveMsg, `Purged ✅ Tags: ${data.pallet_tags_deleted} | Photos: ${data.tag_photos_deleted}`, true);
   }catch(e){
     msg(ui.saveMsg, e.message || "Purge failed.");
   }finally{
@@ -626,7 +1253,7 @@ async function purgeOutbound(){
 }
 
 /** ================================
- *  Back button (selection undo)
+ *  Warehouse: Back button
  * ================================ */
 function pushHistory(){
   selectionHistory.push({
@@ -637,7 +1264,6 @@ function pushHistory(){
   });
   if(selectionHistory.length > 25) selectionHistory.shift();
 }
-
 function popHistory(){
   const prev = selectionHistory.pop();
   if(!prev) return;
@@ -649,14 +1275,18 @@ function popHistory(){
 }
 
 /** ================================
- *  MAP (SVG)
+ *  Warehouse: MAP (SVG)
  * ================================ */
 function svgEl(tag, attrs={}){
   const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
   for(const [k,v] of Object.entries(attrs)) el.setAttribute(k, v);
   return el;
 }
-
+function hash(s){
+  let h = 0;
+  for(let i=0;i<s.length;i++) h = ((h<<5) - h) + s.charCodeAt(i), h|=0;
+  return h;
+}
 function aisleColor(aisle){
   const base = [
     "rgba(56,210,122,.18)",
@@ -668,13 +1298,6 @@ function aisleColor(aisle){
   const i = Math.abs(hash(aisle)) % base.length;
   return base[i];
 }
-
-function hash(s){
-  let h = 0;
-  for(let i=0;i<s.length;i++) h = ((h<<5) - h) + s.charCodeAt(i), h|=0;
-  return h;
-}
-
 function buildMap(){
   const width = 1080;
   const pad = 18;
@@ -703,7 +1326,6 @@ function buildMap(){
     y += gapY;
   }
   const height = y + pad + 40;
-
   const svg = svgEl("svg", { viewBox:`0 0 ${width} ${height}` });
 
   svg.appendChild(svgEl("rect", {
@@ -731,12 +1353,10 @@ function buildMap(){
   for(const r of rows){
     const aisle = r.aisle;
 
-    const titleBand = svgEl("rect",{
+    svg.appendChild(svgEl("rect",{
       x: pad, y: curY, width: width - pad*2 - 130, height: 28,
       rx: 12, fill:"rgba(255,255,255,.05)", stroke:"rgba(255,255,255,.10)"
-    });
-    svg.appendChild(titleBand);
-
+    }));
     const t = svgEl("text",{x: pad+12, y: curY+19, class:"labelText"});
     t.textContent = aisle;
     svg.appendChild(t);
@@ -770,10 +1390,8 @@ function buildMap(){
     for(let rail=1; rail<=RAIL_MAX; rail++){
       const active = rail <= (r.rails || RAIL_MAX);
       const x = startX + (rail-1)*cellW;
-      const yCell = startY;
-
       const rect = svgEl("rect",{
-        x, y:yCell, width:cellW-4, height:cellH,
+        x, y:startY, width:cellW-4, height:cellH,
         rx: 6,
         fill: active ? "rgba(255,255,255,.08)" : "rgba(255,255,255,.03)",
         stroke: active ? "rgba(255,255,255,.14)" : "rgba(255,255,255,.06)",
@@ -783,11 +1401,10 @@ function buildMap(){
         "data-rail": String(rail),
         "data-active": active ? "1" : "0"
       });
-
       rect.addEventListener("click", ()=> pickFromMap(aisle, rail));
       svg.appendChild(rect);
 
-      const num = svgEl("text",{x:x+(cellW-4)/2, y:yCell+15, "text-anchor":"middle", class:"tiny"});
+      const num = svgEl("text",{x:x+(cellW-4)/2, y:startY+15, "text-anchor":"middle", class:"tiny"});
       num.textContent = rail;
       svg.appendChild(num);
     }
@@ -799,16 +1416,13 @@ function buildMap(){
   ui.mapHost.appendChild(svg);
   syncMapToDropdown();
 }
-
 function pickFromMap(aisle, rail){
-  lastMapSelection = { aisle, rail };
   ui.mapPick.textContent = `${aisle} • Rail ${rail}`;
   ui.aisleSel.value = aisle;
   ui.railSel.value = String(rail);
   pushHistory();
   syncMapToDropdown();
 }
-
 function syncMapToDropdown(){
   const aisle = safe(ui.aisleSel.value);
   const rail = parseInt(ui.railSel.value, 10) || 0;
@@ -824,7 +1438,6 @@ function syncMapToDropdown(){
   });
 
   if(!aisle || !rail) return;
-
   const match = svg.querySelector(`.railCell[data-aisle="${CSS.escape(aisle)}"][data-rail="${rail}"]`);
   if(match){
     match.setAttribute("fill","rgba(246,213,122,.28)");
@@ -832,45 +1445,491 @@ function syncMapToDropdown(){
   }
 }
 
-async function createMissingAisles(){
-  const missing = AISLE_ORDER.filter(a => !existingAisles.has(a));
-  if(!missing.length){
-    msg(ui.aisleWarn, "Nothing to create — all aisles exist ✅", true);
+/** ================================
+ *  Fleet: Drivers + Vehicles + Trips
+ * ================================ */
+function getDriverKey(){
+  // store driver based on license number (simple)
+  return safe(ui.drvLic.value).toUpperCase();
+}
+
+async function saveDriver(){
+  const name = safe(ui.drvName.value);
+  const dob = ui.drvDob.value || null;
+  const lic = safe(ui.drvLic.value).toUpperCase();
+
+  if(!name) return msg(ui.drvMsg, "Driver name required.");
+  if(!dob) return msg(ui.drvMsg, "DOB required.");
+  if(!lic) return msg(ui.drvMsg, "License # required.");
+
+  ui.drvSaveBtn.disabled = true;
+  ui.drvSaveBtn.textContent = "Saving...";
+  try{
+    const { error } = await sb.from("drivers").upsert([{
+      license_no: lic,
+      name,
+      dob
+    }], { onConflict: "license_no" });
+
+    if(error) throw error;
+    localStorage.setItem("locateme_driver_license", lic);
+    msg(ui.drvMsg, "Driver profile saved ✅", true);
+  }catch(e){
+    msg(ui.drvMsg, e.message || "Save failed.");
+  }finally{
+    ui.drvSaveBtn.disabled = false;
+    ui.drvSaveBtn.textContent = "Save Driver Profile";
+  }
+}
+
+async function loadDriverFromLocal(){
+  const lic = localStorage.getItem("locateme_driver_license");
+  if(!lic) return;
+  const { data } = await sb.from("drivers").select("name,dob,license_no").eq("license_no", lic).maybeSingle();
+  if(data){
+    ui.drvName.value = data.name || "";
+    ui.drvDob.value = data.dob || "";
+    ui.drvLic.value = data.license_no || "";
+  }
+}
+
+async function loadVehicles(){
+  const { data, error } = await sb.from("vehicles").select("*").order("unit_name", {ascending:true});
+  if(error){
+    ui.vehSel.innerHTML = `<option value="">(vehicles error)</option>`;
+    msg(ui.vehMsg, error.message);
     return;
   }
-  ui.addAislesBtn.disabled = true;
-  ui.addAislesBtn.textContent = "Creating...";
+  const rows = data || [];
+  ui.vehSel.innerHTML = rows.length
+    ? rows.map(v=>`<option value="${v.id}">${v.unit_name}${v.plate ? " • "+v.plate : ""} • ${v.make_model || "Vehicle"}</option>`).join("")
+    : `<option value="">(No vehicles yet)</option>`;
+
+  // manager list refresh
+  await renderTripList();
+}
+
+async function createVehicle(){
+  if(mode !== "MANAGER"){
+    msg(ui.vehMsg, "Driver mode: vehicles are managed by manager.");
+    return;
+  }
+  const unit = safe(ui.vehUnit.value);
+  const plate = safe(ui.vehPlate.value);
+  const model = safe(ui.vehModel.value);
+  const miles = parseInt(ui.vehMiles.value, 10);
+
+  if(!unit) return msg(ui.vehMsg, "Unit # required.");
+  ui.vehCreateBtn.disabled = true;
+  ui.vehCreateBtn.textContent = "Saving...";
   try{
-    const rows = missing.map(name => ({ name }));
-    const { error } = await sb.from("aisles").insert(rows);
+    const { error } = await sb.from("vehicles").insert([{
+      unit_name: unit,
+      plate: plate || null,
+      make_model: model || null,
+      current_mileage: Number.isFinite(miles) ? miles : null,
+      status: "ACTIVE"
+    }]);
     if(error) throw error;
-    await loadAisles();
-    msg(ui.aisleWarn, "Created missing aisles ✅", true);
+    msg(ui.vehMsg, "Vehicle saved ✅", true);
+    ui.vehUnit.value = ui.vehPlate.value = ui.vehModel.value = ui.vehMiles.value = "";
+    await loadVehicles();
   }catch(e){
-    msg(ui.aisleWarn, e.message || "Failed to create aisles.");
+    msg(ui.vehMsg, e.message || "Vehicle save failed.");
   }finally{
-    ui.addAislesBtn.disabled = false;
-    ui.addAislesBtn.textContent = "Create missing aisles in Supabase";
+    ui.vehCreateBtn.disabled = false;
+    ui.vehCreateBtn.textContent = "Save Vehicle";
+  }
+}
+
+async function saveTrip(){
+  const lic = safe(ui.drvLic.value).toUpperCase();
+  if(!lic) return msg(ui.tripMsg, "Driver profile required first (license #).");
+
+  const { data: driver } = await sb.from("drivers").select("id").eq("license_no", lic).maybeSingle();
+  if(!driver?.id) return msg(ui.tripMsg, "Driver profile not found. Save it first.");
+
+  const vehicleId = safe(ui.vehSel.value);
+  if(!vehicleId) return msg(ui.tripMsg, "Pick a vehicle.");
+
+  const mileOut = parseInt(ui.mileOut.value, 10);
+  const mileIn = parseInt(ui.mileIn.value, 10);
+  if(!Number.isFinite(mileOut)) return msg(ui.tripMsg, "Mileage BEFORE required.");
+  if(!Number.isFinite(mileIn)) return msg(ui.tripMsg, "Mileage AFTER required.");
+  if(mileIn < mileOut) return msg(ui.tripMsg, "Mileage AFTER can’t be less than BEFORE.");
+
+  const beforeFile = ui.cabBefore.files && ui.cabBefore.files[0];
+  const afterFile = ui.cabAfter.files && ui.cabAfter.files[0];
+  if(!beforeFile) return msg(ui.tripMsg, "Cab BEFORE photo required.");
+  if(!afterFile) return msg(ui.tripMsg, "Cab AFTER photo required.");
+  if(!ui.ackBox.checked) return msg(ui.tripMsg, "You must confirm accountability checkbox.");
+
+  ui.tripSaveBtn.disabled = true;
+  ui.tripSaveBtn.textContent = "Submitting...";
+
+  try{
+    // insert trip
+    const { data: trip, error } = await sb.from("trips").insert([{
+      driver_id: driver.id,
+      vehicle_id: vehicleId,
+      mileage_out: mileOut,
+      mileage_in: mileIn,
+      notes: safe(ui.tripNotes.value) || null,
+      ack_damage_policy: true
+    }]).select("*").single();
+    if(error) throw error;
+
+    // upload photos
+    const prefix = `trip_${trip.id}`;
+    const upB = await uploadPhoto(BUCKET_FLEET, beforeFile, prefix);
+    const upA = await uploadPhoto(BUCKET_FLEET, afterFile, prefix);
+
+    const { error: phErr } = await sb.from("trip_photos").insert([
+      { trip_id: trip.id, kind: "CAB_BEFORE", bucket: BUCKET_FLEET, object_path: upB.objectPath, file_name: upB.fileName, content_type: upB.contentType },
+      { trip_id: trip.id, kind: "CAB_AFTER",  bucket: BUCKET_FLEET, object_path: upA.objectPath, file_name: upA.fileName, content_type: upA.contentType }
+    ]);
+    if(phErr) throw phErr;
+
+    // update vehicle mileage
+    const { error: vErr } = await sb.from("vehicles").update({
+      current_mileage: mileIn,
+      last_trip_at: nowISO()
+    }).eq("id", vehicleId);
+    if(vErr) throw vErr;
+
+    msg(ui.tripMsg, "Trip submitted ✅", true);
+    ui.mileOut.value = ui.mileIn.value = "";
+    ui.cabBefore.value = ui.cabAfter.value = "";
+    ui.tripNotes.value = "";
+    ui.ackBox.checked = false;
+
+    await renderTripList();
+    if(localStorage.getItem("locateme_last_tab")==="dashboard") refreshDashboard();
+  }catch(e){
+    msg(ui.tripMsg, e.message || "Trip failed.");
+  }finally{
+    ui.tripSaveBtn.disabled = false;
+    ui.tripSaveBtn.textContent = "Submit Trip";
+  }
+}
+
+async function renderTripList(){
+  ui.tripList.innerHTML = "";
+  const { data, error } = await sb
+    .from("trips_view")
+    .select("*")
+    .order("created_at", {ascending:false})
+    .limit(10);
+
+  if(error){
+    ui.tripList.innerHTML = `<div class="item"><div class="bad">${error.message}</div></div>`;
+    return;
+  }
+  const rows = data || [];
+  ui.tripList.innerHTML = rows.length ? rows.map(r=>`
+    <div class="item">
+      <div class="itemTop">
+        <div>
+          <div class="tag">${r.vehicle_unit || "Vehicle"} • ${r.driver_name || "Driver"}</div>
+          <div class="meta">
+            ${new Date(r.created_at).toLocaleString()} • ${r.mileage_out} → ${r.mileage_in} (${(r.mileage_in - r.mileage_out)} mi)
+          </div>
+          ${r.notes ? `<div class="meta" style="margin-top:6px;">${r.notes}</div>` : ""}
+        </div>
+        <div class="meta">${r.vehicle_plate || ""}</div>
+      </div>
+    </div>
+  `).join("") : `<div class="item"><div class="meta">No trips yet.</div></div>`;
+}
+
+async function createRepairTicket(){
+  if(mode !== "MANAGER"){
+    msg(ui.vehMsg, "Driver mode: repair tickets created by manager.");
+    return;
+  }
+  const vehicleId = safe(ui.vehSel.value);
+  if(!vehicleId) return msg(ui.vehMsg, "Pick a vehicle first.");
+
+  const summary = prompt("Repair summary (short):", "Brakes / lights / tire / damage / etc");
+  if(!summary) return;
+
+  const priority = prompt("Priority: LOW / MEDIUM / HIGH", "MEDIUM") || "MEDIUM";
+
+  try{
+    const { error } = await sb.from("maintenance_tickets").insert([{
+      vehicle_id: vehicleId,
+      summary,
+      priority: (priority || "MEDIUM").toUpperCase(),
+      status: "OPEN"
+    }]);
+    if(error) throw error;
+    msg(ui.vehMsg, "Repair ticket created ✅", true);
+  }catch(e){
+    msg(ui.vehMsg, e.message || "Ticket failed.");
   }
 }
 
 /** ================================
- *  Init
+ *  Logistics: Shipments
  * ================================ */
-async function initApp(){
-  fillNumericSelect(ui.railSel, RAIL_MAX);
-  fillNumericSelect(ui.levelSel, LEVEL_MAX);
+async function saveShipment(){
+  const id = safe(ui.shId.value);
+  if(!id) return msg(ui.shMsg, "Shipment ID required.");
 
-  await loadAisles();
-  buildMap();
+  ui.shSaveBtn.disabled = true;
+  ui.shSaveBtn.textContent = "Saving...";
+  try{
+    // Upsert shipment by shipment_id
+    const payload = {
+      shipment_id: id,
+      status: ui.shStatus.value,
+      carrier: safe(ui.shCarrier.value) || null,
+      po_no: safe(ui.shPO.value) || null,
+      bol_no: safe(ui.shBOL.value) || null,
+      pickup: safe(ui.shPickup.value) || null,
+      dropoff: safe(ui.shDrop.value) || null,
+      notes: safe(ui.shNotes.value) || null
+    };
 
-  ["change"].forEach(evt=>{
-    ui.aisleSel.addEventListener(evt, ()=>{ pushHistory(); syncMapToDropdown(); });
-    ui.railSel.addEventListener(evt, ()=>{ pushHistory(); syncMapToDropdown(); });
-    ui.levelSel.addEventListener(evt, pushHistory);
-    ui.statusSel.addEventListener(evt, pushHistory);
-  });
+    const { data: ship, error } = await sb
+      .from("shipments")
+      .upsert([payload], { onConflict: "shipment_id" })
+      .select("*")
+      .single();
 
+    if(error) throw error;
+
+    const file = ui.shPhoto.files && ui.shPhoto.files[0];
+    if(file){
+      const prefix = `shipment_${ship.id}`;
+      const up = await uploadPhoto(BUCKET_LOGISTICS, file, prefix);
+      const { error: phErr } = await sb.from("shipment_photos").insert([{
+        shipment_id: ship.id,
+        bucket: BUCKET_LOGISTICS,
+        object_path: up.objectPath,
+        file_name: up.fileName,
+        content_type: up.contentType
+      }]);
+      if(phErr) throw phErr;
+      ui.shPhoto.value = "";
+    }
+
+    msg(ui.shMsg, "Shipment saved ✅", true);
+    await refreshShipments();
+    if(localStorage.getItem("locateme_last_tab")==="dashboard") refreshDashboard();
+  }catch(e){
+    msg(ui.shMsg, e.message || "Shipment save failed.");
+  }finally{
+    ui.shSaveBtn.disabled = false;
+    ui.shSaveBtn.textContent = "Save Shipment";
+  }
+}
+
+async function refreshShipments(){
+  ui.shList.innerHTML = "";
+  const { data, error } = await sb
+    .from("shipments")
+    .select("*")
+    .order("updated_at", {ascending:false})
+    .limit(30);
+
+  if(error){
+    ui.shList.innerHTML = `<div class="item"><div class="bad">${error.message}</div></div>`;
+    return;
+  }
+  const rows = data || [];
+  ui.shList.innerHTML = rows.length ? rows.map(r=>`
+    <div class="item">
+      <div class="itemTop">
+        <div>
+          <div class="tag">${r.shipment_id} • <span class="${r.status==='EXCEPTION'?'bad':(r.status==='DELIVERED'?'ok':'warn')}">${r.status}</span></div>
+          <div class="meta">${r.carrier || "—"} • PO: ${r.po_no || "—"} • BOL: ${r.bol_no || "—"}</div>
+          <div class="meta" style="margin-top:6px;">${r.pickup || "—"} → ${r.dropoff || "—"}</div>
+        </div>
+        <div class="meta">Updated: ${new Date(r.updated_at).toLocaleString()}</div>
+      </div>
+      <div class="actions" style="margin-top:10px;">
+        <button class="btn" onclick="window.__openShipment('${r.shipment_id.replace(/'/g,"\\'")}')">Open</button>
+      </div>
+    </div>
+  `).join("") : `<div class="item"><div class="meta">No shipments yet.</div></div>`;
+}
+
+window.__openShipment = async (shipmentId)=>{
+  const { data } = await sb.from("shipments").select("*").eq("shipment_id", shipmentId).maybeSingle();
+  if(!data) return;
+  ui.shId.value = data.shipment_id || "";
+  ui.shStatus.value = data.status || "PLANNED";
+  ui.shCarrier.value = data.carrier || "";
+  ui.shPO.value = data.po_no || "";
+  ui.shBOL.value = data.bol_no || "";
+  ui.shPickup.value = data.pickup || "";
+  ui.shDrop.value = data.dropoff || "";
+  ui.shNotes.value = data.notes || "";
+};
+
+async function searchShipments(){
+  const q = safe(ui.shSearch.value);
+  if(!q) return refreshShipments();
+
+  ui.shList.innerHTML = "";
+  const { data, error } = await sb
+    .from("shipments")
+    .select("*")
+    .or(`shipment_id.ilike.%${q}%,po_no.ilike.%${q}%,bol_no.ilike.%${q}%,carrier.ilike.%${q}%`)
+    .order("updated_at", {ascending:false})
+    .limit(30);
+
+  if(error){
+    ui.shList.innerHTML = `<div class="item"><div class="bad">${error.message}</div></div>`;
+    return;
+  }
+  const rows = data || [];
+  ui.shList.innerHTML = rows.length ? rows.map(r=>`
+    <div class="item">
+      <div class="itemTop">
+        <div>
+          <div class="tag">${r.shipment_id} • <span class="${r.status==='EXCEPTION'?'bad':(r.status==='DELIVERED'?'ok':'warn')}">${r.status}</span></div>
+          <div class="meta">${r.carrier || "—"} • PO: ${r.po_no || "—"} • BOL: ${r.bol_no || "—"}</div>
+          <div class="meta" style="margin-top:6px;">${r.pickup || "—"} → ${r.dropoff || "—"}</div>
+        </div>
+        <div class="meta">Updated: ${new Date(r.updated_at).toLocaleString()}</div>
+      </div>
+      <div class="actions" style="margin-top:10px;">
+        <button class="btn" onclick="window.__openShipment('${r.shipment_id.replace(/'/g,"\\'")}')">Open</button>
+      </div>
+    </div>
+  `).join("") : `<div class="item"><div class="meta">No matches.</div></div>`;
+}
+
+async function shipmentsRecentlyUpdated(){
+  ui.shList.innerHTML = "";
+  const { data, error } = await sb
+    .from("shipments")
+    .select("*")
+    .gte("updated_at", daysAgoISO(1))
+    .order("updated_at", {ascending:false})
+    .limit(30);
+
+  if(error){
+    ui.shList.innerHTML = `<div class="item"><div class="bad">${error.message}</div></div>`;
+    return;
+  }
+  const rows = data || [];
+  ui.shList.innerHTML = rows.length ? rows.map(r=>`
+    <div class="item">
+      <div class="itemTop">
+        <div>
+          <div class="tag">${r.shipment_id} • <span class="${r.status==='EXCEPTION'?'bad':(r.status==='DELIVERED'?'ok':'warn')}">${r.status}</span></div>
+          <div class="meta">${r.carrier || "—"} • PO: ${r.po_no || "—"} • BOL: ${r.bol_no || "—"}</div>
+          <div class="meta" style="margin-top:6px;">${r.pickup || "—"} → ${r.dropoff || "—"}</div>
+        </div>
+        <div class="meta">Updated: ${new Date(r.updated_at).toLocaleString()}</div>
+      </div>
+      <div class="actions" style="margin-top:10px;">
+        <button class="btn" onclick="window.__openShipment('${r.shipment_id.replace(/'/g,"\\'")}')">Open</button>
+      </div>
+    </div>
+  `).join("") : `<div class="item"><div class="meta">None updated in last 24h.</div></div>`;
+}
+
+/** ================================
+ *  Dashboard
+ * ================================ */
+async function refreshDashboard(){
+  // KPIs
+  const [wCount, movedCount, vCount, shipOpen] = await Promise.all([
+    sb.from("pallet_tags").select("id", { count: "exact", head: true }),
+    sb.from("pallet_tags").select("id", { count: "exact", head: true }).gte("updated_at", daysAgoISO(1)),
+    sb.from("vehicles").select("id", { count: "exact", head: true }),
+    sb.from("shipments").select("id", { count: "exact", head: true }).not("status","eq","DELIVERED").not("status","eq","CANCELLED"),
+  ]);
+
+  ui.kWarehouse.textContent = (wCount.count ?? "—");
+  ui.kMoved.textContent = (movedCount.count ?? "—");
+  ui.kFleet.textContent = (vCount.count ?? "—");
+  ui.kShip.textContent = (shipOpen.count ?? "—");
+
+  // lists
+  const [moves, trips, exc] = await Promise.all([
+    sb.from("pallet_tags").select("tag_id, aisle_name, rail, level, status, updated_at").order("updated_at",{ascending:false}).limit(8),
+    sb.from("trips_view").select("*").order("created_at",{ascending:false}).limit(8),
+    sb.from("shipments").select("*").eq("status","EXCEPTION").order("updated_at",{ascending:false}).limit(10),
+  ]);
+
+  ui.dashMoves.innerHTML = (moves.data||[]).length ? (moves.data||[]).map(r=>`
+    <div class="item">
+      <div class="itemTop">
+        <div>
+          <div class="tag">${r.tag_id} • <span class="${r.status==='OUTBOUND'?'bad':'ok'}">${r.status}</span></div>
+          <div class="meta">${r.aisle_name} • Rail ${r.rail} • Level ${r.level}</div>
+        </div>
+        <div class="meta">${new Date(r.updated_at).toLocaleString()}</div>
+      </div>
+    </div>
+  `).join("") : `<div class="item"><div class="meta">No movements yet.</div></div>`;
+
+  ui.dashTrips.innerHTML = (trips.data||[]).length ? (trips.data||[]).map(r=>`
+    <div class="item">
+      <div class="itemTop">
+        <div>
+          <div class="tag">${r.vehicle_unit || "Vehicle"} • ${r.driver_name || "Driver"}</div>
+          <div class="meta">${new Date(r.created_at).toLocaleString()} • ${r.mileage_out} → ${r.mileage_in} (${(r.mileage_in-r.mileage_out)} mi)</div>
+        </div>
+        <div class="meta">${r.vehicle_plate || ""}</div>
+      </div>
+    </div>
+  `).join("") : `<div class="item"><div class="meta">No trips yet.</div></div>`;
+
+  ui.dashExceptions.innerHTML = (exc.data||[]).length ? (exc.data||[]).map(r=>`
+    <div class="item">
+      <div class="itemTop">
+        <div>
+          <div class="tag">${r.shipment_id} • <span class="bad">EXCEPTION</span></div>
+          <div class="meta">${r.carrier || "—"} • PO: ${r.po_no || "—"} • BOL: ${r.bol_no || "—"}</div>
+          <div class="meta" style="margin-top:6px;">${r.pickup || "—"} → ${r.dropoff || "—"}</div>
+        </div>
+        <div class="meta">${new Date(r.updated_at).toLocaleString()}</div>
+      </div>
+    </div>
+  `).join("") : `<div class="item"><div class="meta">No exceptions ✅</div></div>`;
+}
+
+async function saveManagerNotes(){
+  const text = safe(ui.mgrNotes.value);
+  const { error } = await sb.from("manager_notes").upsert([{
+    key: "ops_notes",
+    content: text || ""
+  }], { onConflict: "key" });
+  if(error) return msg(ui.notesMsg, error.message);
+  msg(ui.notesMsg, "Saved ✅", true);
+}
+async function loadManagerNotes(){
+  const { data, error } = await sb.from("manager_notes").select("content").eq("key","ops_notes").maybeSingle();
+  if(error) return msg(ui.notesMsg, error.message);
+  ui.mgrNotes.value = data?.content || "";
+  msg(ui.notesMsg, "Loaded ✅", true);
+}
+
+/** ================================
+ *  Mode
+ * ================================ */
+function applyMode(){
+  mode = ui.modeSel.value;
+  localStorage.setItem("locateme_mode", mode);
+  setRolePill();
+  msg(ui.modeMsg, `Mode set to ${mode} ✅`, true);
+
+  // Driver mode: hide manager-only tools
+  const managerOnly = (mode !== "MANAGER");
+  ui.vehCreateBtn.disabled = managerOnly;
+  ui.mtAddBtn.disabled = managerOnly;
+}
+
+/** ================================
+ *  Auto purge (device-side daily call)
+ * ================================ */
+async function autoPurgeOncePerDay(){
   const k = "locateme_last_purge";
   const last = parseInt(localStorage.getItem(k) || "0", 10);
   const now = Date.now();
@@ -883,33 +1942,95 @@ async function initApp(){
 }
 
 /** ================================
- *  Boot (always locked)
+ *  Init
  * ================================ */
-(function boot(){
-  ui.overlay.style.display = "flex";
-  ui.logoutBtn.style.display = "none";
-  setConn("locked");
-})();
+async function initApp(){
+  // warehouse
+  fillNumericSelect(ui.railSel, RAIL_MAX);
+  fillNumericSelect(ui.levelSel, LEVEL_MAX);
+  await loadAisles();
+  buildMap();
+
+  ["change"].forEach(evt=>{
+    ui.aisleSel.addEventListener(evt, ()=>{ pushHistory(); syncMapToDropdown(); });
+    ui.railSel.addEventListener(evt, ()=>{ pushHistory(); syncMapToDropdown(); });
+    ui.levelSel.addEventListener(evt, pushHistory);
+    ui.statusSel.addEventListener(evt, pushHistory);
+  });
+
+  // fleet
+  ui.modeSel.value = mode;
+  setRolePill();
+  await loadDriverFromLocal();
+  await loadVehicles();
+
+  // logistics
+  await refreshShipments();
+
+  // dashboard
+  await refreshDashboard();
+
+  // daily purge call
+  await autoPurgeOncePerDay();
+
+  // restore tab
+  setTab(localStorage.getItem("locateme_last_tab") || "warehouse");
+
+  // default: lock warehouse editing buttons until wh pin is correct
+  warehouseEditUnlocked = false;
+  ui.whEditPill.innerHTML = `<span class="gold">●</span> View-only`;
+}
 
 /** ================================
  *  Events
  * ================================ */
-ui.pinBtn.addEventListener("click", ()=> unlockWithPin(ui.pin.value));
+// master pin
+ui.pinBtn.addEventListener("click", ()=> unlockMaster(ui.pin.value));
 ui.pinClear.addEventListener("click", ()=> { ui.pin.value=""; ui.pinMsg.textContent=""; });
-ui.pin.addEventListener("keydown", (e)=>{ if(e.key==="Enter") unlockWithPin(ui.pin.value); });
+ui.pin.addEventListener("keydown", (e)=>{ if(e.key==="Enter") unlockMaster(ui.pin.value); });
 
-ui.logoutBtn.addEventListener("click", lockApp);
+// lock
+ui.lockBtn.addEventListener("click", lockAll);
 
+// warehouse edit pin
+ui.whUnlockBtn.addEventListener("click", unlockWarehouseEdit);
+
+// warehouse
 ui.saveBtn.addEventListener("click", saveTag);
 ui.backBtn.addEventListener("click", popHistory);
 ui.purgeBtn.addEventListener("click", purgeOutbound);
-
 ui.searchBtn.addEventListener("click", ()=> renderTagResults(ui.searchInput.value));
 ui.searchInput.addEventListener("keydown", (e)=>{ if(e.key==="Enter") renderTagResults(ui.searchInput.value); });
 ui.recentBtn.addEventListener("click", renderRecent);
-
 ui.addAislesBtn.addEventListener("click", createMissingAisles);
 ui.centerSelectBtn.addEventListener("click", syncMapToDropdown);
+
+// fleet
+ui.drvSaveBtn.addEventListener("click", saveDriver);
+ui.modeApplyBtn.addEventListener("click", applyMode);
+ui.tripSaveBtn.addEventListener("click", saveTrip);
+ui.vehRefreshBtn.addEventListener("click", loadVehicles);
+ui.vehCreateBtn.addEventListener("click", createVehicle);
+ui.mtAddBtn.addEventListener("click", createRepairTicket);
+
+// logistics
+ui.shSaveBtn.addEventListener("click", saveShipment);
+ui.shRefreshBtn.addEventListener("click", refreshShipments);
+ui.shSearchBtn.addEventListener("click", searchShipments);
+ui.shSearch.addEventListener("keydown", (e)=>{ if(e.key==="Enter") searchShipments(); });
+ui.shTodayBtn.addEventListener("click", shipmentsRecentlyUpdated);
+
+// dashboard notes
+ui.notesSaveBtn.addEventListener("click", saveManagerNotes);
+ui.notesLoadBtn.addEventListener("click", loadManagerNotes);
+
+// boot: always locked
+(function boot(){
+  ui.overlay.style.display = "flex";
+  ui.lockBtn.style.display = "none";
+  setConn(false);
+  setRolePill();
+})();
 </script>
 </body>
 </html>
