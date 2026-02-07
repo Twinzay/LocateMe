@@ -1,3 +1,4 @@
+```html
 <!doctype html>
 <html lang="en">
 <head>
@@ -210,7 +211,7 @@
 </head>
 <body>
 
-  <!-- MASTER PIN Gate -->
+  <!-- PIN Gate -->
   <div id="pinOverlay" class="overlay">
     <div class="pinbox">
       <div class="pinhead">
@@ -263,7 +264,7 @@
 
       <div class="row">
         <span id="connPill" class="pill"><span class="gold">●</span> Locked</span>
-        <span id="rolePill" class="pill"><span class="info">●</span> Mode: Manager</span>
+        <span id="rolePill" class="pill"><span class="info">●</span> Role: Locked</span>
         <button class="btn" id="lockBtn" style="display:none;">Lock</button>
       </div>
     </div>
@@ -281,20 +282,21 @@
       <div class="grid">
         <div class="card">
           <h3 class="h">Warehouse: Save / Update a Tag</h3>
-          <div class="small">Pick aisle → rail (1–21) → level (1–5), add photo, save. <span class="warn">Editing requires Warehouse PIN.</span></div>
+          <div class="small">Pick aisle → rail (1–21) → level (1–5), add photo, save.</div>
 
           <div class="divider"></div>
 
-          <div class="row">
+          <!-- OLD Warehouse PIN row kept for layout but auto-hidden by JS -->
+          <div class="row" id="whPinRow">
             <div style="flex:1; min-width:240px;">
               <label>Warehouse PIN (to edit)</label>
-              <input id="whPin" inputmode="numeric" placeholder="Enter warehouse PIN to enable Save" />
+              <input id="whPin" inputmode="numeric" placeholder="(Disabled — role-based access now)" />
             </div>
             <div style="flex:.5; min-width:180px; align-self:flex-end;">
-              <button class="btn" id="whUnlockBtn">Unlock Warehouse Edit</button>
+              <button class="btn" id="whUnlockBtn" disabled>Disabled</button>
             </div>
             <div style="flex:.6; min-width:240px; align-self:flex-end;">
-              <span id="whEditPill" class="pill"><span class="gold">●</span> View-only</span>
+              <span id="whEditPill" class="pill"><span class="gold">●</span> Role-based</span>
             </div>
           </div>
 
@@ -680,11 +682,11 @@ const BUCKET_LOGISTICS = "logistics-photos";
 const RAIL_MAX = 21;
 const LEVEL_MAX = 5;
 
-// MASTER PIN (site access)
-const PIN_MASTER = "9262";
-
-// Warehouse edit PIN (only for saves/purge/creating aisles)
-const PIN_WAREHOUSE_EDIT = "2026";
+// Role PINs
+const PIN_MANAGER   = "9262"; // full access + edits
+const PIN_ADMIN     = "2026"; // sees all; ANY edit requires manager confirmation
+const PIN_WAREHOUSE = "0001"; // warehouse only (can edit warehouse)
+const PIN_DRIVER    = "2000"; // fleet only (driver mode)
 
 // Aisle order (your map)
 const AISLE_ORDER = [
@@ -725,10 +727,8 @@ const ui = {
   camMsg: document.getElementById("camMsg"),
   scanBtn: document.getElementById("scanBtn"),
 
-  // warehouse edit pin
-  whPin: document.getElementById("whPin"),
-  whUnlockBtn: document.getElementById("whUnlockBtn"),
-  whEditPill: document.getElementById("whEditPill"),
+  // warehouse (legacy row - auto hidden)
+  whPinRow: document.getElementById("whPinRow"),
 
   // warehouse fields
   tagId: document.getElementById("tagId"),
@@ -817,8 +817,8 @@ const ui = {
 };
 
 let appUnlocked = false;
-let warehouseEditUnlocked = false;
-let mode = localStorage.getItem("locateme_mode") || "MANAGER";
+let role = "LOCKED"; // MANAGER | ADMIN | WAREHOUSE | DRIVER | LOCKED
+let mode = "MANAGER"; // MANAGER | DRIVER (fleet UI mode)
 
 let selectionHistory = [];
 let existingAisles = new Set();
@@ -837,9 +837,9 @@ function setConn(ok){
 }
 
 function setRolePill(){
-  ui.rolePill.innerHTML = (mode === "DRIVER")
-    ? `<span class="info">●</span> Mode: Driver`
-    : `<span class="info">●</span> Mode: Manager`;
+  const m = (role === "DRIVER") ? "Driver" : (mode === "DRIVER" ? "Driver" : "Manager");
+  const r = (role === "LOCKED") ? "Locked" : role;
+  ui.rolePill.innerHTML = `<span class="info">●</span> Role: ${r} • Mode: ${m}`;
 }
 
 function msg(el, text, good=false){
@@ -855,47 +855,103 @@ function fillNumericSelect(sel, max){
   }
 }
 
-function setTab(tab){
-  ui.tabs.forEach(t=>t.classList.toggle("active", t.dataset.tab===tab));
-  Object.entries(ui.panes).forEach(([k,p])=> p.style.display = (k===tab) ? "" : "none");
-  localStorage.setItem("locateme_last_tab", tab);
-  if(tab==="dashboard") refreshDashboard();
-}
-
-async function signedUrl(bucket, path){
-  const { data, error } = await sb.storage.from(bucket).createSignedUrl(path, 60 * 10);
-  if(error) return null;
-  return data.signedUrl;
-}
-
-async function uploadPhoto(bucket, file, keyPrefix){
-  const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
-  const objectPath = `${keyPrefix}/${Date.now()}_${Math.random().toString(16).slice(2)}.${ext}`;
-  const { error } = await sb.storage.from(bucket).upload(objectPath, file, {
-    cacheControl: "3600",
-    upsert: false,
-    contentType: file.type || "image/jpeg",
-  });
-  if(error) throw error;
-  return { objectPath, fileName: file.name, contentType: file.type };
-}
-
 function nowISO(){ return new Date().toISOString(); }
 function daysAgoISO(days){
   return new Date(Date.now() - days*24*60*60*1000).toISOString();
 }
 
 /** ================================
- *  MASTER PIN
+ *  Permissions (strict)
+ * ================================ */
+function roleFromPin(pin){
+  if(pin === PIN_MANAGER) return "MANAGER";
+  if(pin === PIN_ADMIN) return "ADMIN";
+  if(pin === PIN_WAREHOUSE) return "WAREHOUSE";
+  if(pin === PIN_DRIVER) return "DRIVER";
+  return "LOCKED";
+}
+
+function canSee(tab){
+  if(role === "MANAGER" || role === "ADMIN") return true;
+  if(role === "WAREHOUSE") return tab === "warehouse";   // STRICT
+  if(role === "DRIVER") return tab === "fleet";          // STRICT
+  return false;
+}
+
+// Used to decide whether the role is allowed to edit without extra approval
+function canEdit(area){
+  if(role === "MANAGER") return true;
+
+  if(role === "WAREHOUSE") return area === "warehouse";
+  if(role === "DRIVER") return area === "fleet_driver";
+
+  // ADMIN edits ALWAYS require manager confirmation
+  return false;
+}
+
+function requireManagerConfirmIfAdmin(){
+  if(role !== "ADMIN") return true;
+  const pin = prompt("Manager PIN required to approve this edit:");
+  return safe(pin) === PIN_MANAGER;
+}
+
+function ensureEdit(area, elForMsg, noPermText){
+  // direct permission
+  if(canEdit(area)) return true;
+
+  // admin path: confirm manager
+  if(role === "ADMIN"){
+    if(!requireManagerConfirmIfAdmin()){
+      if(elForMsg) msg(elForMsg, "Edit blocked (manager approval not confirmed).");
+      return false;
+    }
+    return true; // approved for this action
+  }
+
+  // otherwise blocked
+  if(elForMsg) msg(elForMsg, noPermText || "No permission.");
+  return false;
+}
+
+/** ================================
+ *  Tabs
+ * ================================ */
+function setTab(tab){
+  if(!canSee(tab)){
+    // force fallback
+    const fallback = (role === "DRIVER") ? "fleet" : "warehouse";
+    tab = fallback;
+  }
+
+  ui.tabs.forEach(t=>t.classList.toggle("active", t.dataset.tab===tab));
+  Object.entries(ui.panes).forEach(([k,p])=> p.style.display = (k===tab) ? "" : "none");
+  localStorage.setItem("locateme_last_tab", tab);
+  if(tab==="dashboard") refreshDashboard();
+}
+
+ui.tabs.forEach(t=>{
+  t.addEventListener("click", ()=> setTab(t.dataset.tab));
+});
+
+/** ================================
+ *  AUTH (Role PINs)
  * ================================ */
 function unlockMaster(pin){
   pin = safe(pin);
   if(!pin) return msg(ui.pinMsg, "Enter PIN.");
-  if(pin !== PIN_MASTER){
+
+  const r = roleFromPin(pin);
+  if(r === "LOCKED"){
     msg(ui.pinMsg, "Wrong PIN.");
     return;
   }
+
+  role = r;
   appUnlocked = true;
+
+  // Driver pin forces DRIVER mode (and prevents switching)
+  mode = (role === "DRIVER") ? "DRIVER" : (localStorage.getItem("locateme_mode") || "MANAGER");
+
   ui.overlay.style.display = "none";
   ui.lockBtn.style.display = "";
   setConn(true);
@@ -905,35 +961,13 @@ function unlockMaster(pin){
 
 function lockAll(){
   appUnlocked = false;
-  warehouseEditUnlocked = false;
-  ui.whEditPill.innerHTML = `<span class="gold">●</span> View-only`;
+  role = "LOCKED";
+  mode = "MANAGER";
   ui.overlay.style.display = "flex";
   ui.lockBtn.style.display = "none";
   setConn(false);
+  setRolePill();
 }
-
-/** ================================
- *  Warehouse Edit PIN
- * ================================ */
-function unlockWarehouseEdit(){
-  const pin = safe(ui.whPin.value);
-  if(pin !== PIN_WAREHOUSE_EDIT){
-    msg(ui.saveMsg, "Warehouse PIN wrong — view-only mode.");
-    warehouseEditUnlocked = false;
-    ui.whEditPill.innerHTML = `<span class="gold">●</span> View-only`;
-    return;
-  }
-  warehouseEditUnlocked = true;
-  ui.whEditPill.innerHTML = `<span class="ok">●</span> Edit Enabled`;
-  msg(ui.saveMsg, "Warehouse editing enabled ✅", true);
-}
-
-/** ================================
- *  Tabs
- * ================================ */
-ui.tabs.forEach(t=>{
-  t.addEventListener("click", ()=> setTab(t.dataset.tab));
-});
 
 /** ================================
  *  Camera Scan (Warehouse Tag ID)
@@ -953,7 +987,6 @@ async function camStart(){
     await ui.camVideo.play();
     camSet("Scanning…", true);
 
-    // BarcodeDetector support (fast + simple)
     if("BarcodeDetector" in window){
       const formats = ["qr_code","code_128","code_39","ean_13","ean_8","upc_a","upc_e","pdf417","data_matrix"];
       camDetector = new BarcodeDetector({ formats });
@@ -1001,6 +1034,27 @@ ui.camStart.addEventListener("click", camStart);
 ui.camStop.addEventListener("click", camStop);
 
 /** ================================
+ *  Storage helpers
+ * ================================ */
+async function signedUrl(bucket, path){
+  const { data, error } = await sb.storage.from(bucket).createSignedUrl(path, 60 * 10);
+  if(error) return null;
+  return data.signedUrl;
+}
+
+async function uploadPhoto(bucket, file, keyPrefix){
+  const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+  const objectPath = `${keyPrefix}/${Date.now()}_${Math.random().toString(16).slice(2)}.${ext}`;
+  const { error } = await sb.storage.from(bucket).upload(objectPath, file, {
+    cacheControl: "3600",
+    upsert: false,
+    contentType: file.type || "image/jpeg",
+  });
+  if(error) throw error;
+  return { objectPath, fileName: file.name, contentType: file.type };
+}
+
+/** ================================
  *  Warehouse: Aisles
  * ================================ */
 async function loadAisles(){
@@ -1035,10 +1089,8 @@ function showAisleMissingWarning(){
 }
 
 async function createMissingAisles(){
-  if(!warehouseEditUnlocked){
-    msg(ui.aisleWarn, "Warehouse edit locked. Enter Warehouse PIN to create aisles.");
-    return;
-  }
+  if(!ensureEdit("warehouse", ui.aisleWarn, "No permission to create aisles.")) return;
+
   const missing = AISLE_ORDER.filter(a => !existingAisles.has(a));
   if(!missing.length){
     msg(ui.aisleWarn, "Nothing to create — all aisles exist ✅", true);
@@ -1064,10 +1116,7 @@ async function createMissingAisles(){
  *  Warehouse: Save/Search/Purge
  * ================================ */
 async function saveTag(){
-  if(!warehouseEditUnlocked){
-    msg(ui.saveMsg, "Warehouse edit is locked. Enter Warehouse PIN to save.");
-    return;
-  }
+  if(!ensureEdit("warehouse", ui.saveMsg, "No permission to edit warehouse.")) return;
 
   const tagId = safe(ui.tagId.value);
   const aisle = safe(ui.aisleSel.value);
@@ -1234,10 +1283,8 @@ async function renderRecent(){
 window.__openTag = (t)=>{ ui.searchInput.value=t; renderTagResults(t); };
 
 async function purgeOutbound(){
-  if(!warehouseEditUnlocked){
-    msg(ui.saveMsg, "Warehouse edit is locked. Enter Warehouse PIN to purge.");
-    return;
-  }
+  if(!ensureEdit("warehouse", ui.saveMsg, "No permission to purge.")) return;
+
   ui.purgeBtn.disabled = true;
   ui.purgeBtn.textContent = "Purging...";
   try{
@@ -1448,12 +1495,13 @@ function syncMapToDropdown(){
 /** ================================
  *  Fleet: Drivers + Vehicles + Trips
  * ================================ */
-function getDriverKey(){
-  // store driver based on license number (simple)
-  return safe(ui.drvLic.value).toUpperCase();
-}
-
 async function saveDriver(){
+  // Driver profile is allowed for MANAGER/ADMIN/DRIVER only (WAREHOUSE can't see fleet anyway)
+  if(role === "WAREHOUSE") return msg(ui.drvMsg, "No permission.");
+
+  // Admin must confirm for edits (upsert)
+  if(!ensureEdit("fleet_driver", ui.drvMsg, "No permission to edit fleet.")) return;
+
   const name = safe(ui.drvName.value);
   const dob = ui.drvDob.value || null;
   const lic = safe(ui.drvLic.value).toUpperCase();
@@ -1505,15 +1553,13 @@ async function loadVehicles(){
     ? rows.map(v=>`<option value="${v.id}">${v.unit_name}${v.plate ? " • "+v.plate : ""} • ${v.make_model || "Vehicle"}</option>`).join("")
     : `<option value="">(No vehicles yet)</option>`;
 
-  // manager list refresh
   await renderTripList();
 }
 
 async function createVehicle(){
-  if(mode !== "MANAGER"){
-    msg(ui.vehMsg, "Driver mode: vehicles are managed by manager.");
-    return;
-  }
+  // Only MANAGER can do without confirmation; ADMIN needs confirmation; drivers cannot
+  if(!ensureEdit("fleet_manager", ui.vehMsg, "No permission to create vehicles.")) return;
+
   const unit = safe(ui.vehUnit.value);
   const plate = safe(ui.vehPlate.value);
   const model = safe(ui.vehModel.value);
@@ -1543,6 +1589,10 @@ async function createVehicle(){
 }
 
 async function saveTrip(){
+  // Drivers can submit; Managers can submit; Admin requires manager confirm (edit)
+  const area = (role === "DRIVER") ? "fleet_driver" : "fleet_driver";
+  if(!ensureEdit(area, ui.tripMsg, "No permission to submit trips.")) return;
+
   const lic = safe(ui.drvLic.value).toUpperCase();
   if(!lic) return msg(ui.tripMsg, "Driver profile required first (license #).");
 
@@ -1568,7 +1618,6 @@ async function saveTrip(){
   ui.tripSaveBtn.textContent = "Submitting...";
 
   try{
-    // insert trip
     const { data: trip, error } = await sb.from("trips").insert([{
       driver_id: driver.id,
       vehicle_id: vehicleId,
@@ -1579,7 +1628,6 @@ async function saveTrip(){
     }]).select("*").single();
     if(error) throw error;
 
-    // upload photos
     const prefix = `trip_${trip.id}`;
     const upB = await uploadPhoto(BUCKET_FLEET, beforeFile, prefix);
     const upA = await uploadPhoto(BUCKET_FLEET, afterFile, prefix);
@@ -1590,7 +1638,6 @@ async function saveTrip(){
     ]);
     if(phErr) throw phErr;
 
-    // update vehicle mileage
     const { error: vErr } = await sb.from("vehicles").update({
       current_mileage: mileIn,
       last_trip_at: nowISO()
@@ -1643,10 +1690,8 @@ async function renderTripList(){
 }
 
 async function createRepairTicket(){
-  if(mode !== "MANAGER"){
-    msg(ui.vehMsg, "Driver mode: repair tickets created by manager.");
-    return;
-  }
+  if(!ensureEdit("fleet_manager", ui.vehMsg, "No permission to create repair tickets.")) return;
+
   const vehicleId = safe(ui.vehSel.value);
   if(!vehicleId) return msg(ui.vehMsg, "Pick a vehicle first.");
 
@@ -1673,13 +1718,14 @@ async function createRepairTicket(){
  *  Logistics: Shipments
  * ================================ */
 async function saveShipment(){
+  if(!ensureEdit("logistics", ui.shMsg, "No permission to edit logistics.")) return;
+
   const id = safe(ui.shId.value);
   if(!id) return msg(ui.shMsg, "Shipment ID required.");
 
   ui.shSaveBtn.disabled = true;
   ui.shSaveBtn.textContent = "Saving...";
   try{
-    // Upsert shipment by shipment_id
     const payload = {
       shipment_id: id,
       status: ui.shStatus.value,
@@ -1837,7 +1883,6 @@ async function shipmentsRecentlyUpdated(){
  *  Dashboard
  * ================================ */
 async function refreshDashboard(){
-  // KPIs
   const [wCount, movedCount, vCount, shipOpen] = await Promise.all([
     sb.from("pallet_tags").select("id", { count: "exact", head: true }),
     sb.from("pallet_tags").select("id", { count: "exact", head: true }).gte("updated_at", daysAgoISO(1)),
@@ -1850,7 +1895,6 @@ async function refreshDashboard(){
   ui.kFleet.textContent = (vCount.count ?? "—");
   ui.kShip.textContent = (shipOpen.count ?? "—");
 
-  // lists
   const [moves, trips, exc] = await Promise.all([
     sb.from("pallet_tags").select("tag_id, aisle_name, rail, level, status, updated_at").order("updated_at",{ascending:false}).limit(8),
     sb.from("trips_view").select("*").order("created_at",{ascending:false}).limit(8),
@@ -1896,6 +1940,8 @@ async function refreshDashboard(){
 }
 
 async function saveManagerNotes(){
+  if(!ensureEdit("dashboard", ui.notesMsg, "No permission to edit notes.")) return;
+
   const text = safe(ui.mgrNotes.value);
   const { error } = await sb.from("manager_notes").upsert([{
     key: "ops_notes",
@@ -1912,18 +1958,34 @@ async function loadManagerNotes(){
 }
 
 /** ================================
- *  Mode
+ *  Mode (Driver can't switch)
  * ================================ */
 function applyMode(){
-  mode = ui.modeSel.value;
+  if(role === "DRIVER"){
+    mode = "DRIVER";
+    ui.modeSel.value = "DRIVER";
+    msg(ui.modeMsg, "Driver role: mode locked ✅", true);
+  } else {
+    mode = ui.modeSel.value;
+    msg(ui.modeMsg, `Mode set to ${mode} ✅`, true);
+  }
   localStorage.setItem("locateme_mode", mode);
   setRolePill();
-  msg(ui.modeMsg, `Mode set to ${mode} ✅`, true);
+  applyFleetUIRules();
+}
 
-  // Driver mode: hide manager-only tools
-  const managerOnly = (mode !== "MANAGER");
-  ui.vehCreateBtn.disabled = managerOnly;
-  ui.mtAddBtn.disabled = managerOnly;
+function applyFleetUIRules(){
+  const isDriverView = (role === "DRIVER") || (mode === "DRIVER");
+
+  // Hide/disable manager-only tools in driver view
+  ui.vehCreateBtn.disabled = isDriverView;
+  ui.mtAddBtn.disabled = isDriverView;
+
+  // Also disable manager-only quick-add inputs (keeps it clean)
+  [ui.vehUnit, ui.vehPlate, ui.vehModel, ui.vehMiles].forEach(x=>{
+    if(!x) return;
+    x.disabled = isDriverView;
+  });
 }
 
 /** ================================
@@ -1935,7 +1997,10 @@ async function autoPurgeOncePerDay(){
   const now = Date.now();
   if(!last || (now - last) > 24*60*60*1000){
     try{
-      await sb.rpc("purge_outbound_older_than", { days: 5 });
+      // only manager/admin should auto-run purge; warehouse role can still purge manually
+      if(role === "MANAGER" || role === "ADMIN"){
+        await sb.rpc("purge_outbound_older_than", { days: 5 });
+      }
       localStorage.setItem(k, String(now));
     }catch(_){}
   }
@@ -1945,6 +2010,21 @@ async function autoPurgeOncePerDay(){
  *  Init
  * ================================ */
 async function initApp(){
+  // Hide the old warehouse pin row (we’re role-based now)
+  if(ui.whPinRow) ui.whPinRow.style.display = "none";
+
+  // Role-based tab access
+  ui.tabs.forEach(t=>{
+    const tab = t.dataset.tab;
+    t.style.display = canSee(tab) ? "" : "none";
+  });
+
+  // Force a valid tab
+  const preferred = localStorage.getItem("locateme_last_tab") || "warehouse";
+  const fallback = (role === "DRIVER") ? "fleet" : (role === "WAREHOUSE" ? "warehouse" : preferred);
+  const chosen = canSee(fallback) ? fallback : (role === "DRIVER" ? "fleet" : "warehouse");
+  localStorage.setItem("locateme_last_tab", chosen);
+
   // warehouse
   fillNumericSelect(ui.railSel, RAIL_MAX);
   fillNumericSelect(ui.levelSel, LEVEL_MAX);
@@ -1959,41 +2039,40 @@ async function initApp(){
   });
 
   // fleet
-  ui.modeSel.value = mode;
+  if(role === "DRIVER"){
+    mode = "DRIVER";
+    ui.modeSel.value = "DRIVER";
+  } else {
+    ui.modeSel.value = mode;
+  }
   setRolePill();
+  applyFleetUIRules();
   await loadDriverFromLocal();
-  await loadVehicles();
+  if(canSee("fleet")) await loadVehicles();
 
   // logistics
-  await refreshShipments();
+  if(canSee("logistics")) await refreshShipments();
 
   // dashboard
-  await refreshDashboard();
+  if(canSee("dashboard")) await refreshDashboard();
 
   // daily purge call
   await autoPurgeOncePerDay();
 
-  // restore tab
-  setTab(localStorage.getItem("locateme_last_tab") || "warehouse");
-
-  // default: lock warehouse editing buttons until wh pin is correct
-  warehouseEditUnlocked = false;
-  ui.whEditPill.innerHTML = `<span class="gold">●</span> View-only`;
+  // show chosen tab
+  setTab(chosen);
 }
 
 /** ================================
  *  Events
  * ================================ */
-// master pin
+// pin
 ui.pinBtn.addEventListener("click", ()=> unlockMaster(ui.pin.value));
 ui.pinClear.addEventListener("click", ()=> { ui.pin.value=""; ui.pinMsg.textContent=""; });
 ui.pin.addEventListener("keydown", (e)=>{ if(e.key==="Enter") unlockMaster(ui.pin.value); });
 
 // lock
 ui.lockBtn.addEventListener("click", lockAll);
-
-// warehouse edit pin
-ui.whUnlockBtn.addEventListener("click", unlockWarehouseEdit);
 
 // warehouse
 ui.saveBtn.addEventListener("click", saveTag);
@@ -2034,3 +2113,4 @@ ui.notesLoadBtn.addEventListener("click", loadManagerNotes);
 </script>
 </body>
 </html>
+```
