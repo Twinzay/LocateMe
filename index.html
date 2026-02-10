@@ -4,25 +4,14 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>LocateMe Ops — Warehouse + Fleet + Logistics</title>
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     :root{
-      --bg:#060709;
-      --panel:rgba(255,255,255,.06);
-      --panel2:rgba(255,255,255,.09);
-      --stroke:rgba(255,255,255,.12);
-      --text:#eaecef;
-      --muted:rgba(234,236,239,.72);
-      --gold1:#f6d57a;
-      --gold2:#caa24d;
-      --shadow:0 12px 40px rgba(0,0,0,.45);
-      --radius:18px;
-      --ok:#38d27a;
-      --bad:#ff5964;
-      --warn:#ffcc66;
-      --info:#7fb6ff;
+      --bg:#060709; --panel:rgba(255,255,255,.06); --stroke:rgba(255,255,255,.12);
+      --text:#eaecef; --muted:rgba(234,236,239,.72);
+      --gold1:#f6d57a; --gold2:#caa24d; --shadow:0 12px 40px rgba(0,0,0,.45);
+      --radius:18px; --ok:#38d27a; --bad:#ff5964; --warn:#ffcc66; --info:#7fb6ff;
     }
     *{box-sizing:border-box}
     body{
@@ -49,40 +38,28 @@
     .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
     .btn{
       appearance:none; border:1px solid var(--stroke); color:var(--text);
-      background:rgba(255,255,255,.06); padding:10px 12px; border-radius:14px;
-      cursor:pointer;
+      background:rgba(255,255,255,.06); padding:10px 12px; border-radius:14px; cursor:pointer;
     }
     .btn:hover{background:rgba(255,255,255,.10)}
     .btn:disabled{opacity:.55; cursor:not-allowed}
     .pill{
       display:inline-flex; align-items:center; gap:8px;
       padding:8px 10px; border-radius:999px; border:1px solid var(--stroke);
-      background:rgba(0,0,0,.25);
-      font-size:12px; color:var(--muted);
-      white-space:nowrap;
+      background:rgba(0,0,0,.25); font-size:12px; color:var(--muted); white-space:nowrap;
     }
-    .ok{color:var(--ok)}
-    .bad{color:var(--bad)}
-    .warn{color:var(--warn)}
-    .info{color:var(--info)}
-    .gold{color:var(--gold1)}
+    .ok{color:var(--ok)} .bad{color:var(--bad)} .warn{color:var(--warn)} .info{color:var(--info)} .gold{color:var(--gold1)}
     .small{font-size:12px;color:var(--muted)}
     .divider{height:1px;background:rgba(255,255,255,.10);margin:12px 0}
 
     .tabs{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;}
     .tab{
-      border:1px solid var(--stroke);
-      background:rgba(0,0,0,.22);
-      padding:10px 12px;
-      border-radius:14px;
-      cursor:pointer;
-      font-weight:800;
+      border:1px solid var(--stroke); background:rgba(0,0,0,.22);
+      padding:10px 12px; border-radius:14px; cursor:pointer; font-weight:800;
       color:rgba(234,236,239,.85);
     }
     .tab.active{
       background:linear-gradient(180deg, rgba(246,213,122,.16), rgba(0,0,0,.22));
-      border-color:rgba(246,213,122,.35);
-      color:var(--text);
+      border-color:rgba(246,213,122,.35); color:var(--text);
     }
 
     .grid{display:grid; grid-template-columns: 1.1fr .9fr; gap:14px; margin-top:14px}
@@ -93,8 +70,7 @@
     .card{
       border:1px solid var(--stroke); border-radius:var(--radius);
       background:linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.04));
-      box-shadow:var(--shadow);
-      padding:14px;
+      box-shadow:var(--shadow); padding:14px;
     }
     .h{font-weight:900; margin:0 0 8px}
     label{display:block; font-size:12px; color:var(--muted); margin:10px 0 6px}
@@ -114,6 +90,7 @@
     .itemTop{display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap}
     .tag{font-weight:900; letter-spacing:.2px}
     .meta{color:var(--muted); font-size:12px}
+
     .kpi{display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; margin-top:10px;}
     @media (max-width: 980px){ .kpi{grid-template-columns:1fr 1fr} }
     .kcard{border:1px solid var(--stroke); border-radius:16px; padding:12px; background:rgba(0,0,0,.22);}
@@ -127,9 +104,7 @@
 
     .overlay{
       position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
-      background:rgba(0,0,0,.72);
-      backdrop-filter: blur(8px);
-      z-index:50;
+      background:rgba(0,0,0,.72); backdrop-filter: blur(8px); z-index:50;
     }
     .pinbox{
       width:min(560px, 92vw);
@@ -142,34 +117,9 @@
     .pinhead{display:flex; align-items:center; justify-content:space-between; gap:10px}
     .pinhead .big{font-weight:900; font-size:18px}
 
-    .mapWrap{border:1px solid var(--stroke); border-radius:16px; background:rgba(0,0,0,.18); overflow:hidden;}
-    .mapHead{
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      padding:10px 12px;
-      border-bottom:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.04);
-    }
-    .mapLegend{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
-    .chip{
-      display:inline-flex; align-items:center; gap:6px;
-      padding:6px 10px; border:1px solid rgba(255,255,255,.12);
-      border-radius:999px; font-size:12px; color:var(--muted);
-      background:rgba(0,0,0,.18);
-    }
-    .swatch{width:10px;height:10px;border-radius:3px;display:inline-block; background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.14);}
-    .swatch.sel{background:rgba(246,213,122,.30); border-color:rgba(246,213,122,.70)}
-    .swatch.ais{background:rgba(56,210,122,.22); border-color:rgba(56,210,122,.55)}
-    svg{display:block; width:100%; height:auto}
-    .railCell{cursor:pointer}
-    .railCell:hover{opacity:.9}
-    .labelText{font-size:11px; fill:rgba(234,236,239,.85)}
-    .tiny{font-size:10px; fill:rgba(234,236,239,.65)}
-
     .modal{
       position:fixed; inset:0; display:none; align-items:center; justify-content:center;
-      background:rgba(0,0,0,.72);
-      backdrop-filter: blur(8px);
-      z-index:60;
+      background:rgba(0,0,0,.72); backdrop-filter: blur(8px); z-index:60;
     }
     .modalbox{
       width:min(720px, 96vw);
@@ -181,11 +131,19 @@
     }
     video{width:100%; border-radius:16px; border:1px solid rgba(255,255,255,.12); background:rgba(0,0,0,.35)}
 
-    /* Damage click buttons */
-    .damageGrid{
-      display:grid; grid-template-columns: repeat(5, 1fr);
-      gap:10px; margin-top:10px;
+    .mapWrap{border:1px solid var(--stroke); border-radius:16px; background:rgba(0,0,0,.18); overflow:hidden;}
+    .mapHead{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      padding:10px 12px; border-bottom:1px solid rgba(255,255,255,.10); background:rgba(255,255,255,.04);
     }
+    .chip{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:6px 10px; border:1px solid rgba(255,255,255,.12);
+      border-radius:999px; font-size:12px; color:var(--muted);
+      background:rgba(0,0,0,.18);
+    }
+
+    .damageGrid{display:grid; grid-template-columns: repeat(5, 1fr); gap:10px; margin-top:10px;}
     @media (max-width: 980px){ .damageGrid{grid-template-columns: 1fr 1fr;} }
     .dBtn{
       border:1px solid rgba(255,255,255,.14);
@@ -203,11 +161,13 @@
       border-color:rgba(246,213,122,.45);
       color:var(--text);
     }
+
+    .split2{display:grid; grid-template-columns: 1fr 1fr; gap:12px;}
+    @media (max-width: 980px){ .split2{grid-template-columns:1fr} }
   </style>
 </head>
 
 <body>
-
   <!-- PIN Gate -->
   <div id="pinOverlay" class="overlay">
     <div class="pinbox">
@@ -235,7 +195,7 @@
       <div class="row" style="justify-content:space-between;">
         <div>
           <div class="title" style="font-weight:900;">Scan Tag</div>
-          <div class="small">Point the camera at the barcode/QR. If your device supports it, it will fill Tag ID.</div>
+          <div class="small">Point the camera at barcode/QR. If unsupported, type tag manually.</div>
         </div>
         <button class="btn" id="camClose">Close</button>
       </div>
@@ -255,10 +215,9 @@
         <span class="dot"></span>
         <div>
           <div class="title">LocateMe Ops</div>
-          <div class="sub">Warehouse + Fleet + Logistics • manager-ready • photo proof • audit trails</div>
+          <div class="sub">Warehouse + Fleet + Logistics • photo proof • audit trails</div>
         </div>
       </div>
-
       <div class="row">
         <span id="connPill" class="pill"><span class="gold">●</span> Locked</span>
         <span id="rolePill" class="pill"><span class="info">●</span> Role: Locked</span>
@@ -273,28 +232,14 @@
       <div class="tab" data-tab="dashboard">Ops Dashboard</div>
     </div>
 
-    <!-- ===================== WAREHOUSE TAB ===================== -->
+    <!-- WAREHOUSE -->
     <div id="tab-warehouse" class="tabpane">
-
       <div class="grid">
         <div class="card">
           <h3 class="h">Warehouse: Save / Update a Tag</h3>
-          <div class="small">Pick aisle → rail (1–21) → level (1–5), add photo, save.</div>
+          <div class="small">Pick aisle → rail → level, optional photo, then save.</div>
 
           <div class="divider"></div>
-
-          <div class="row" id="whPinRow">
-            <div style="flex:1; min-width:240px;">
-              <label>Warehouse PIN (to edit)</label>
-              <input id="whPin" inputmode="numeric" placeholder="(Disabled — role-based access now)" />
-            </div>
-            <div style="flex:.5; min-width:180px; align-self:flex-end;">
-              <button class="btn" id="whUnlockBtn" disabled>Disabled</button>
-            </div>
-            <div style="flex:.6; min-width:240px; align-self:flex-end;">
-              <span id="whEditPill" class="pill"><span class="gold">●</span> Role-based</span>
-            </div>
-          </div>
 
           <label>Tag ID</label>
           <div class="row">
@@ -335,7 +280,7 @@
 
           <div class="actions">
             <button class="btn" id="saveBtn">Save</button>
-            <button class="btn" id="backBtn">Back (Undo last choice)</button>
+            <button class="btn" id="backBtn">Back (Undo last)</button>
             <button class="btn" id="purgeBtn">Purge OUTBOUND &gt; 5 days</button>
           </div>
 
@@ -343,12 +288,12 @@
         </div>
 
         <div class="card">
-          <h3 class="h">Clickable Warehouse Map</h3>
-          <div class="small">Click an aisle row, then click a rail box. It fills Aisle + Rail.</div>
+          <h3 class="h">Warehouse Map (simple)</h3>
+          <div class="small">Pick aisle + rail fast.</div>
 
           <div class="actions" style="margin-top:10px;">
             <button class="btn" id="addAislesBtn">Create missing aisles</button>
-            <button class="btn" id="centerSelectBtn">Select current dropdown on map</button>
+            <button class="btn" id="centerSelectBtn">Sync highlight</button>
           </div>
 
           <div id="aisleWarn" class="small" style="margin-top:10px;"></div>
@@ -357,9 +302,7 @@
 
           <div class="mapWrap">
             <div class="mapHead">
-              <div class="mapLegend">
-                <span class="chip"><span class="swatch ais"></span> aisle row</span>
-                <span class="chip"><span class="swatch sel"></span> selected rail</span>
+              <div class="row" style="gap:8px">
                 <span class="chip">Rails 1–21</span>
                 <span class="chip">Levels 1–5</span>
               </div>
@@ -371,7 +314,7 @@
           <div class="divider"></div>
 
           <h3 class="h" style="margin-top:0;">Search by Tag</h3>
-          <div class="small">Type a tag → pulls aisle/rail/level + photo(s). <span class="warn">Recently moved</span> highlights last 24 hours.</div>
+          <div class="small">Type a tag → pulls last locations + photos (if your tables exist).</div>
 
           <label>Search</label>
           <input id="searchInput" placeholder="Tag ID…" />
@@ -384,16 +327,14 @@
           <div id="results" class="list"></div>
         </div>
       </div>
-
     </div>
 
-    <!-- ===================== FLEET TAB ===================== -->
+    <!-- FLEET -->
     <div id="tab-fleet" class="tabpane" style="display:none;">
-
       <div class="grid3">
         <div class="card">
-          <h3 class="h">Driver Profile (saved for future drives)</h3>
-          <div class="small">Drivers save profile once. After that, pick your profile from the dropdown.</div>
+          <h3 class="h">Driver Profile</h3>
+          <div class="small">Save once, then reuse from dropdown.</div>
 
           <label>My Saved Profiles (this device)</label>
           <select id="myProfiles"></select>
@@ -404,7 +345,7 @@
           <input id="drvName" placeholder="Full name" />
 
           <label>Middle Name (optional)</label>
-          <input id="drvMid" placeholder="Optional (helps if names duplicate)" />
+          <input id="drvMid" placeholder="Optional" />
 
           <div class="row">
             <div style="flex:1; min-width:200px;">
@@ -433,8 +374,8 @@
 
           <div class="divider"></div>
 
-          <h3 class="h" style="margin-top:0;">Pick Mode</h3>
-          <div class="small">Manager sees everything. Driver mode focuses on trip logging.</div>
+          <h3 class="h" style="margin-top:0;">Mode</h3>
+          <div class="small">Driver role forces Driver mode. Manager/Admin can switch view mode.</div>
           <label>Mode</label>
           <select id="modeSel">
             <option value="MANAGER">Manager</option>
@@ -448,13 +389,13 @@
 
         <div class="card">
           <h3 class="h">Driver Trip Log</h3>
-          <div class="small">
-            Required: mileage out/in + cab photos before/after + notes + accountability checkbox.
-            <br/>New: add a damage update (optional) + damage photos.
-          </div>
+          <div class="small">Mileage out/in + cab photos before/after + notes + checkbox.</div>
 
           <label>Select Vehicle</label>
           <select id="vehSel"></select>
+
+          <label>Job (optional)</label>
+          <select id="jobSel"></select>
 
           <div class="row">
             <div style="flex:1; min-width:220px;">
@@ -476,8 +417,6 @@
           <div class="divider"></div>
 
           <h3 class="h" style="margin-top:0;">Damage Update (optional)</h3>
-          <div class="small">If any new damage exists, log it here and attach photos.</div>
-
           <label>Damage Type</label>
           <select id="dmgType">
             <option value="">No new damage</option>
@@ -488,7 +427,7 @@
           </select>
 
           <label>Click where the damage is</label>
-          <div class="damageGrid">
+          <div class="damageGrid" id="dmgGrid">
             <div class="dBtn" data-area="FRONT">Front</div>
             <div class="dBtn" data-area="BACK">Back</div>
             <div class="dBtn" data-area="DRIVER_SIDE">Driver side</div>
@@ -498,7 +437,7 @@
           <div class="small" id="dmgAreasText" style="margin-top:8px;">Selected: none</div>
 
           <label>Damage Notes (optional)</label>
-          <textarea id="dmgNotes" placeholder="What happened / where exactly / any details…"></textarea>
+          <textarea id="dmgNotes" placeholder="What happened / where exactly…"></textarea>
 
           <label>Damage Photos (optional)</label>
           <input id="dmgPhotos" type="file" accept="image/*" multiple />
@@ -506,12 +445,12 @@
           <div class="divider"></div>
 
           <label>Trip Notes</label>
-          <textarea id="tripNotes" placeholder="Route, stops, issues, anything to know…"></textarea>
+          <textarea id="tripNotes" placeholder="Route, stops, issues…"></textarea>
 
           <div class="row" style="align-items:flex-start;">
             <input id="ackBox" type="checkbox" style="width:auto; margin-top:14px;" />
             <div class="small" style="margin-top:12px;">
-              <b>Accountability:</b> If damages are not stated BEFORE the ride, the driver may be held accountable if noticed by management.
+              <b>Accountability:</b> If damages are not stated BEFORE the ride, driver may be held accountable.
             </div>
           </div>
 
@@ -524,14 +463,10 @@
 
         <div class="card">
           <h3 class="h">Fleet Tools</h3>
-          <div class="small">
-            Vehicles, repairs, inspections, trip history.
-            <br/>Driver mode hides manager-only controls.
-          </div>
+          <div class="small">Vehicles + quick tickets + exports.</div>
 
           <div class="actions">
             <button class="btn" id="vehRefreshBtn">Refresh Vehicles</button>
-            <button class="btn" id="vehAddBtn">Add Vehicle</button>
             <button class="btn" id="mtAddBtn">Create Repair Ticket</button>
           </div>
 
@@ -565,22 +500,135 @@
 
           <div class="divider"></div>
 
+          <h3 class="h" style="margin-top:0;">Exports (Manager/Admin)</h3>
+          <div class="actions">
+            <button class="btn" id="expTripsCsvBtn">Trips → CSV</button>
+            <button class="btn" id="expTripsPdfBtn">Trips → PDF</button>
+            <button class="btn" id="expDmgCsvBtn">Damages → CSV</button>
+            <button class="btn" id="expWhCsvBtn">Warehouse → CSV</button>
+          </div>
+          <div id="expMsg" class="small" style="margin-top:10px;"></div>
+
+          <div class="divider"></div>
+
           <h3 class="h" style="margin-top:0;">Recent Trips</h3>
           <div id="tripList" class="list"></div>
         </div>
-      </div>
 
+        <!-- Reporting + Jobs -->
+        <div class="card" style="grid-column: 1 / -1;" id="fleetReportsCard">
+          <h3 class="h">Fleet Reporting + Job Tracking</h3>
+          <div class="small">Manager/Admin sees all drivers. Driver view only sees own trips.</div>
+
+          <div class="divider"></div>
+
+          <div class="split2">
+            <div class="card" style="margin:0;" id="jobsCard">
+              <h3 class="h" style="margin-top:0;">Jobs</h3>
+
+              <input id="jobIdHidden" type="hidden" />
+
+              <div class="row">
+                <div style="flex:1; min-width:220px;">
+                  <label>Job Name</label>
+                  <input id="jobName" placeholder="e.g. Uptown Install" />
+                </div>
+                <div style="flex:1; min-width:220px;">
+                  <label>Job Code (optional)</label>
+                  <input id="jobCode" placeholder="e.g. JOB-1027" />
+                </div>
+              </div>
+
+              <div class="row">
+                <div style="flex:1; min-width:220px;">
+                  <label>Status</label>
+                  <select id="jobStatus">
+                    <option value="OPEN">OPEN</option>
+                    <option value="PAUSED">PAUSED</option>
+                    <option value="CLOSED">CLOSED</option>
+                  </select>
+                </div>
+              </div>
+
+              <label>Notes (optional)</label>
+              <textarea id="jobNotes" placeholder="Access notes, contact, scope…"></textarea>
+
+              <div class="actions">
+                <button class="btn" id="jobSaveBtn">Save Job</button>
+                <button class="btn" id="jobRefreshBtn">Refresh Jobs</button>
+              </div>
+              <div id="jobMsg" class="small" style="margin-top:10px;"></div>
+
+              <div class="divider"></div>
+
+              <h3 class="h" style="margin-top:0;">Mileage per Job (quick)</h3>
+              <div class="row">
+                <div style="flex:1; min-width:220px;">
+                  <label>From</label>
+                  <input id="jobFrom" type="date" />
+                </div>
+                <div style="flex:1; min-width:220px;">
+                  <label>To</label>
+                  <input id="jobTo" type="date" />
+                </div>
+              </div>
+              <div class="actions">
+                <button class="btn" id="jobReportBtn">Run Job Report</button>
+                <button class="btn" id="jobReportCsvBtn">Job Report → CSV</button>
+              </div>
+              <div id="jobReportMsg" class="small" style="margin-top:10px;"></div>
+              <div id="jobReportOut" class="list"></div>
+            </div>
+
+            <div class="card" style="margin:0;">
+              <h3 class="h" style="margin-top:0;">Driver Reporting</h3>
+
+              <div class="row">
+                <div style="flex:1; min-width:220px;">
+                  <label>From</label>
+                  <input id="drvFrom" type="date" />
+                </div>
+                <div style="flex:1; min-width:220px;">
+                  <label>To</label>
+                  <input id="drvTo" type="date" />
+                </div>
+                <div style="flex:1; min-width:260px;">
+                  <label>Driver</label>
+                  <select id="drvReportSel"></select>
+                </div>
+              </div>
+
+              <div class="actions">
+                <button class="btn" id="drvReportBtn">Run Driver Report</button>
+                <button class="btn" id="drvReportCsvBtn">Driver Report → CSV</button>
+              </div>
+
+              <div id="drvReportMsg" class="small" style="margin-top:10px;"></div>
+              <div id="drvReportTotals" class="row" style="margin-top:10px; gap:8px;"></div>
+
+              <div class="divider"></div>
+
+              <h3 class="h" style="margin-top:0;">Drivers by License Status</h3>
+              <div id="driversGrouped" class="list"></div>
+
+              <div class="divider"></div>
+
+              <h3 class="h" style="margin-top:0;">Report Output</h3>
+              <div id="drvReportOut" class="list"></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- ===================== LOGISTICS TAB ===================== -->
+    <!-- LOGISTICS -->
     <div id="tab-logistics" class="tabpane" style="display:none;">
-
       <div class="grid">
         <div class="card">
           <h3 class="h">Create / Update Shipment</h3>
-          <div class="small">Track pickups, deliveries, PO/BOL, carrier, status, proof photos.</div>
+          <div class="small">Track pickups, deliveries, PO/BOL, carrier, proof photo.</div>
 
-          <label>Shipment ID (internal)</label>
+          <label>Shipment ID</label>
           <input id="shId" placeholder="e.g. CLT-2026-001" />
 
           <div class="row">
@@ -619,7 +667,7 @@
           <input id="shDrop" placeholder="Delivery address / site" />
 
           <label>Notes</label>
-          <textarea id="shNotes" placeholder="Load details, access instructions, contact names, etc…"></textarea>
+          <textarea id="shNotes" placeholder="Load details, access instructions…"></textarea>
 
           <label>Proof / Load Photo (optional)</label>
           <input id="shPhoto" type="file" accept="image/*" />
@@ -647,33 +695,19 @@
           <div id="shList" class="list"></div>
         </div>
       </div>
-
     </div>
 
-    <!-- ===================== DASHBOARD TAB ===================== -->
+    <!-- DASHBOARD -->
     <div id="tab-dashboard" class="tabpane" style="display:none;">
-
       <div class="card">
         <h3 class="h">Ops Dashboard</h3>
-        <div class="small">A quick “wow” view: live workload, fleet readiness, and warehouse movement.</div>
+        <div class="small">Quick counts + latest activity.</div>
 
         <div class="kpi">
-          <div class="kcard">
-            <div class="knum" id="kWarehouse">—</div>
-            <div class="klabel">Warehouse tags (total)</div>
-          </div>
-          <div class="kcard">
-            <div class="knum" id="kMoved">—</div>
-            <div class="klabel">Moved last 24h</div>
-          </div>
-          <div class="kcard">
-            <div class="knum" id="kFleet">—</div>
-            <div class="klabel">Fleet vehicles</div>
-          </div>
-          <div class="kcard">
-            <div class="knum" id="kShip">—</div>
-            <div class="klabel">Open shipments</div>
-          </div>
+          <div class="kcard"><div class="knum" id="kWarehouse">—</div><div class="klabel">Warehouse tags</div></div>
+          <div class="kcard"><div class="knum" id="kMoved">—</div><div class="klabel">Moved last 24h</div></div>
+          <div class="kcard"><div class="knum" id="kFleet">—</div><div class="klabel">Fleet vehicles</div></div>
+          <div class="kcard"><div class="knum" id="kShip">—</div><div class="klabel">Open shipments</div></div>
         </div>
 
         <div class="divider"></div>
@@ -694,12 +728,10 @@
         <div class="grid">
           <div class="card" style="margin:0;">
             <h3 class="h">Logistics: Exceptions</h3>
-            <div class="small">Anything marked EXCEPTION bubbles here.</div>
             <div id="dashExceptions" class="list"></div>
           </div>
           <div class="card" style="margin:0;">
             <h3 class="h">Manager Notes</h3>
-            <div class="small">Use this for your daily plan or “handoff” notes.</div>
             <textarea id="mgrNotes" placeholder="Today: …"></textarea>
             <div class="actions">
               <button class="btn" id="notesSaveBtn">Save Notes</button>
@@ -708,23 +740,20 @@
             <div id="notesMsg" class="small" style="margin-top:10px;"></div>
           </div>
         </div>
-
       </div>
-
     </div>
-
   </div>
 
 <script>
 /** ================================
  *  CONFIG
  * ================================ */
-const SUPABASE_URL = "https://ojdfaguhteddwaxyobnl.supabase.co";
+const SUPABASE_URL  = "https://ojdfaguhteddwaxyobnl.supabase.co";
 const SUPABASE_ANON = "sb_publishable_S4Z3E2phukZklKtBuRPLjA_RB4Faij2";
 
-// Buckets (create these in Supabase Storage)
+// Storage buckets (must exist in Supabase Storage)
 const BUCKET_WAREHOUSE = "warehouse-photos";
-const BUCKET_FLEET = "fleet-photos";
+const BUCKET_FLEET     = "fleet-photos";
 const BUCKET_LOGISTICS = "logistics-photos";
 
 const RAIL_MAX = 21;
@@ -736,10 +765,8 @@ const PIN_ADMIN     = "2026"; // sees all; ANY edit requires manager confirmatio
 const PIN_WAREHOUSE = "0001"; // warehouse only (can edit warehouse)
 const PIN_DRIVER    = "2000"; // fleet only (driver mode)
 
-// Aisle order (your map)
-const AISLE_ORDER = [
-  "AEX","Maserati","Mercedes","Bentley","Pagani","Aston Martin","McLaren","Ferrari","Lamborghini","Bugatti"
-];
+// Aisles for map + ordering
+const AISLE_ORDER = ["AEX","Maserati","Mercedes","Bentley","Pagani","Aston Martin","McLaren","Ferrari","Lamborghini","Bugatti"];
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
@@ -747,21 +774,19 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
  *  UI refs
  * ================================ */
 const ui = {
-  // overlay
-  overlay: document.getElementById("pinOverlay"),
-  pin: document.getElementById("pinInput"),
-  pinBtn: document.getElementById("pinBtn"),
-  pinClear: document.getElementById("pinClear"),
-  pinMsg: document.getElementById("pinMsg"),
-  connPill: document.getElementById("connPill"),
-  lockBtn: document.getElementById("lockBtn"),
-  rolePill: document.getElementById("rolePill"),
+  overlay:   document.getElementById("pinOverlay"),
+  pin:       document.getElementById("pinInput"),
+  pinBtn:    document.getElementById("pinBtn"),
+  pinClear:  document.getElementById("pinClear"),
+  pinMsg:    document.getElementById("pinMsg"),
+  connPill:  document.getElementById("connPill"),
+  rolePill:  document.getElementById("rolePill"),
+  lockBtn:   document.getElementById("lockBtn"),
 
-  // tabs
   tabs: Array.from(document.querySelectorAll(".tab")),
   panes: {
     warehouse: document.getElementById("tab-warehouse"),
-    fleet: document.getElementById("tab-fleet"),
+    fleet:     document.getElementById("tab-fleet"),
     logistics: document.getElementById("tab-logistics"),
     dashboard: document.getElementById("tab-dashboard"),
   },
@@ -770,15 +795,12 @@ const ui = {
   camModal: document.getElementById("camModal"),
   camVideo: document.getElementById("camVideo"),
   camStart: document.getElementById("camStart"),
-  camStop: document.getElementById("camStop"),
+  camStop:  document.getElementById("camStop"),
   camClose: document.getElementById("camClose"),
-  camMsg: document.getElementById("camMsg"),
-  scanBtn: document.getElementById("scanBtn"),
+  camMsg:   document.getElementById("camMsg"),
+  scanBtn:  document.getElementById("scanBtn"),
 
-  // warehouse (legacy row - auto hidden)
-  whPinRow: document.getElementById("whPinRow"),
-
-  // warehouse fields
+  // warehouse
   tagId: document.getElementById("tagId"),
   aisleSel: document.getElementById("aisleSel"),
   railSel: document.getElementById("railSel"),
@@ -809,12 +831,11 @@ const ui = {
   licStatus: document.getElementById("licStatus"),
   drvSaveBtn: document.getElementById("drvSaveBtn"),
   drvMsg: document.getElementById("drvMsg"),
-
   modeSel: document.getElementById("modeSel"),
   modeApplyBtn: document.getElementById("modeApplyBtn"),
   modeMsg: document.getElementById("modeMsg"),
-
   vehSel: document.getElementById("vehSel"),
+  jobSel: document.getElementById("jobSel"),
   mileOut: document.getElementById("mileOut"),
   mileIn: document.getElementById("mileIn"),
   cabBefore: document.getElementById("cabBefore"),
@@ -823,15 +844,12 @@ const ui = {
   ackBox: document.getElementById("ackBox"),
   tripSaveBtn: document.getElementById("tripSaveBtn"),
   tripMsg: document.getElementById("tripMsg"),
-
   dmgType: document.getElementById("dmgType"),
   dmgNotes: document.getElementById("dmgNotes"),
   dmgPhotos: document.getElementById("dmgPhotos"),
   dmgAreasText: document.getElementById("dmgAreasText"),
   dmgBtns: Array.from(document.querySelectorAll(".dBtn")),
-
   vehRefreshBtn: document.getElementById("vehRefreshBtn"),
-  vehAddBtn: document.getElementById("vehAddBtn"),
   mtAddBtn: document.getElementById("mtAddBtn"),
   vehUnit: document.getElementById("vehUnit"),
   vehPlate: document.getElementById("vehPlate"),
@@ -840,6 +858,40 @@ const ui = {
   vehCreateBtn: document.getElementById("vehCreateBtn"),
   vehMsg: document.getElementById("vehMsg"),
   tripList: document.getElementById("tripList"),
+  expTripsCsvBtn: document.getElementById("expTripsCsvBtn"),
+  expTripsPdfBtn: document.getElementById("expTripsPdfBtn"),
+  expDmgCsvBtn: document.getElementById("expDmgCsvBtn"),
+  expWhCsvBtn: document.getElementById("expWhCsvBtn"),
+  expMsg: document.getElementById("expMsg"),
+
+  // jobs + reports
+  fleetReportsCard: document.getElementById("fleetReportsCard"),
+  jobsCard: document.getElementById("jobsCard"),
+  jobIdHidden: document.getElementById("jobIdHidden"),
+  jobName: document.getElementById("jobName"),
+  jobCode: document.getElementById("jobCode"),
+  jobStatus: document.getElementById("jobStatus"),
+  jobNotes: document.getElementById("jobNotes"),
+  jobSaveBtn: document.getElementById("jobSaveBtn"),
+  jobRefreshBtn: document.getElementById("jobRefreshBtn"),
+  jobMsg: document.getElementById("jobMsg"),
+
+  jobFrom: document.getElementById("jobFrom"),
+  jobTo: document.getElementById("jobTo"),
+  jobReportBtn: document.getElementById("jobReportBtn"),
+  jobReportCsvBtn: document.getElementById("jobReportCsvBtn"),
+  jobReportMsg: document.getElementById("jobReportMsg"),
+  jobReportOut: document.getElementById("jobReportOut"),
+
+  drvFrom: document.getElementById("drvFrom"),
+  drvTo: document.getElementById("drvTo"),
+  drvReportSel: document.getElementById("drvReportSel"),
+  drvReportBtn: document.getElementById("drvReportBtn"),
+  drvReportCsvBtn: document.getElementById("drvReportCsvBtn"),
+  drvReportMsg: document.getElementById("drvReportMsg"),
+  drvReportTotals: document.getElementById("drvReportTotals"),
+  driversGrouped: document.getElementById("driversGrouped"),
+  drvReportOut: document.getElementById("drvReportOut"),
 
   // logistics
   shId: document.getElementById("shId"),
@@ -873,35 +925,53 @@ const ui = {
   notesMsg: document.getElementById("notesMsg"),
 };
 
-let appUnlocked = false;
-let role = "LOCKED"; // MANAGER | ADMIN | WAREHOUSE | DRIVER | LOCKED
-let mode = "MANAGER"; // MANAGER | DRIVER (fleet UI mode)
-
+let role = "LOCKED";     // MANAGER | ADMIN | WAREHOUSE | DRIVER | LOCKED
+let mode = "MANAGER";    // MANAGER | DRIVER (UI view mode)
 let selectionHistory = [];
 let existingAisles = new Set();
 let camStream = null;
 let camDetector = null;
-
 let damageAreas = new Set();
+
+// caches
+let __jobsCache = [];
+let __driversCache = [];
+let __reportTripsCache = [];
 
 /** ================================
  *  Helpers
  * ================================ */
-function safe(s){ return (s||"").toString().trim(); }
-function nowISO(){ return new Date().toISOString(); }
-function daysAgoISO(days){ return new Date(Date.now() - days*24*60*60*1000).toISOString(); }
+const safe = (s)=> (s||"").toString().trim();
+const nowISO = ()=> new Date().toISOString();
+const daysAgoISO = (days)=> new Date(Date.now() - days*24*60*60*1000).toISOString();
 
-function setConn(ok){
-  ui.connPill.innerHTML = ok ? `<span class="ok">●</span> Unlocked` : `<span class="gold">●</span> Locked`;
+function ymdStart(dateStr){
+  const v = safe(dateStr);
+  if(!v) return null;
+  const dt = new Date(v + "T00:00:00");
+  return isNaN(dt.getTime()) ? null : dt.toISOString();
 }
-function setRolePill(){
-  const m = (role === "DRIVER") ? "Driver" : (mode === "DRIVER" ? "Driver" : "Manager");
-  const r = (role === "LOCKED") ? "Locked" : role;
-  ui.rolePill.innerHTML = `<span class="info">●</span> Role: ${r} • Mode: ${m}`;
+function ymdEnd(dateStr){
+  const v = safe(dateStr);
+  if(!v) return null;
+  const dt = new Date(v + "T23:59:59.999");
+  return isNaN(dt.getTime()) ? null : dt.toISOString();
 }
+
 function msg(el, text, good=false){
+  if(!el) return;
   el.innerHTML = good ? `<span class="ok">${text}</span>` : `<span class="bad">${text}</span>`;
 }
+
+function setConn(unlocked){
+  ui.connPill.innerHTML = unlocked ? `<span class="ok">●</span> Unlocked` : `<span class="gold">●</span> Locked`;
+}
+function setRolePill(){
+  const r = (role==="LOCKED") ? "Locked" : role;
+  const m = (role==="DRIVER") ? "Driver" : mode;
+  ui.rolePill.innerHTML = `<span class="info">●</span> Role: ${r} • Mode: ${m}`;
+}
+
 function fillNumericSelect(sel, max){
   sel.innerHTML = "";
   for(let i=1;i<=max;i++){
@@ -911,9 +981,6 @@ function fillNumericSelect(sel, max){
   }
 }
 
-/** ================================
- *  Permissions
- * ================================ */
 function roleFromPin(pin){
   if(pin === PIN_MANAGER) return "MANAGER";
   if(pin === PIN_ADMIN) return "ADMIN";
@@ -921,39 +988,56 @@ function roleFromPin(pin){
   if(pin === PIN_DRIVER) return "DRIVER";
   return "LOCKED";
 }
+function isManagerLike(){ return role==="MANAGER" || role==="ADMIN"; }
+function isManagerOnly(){ return role==="MANAGER"; }
+
 function canSee(tab){
-  if(role === "MANAGER" || role === "ADMIN") return true;
-  if(role === "WAREHOUSE") return tab === "warehouse";
-  if(role === "DRIVER") return tab === "fleet";
+  if(isManagerLike()) return true;
+  if(role==="WAREHOUSE") return tab==="warehouse";
+  if(role==="DRIVER") return tab==="fleet";
   return false;
 }
-function canEdit(area){
-  if(role === "MANAGER") return true;
 
-  if(role === "WAREHOUSE") return area === "warehouse";
-  if(role === "DRIVER") return area === "fleet_driver";
-
-  // ADMIN edits ALWAYS require manager confirmation
-  return false;
-}
 function requireManagerConfirmIfAdmin(){
   if(role !== "ADMIN") return true;
   const pin = prompt("Manager PIN required to approve this edit:");
   return safe(pin) === PIN_MANAGER;
 }
+function canEdit(area){
+  if(role==="MANAGER") return true;
+  if(role==="WAREHOUSE") return area==="warehouse";
+  if(role==="DRIVER") return area==="fleet_driver";
+  // ADMIN requires manager confirm for edits
+  return false;
+}
 function ensureEdit(area, elForMsg, noPermText){
   if(canEdit(area)) return true;
-
-  if(role === "ADMIN"){
+  if(role==="ADMIN"){
     if(!requireManagerConfirmIfAdmin()){
-      if(elForMsg) msg(elForMsg, "Edit blocked (manager approval not confirmed).");
+      msg(elForMsg, "Edit blocked (manager approval not confirmed).");
       return false;
     }
     return true;
   }
-
-  if(elForMsg) msg(elForMsg, noPermText || "No permission.");
+  msg(elForMsg, noPermText || "No permission.");
   return false;
+}
+function ensureManagerAdmin(elForMsg){
+  if(isManagerLike()) return true;
+  msg(elForMsg, "Manager/Admin only.");
+  return false;
+}
+
+// Mask license unless manager-like
+function maskLicense(lic){
+  lic = safe(lic).toUpperCase();
+  if(!lic) return "—";
+  if(isManagerLike()) return lic;
+  const keep = lic.length >= 4 ? 4 : 2;
+  return "••••" + lic.slice(-keep);
+}
+function currentLicense(){
+  return safe(ui.drvLic.value || localStorage.getItem("locateme_driver_license") || "").toUpperCase();
 }
 
 /** ================================
@@ -961,8 +1045,7 @@ function ensureEdit(area, elForMsg, noPermText){
  * ================================ */
 function setTab(tab){
   if(!canSee(tab)){
-    const fallback = (role === "DRIVER") ? "fleet" : "warehouse";
-    tab = fallback;
+    tab = (role==="DRIVER") ? "fleet" : "warehouse";
   }
   ui.tabs.forEach(t=>t.classList.toggle("active", t.dataset.tab===tab));
   Object.entries(ui.panes).forEach(([k,p])=> p.style.display = (k===tab) ? "" : "none");
@@ -972,23 +1055,15 @@ function setTab(tab){
 ui.tabs.forEach(t=> t.addEventListener("click", ()=> setTab(t.dataset.tab)));
 
 /** ================================
- *  AUTH (Role PINs)
+ *  Lock/Unlock
  * ================================ */
 function unlockMaster(pin){
   pin = safe(pin);
   if(!pin) return msg(ui.pinMsg, "Enter PIN.");
-
   const r = roleFromPin(pin);
-  if(r === "LOCKED"){
-    msg(ui.pinMsg, "Wrong PIN.");
-    return;
-  }
-
+  if(r==="LOCKED") return msg(ui.pinMsg, "Wrong PIN.");
   role = r;
-  appUnlocked = true;
-
-  mode = (role === "DRIVER") ? "DRIVER" : (localStorage.getItem("locateme_mode") || "MANAGER");
-
+  mode = (role==="DRIVER") ? "DRIVER" : (localStorage.getItem("locateme_mode") || "MANAGER");
   ui.overlay.style.display = "none";
   ui.lockBtn.style.display = "";
   setConn(true);
@@ -996,7 +1071,6 @@ function unlockMaster(pin){
   initApp();
 }
 function lockAll(){
-  appUnlocked = false;
   role = "LOCKED";
   mode = "MANAGER";
   ui.overlay.style.display = "flex";
@@ -1006,7 +1080,7 @@ function lockAll(){
 }
 
 /** ================================
- *  Camera Scan (Warehouse Tag ID)
+ *  Camera scan
  * ================================ */
 function camSet(text, ok=false){
   ui.camMsg.innerHTML = ok ? `<span class="ok">●</span> ${text}` : `<span class="gold">●</span> ${text}`;
@@ -1017,17 +1091,16 @@ async function camStart(){
       camSet("Camera not supported on this device.");
       return;
     }
-    camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
+    camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio:false });
     ui.camVideo.srcObject = camStream;
     await ui.camVideo.play();
     camSet("Scanning…", true);
 
     if("BarcodeDetector" in window){
-      const formats = ["qr_code","code_128","code_39","ean_13","ean_8","upc_a","upc_e","pdf417","data_matrix"];
-      camDetector = new BarcodeDetector({ formats });
+      camDetector = new BarcodeDetector({ formats: ["qr_code","code_128","code_39","ean_13","ean_8","upc_a","upc_e","pdf417","data_matrix"] });
       scanLoop();
     }else{
-      camSet("BarcodeDetector not available — type tag manually.");
+      camSet("BarcodeDetector not available — type manually.");
     }
   }catch(e){
     camSet(e.message || "Camera failed.");
@@ -1037,64 +1110,62 @@ async function scanLoop(){
   if(!camDetector || !camStream) return;
   try{
     const codes = await camDetector.detect(ui.camVideo);
-    if(codes && codes.length){
+    if(codes?.length){
       const val = codes[0].rawValue || "";
       if(val){
         ui.tagId.value = val;
         camSet("Captured ✅", true);
         camStop();
         ui.camModal.style.display = "none";
+        return;
       }
     }
   }catch(_){}
   requestAnimationFrame(scanLoop);
 }
 function camStop(){
-  if(camStream){
-    camStream.getTracks().forEach(t=>t.stop());
-    camStream = null;
-  }
+  if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream = null; }
   camDetector = null;
   camSet("Idle");
 }
-ui.scanBtn.addEventListener("click", ()=>{ ui.camModal.style.display = "flex"; camSet("Idle"); });
-ui.camClose.addEventListener("click", ()=>{ camStop(); ui.camModal.style.display = "none"; });
+ui.scanBtn.addEventListener("click", ()=>{ ui.camModal.style.display="flex"; camSet("Idle"); });
+ui.camClose.addEventListener("click", ()=>{ camStop(); ui.camModal.style.display="none"; });
 ui.camStart.addEventListener("click", camStart);
 ui.camStop.addEventListener("click", camStop);
 
 /** ================================
  *  Storage helpers
  * ================================ */
-async function signedUrl(bucket, path){
-  const { data, error } = await sb.storage.from(bucket).createSignedUrl(path, 60 * 10);
-  if(error) return null;
-  return data.signedUrl;
-}
+function sanitizeKey(s){ return safe(s).replace(/[^a-zA-Z0-9._-]/g, "_"); }
 async function uploadPhoto(bucket, file, keyPrefix){
   const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
   const objectPath = `${keyPrefix}/${Date.now()}_${Math.random().toString(16).slice(2)}.${ext}`;
   const { error } = await sb.storage.from(bucket).upload(objectPath, file, {
-    cacheControl: "3600",
-    upsert: false,
-    contentType: file.type || "image/jpeg",
+    cacheControl:"3600", upsert:false, contentType: file.type || "image/jpeg",
   });
   if(error) throw error;
-  return { objectPath, fileName: file.name, contentType: file.type };
+  return { objectPath, fileName:file.name, contentType:file.type };
 }
-function sanitizeKey(s){ return safe(s).replace(/[^a-zA-Z0-9._-]/g, "_"); }
+async function signedUrl(bucket, path){
+  const { data, error } = await sb.storage.from(bucket).createSignedUrl(path, 60*10);
+  if(error) return null;
+  return data?.signedUrl || null;
+}
 
 /** ================================
- *  Warehouse: Aisles
+ *  Warehouse: aisles + map
  * ================================ */
 async function loadAisles(){
-  const { data, error } = await sb.from("aisles").select("name").order("name", {ascending:true});
-  if(error){
-    ui.aisleSel.innerHTML = `<option value="">(Aisles table error)</option>`;
+  try{
+    const { data, error } = await sb.from("aisles").select("name").order("name",{ascending:true});
+    if(error) throw error;
+    existingAisles = new Set((data||[]).map(x=>x.name));
+  }catch(e){
     existingAisles = new Set();
-    ui.aisleWarn.innerHTML = `<span class="bad">${error.message}</span>`;
+    ui.aisleSel.innerHTML = `<option value="">(aisles table missing)</option>`;
+    ui.aisleWarn.innerHTML = `<span class="bad">${(e && e.message) ? e.message : "Aisles table error"}</span>`;
     return;
   }
-  existingAisles = new Set((data||[]).map(x=>x.name));
 
   const ordered = [];
   for(const n of AISLE_ORDER) if(existingAisles.has(n)) ordered.push(n);
@@ -1107,23 +1178,19 @@ async function loadAisles(){
   showAisleMissingWarning();
 }
 function showAisleMissingWarning(){
-  const missing = AISLE_ORDER.filter(a => !existingAisles.has(a));
+  const missing = AISLE_ORDER.filter(a=> !existingAisles.has(a));
   ui.aisleWarn.innerHTML = missing.length
     ? `<span class="warn">Missing aisles:</span> ${missing.join(", ")}`
     : `<span class="ok">All map aisles exist ✅</span>`;
 }
 async function createMissingAisles(){
   if(!ensureEdit("warehouse", ui.aisleWarn, "No permission to create aisles.")) return;
+  const missing = AISLE_ORDER.filter(a=> !existingAisles.has(a));
+  if(!missing.length) return msg(ui.aisleWarn, "Nothing to create ✅", true);
 
-  const missing = AISLE_ORDER.filter(a => !existingAisles.has(a));
-  if(!missing.length){
-    msg(ui.aisleWarn, "Nothing to create — all aisles exist ✅", true);
-    return;
-  }
   ui.addAislesBtn.disabled = true;
-  ui.addAislesBtn.textContent = "Creating...";
   try{
-    const rows = missing.map(name => ({ name }));
+    const rows = missing.map(name=>({ name }));
     const { error } = await sb.from("aisles").insert(rows);
     if(error) throw error;
     await loadAisles();
@@ -1132,19 +1199,90 @@ async function createMissingAisles(){
     msg(ui.aisleWarn, e.message || "Failed to create aisles.");
   }finally{
     ui.addAislesBtn.disabled = false;
-    ui.addAislesBtn.textContent = "Create missing aisles";
   }
 }
 
+// simple map: clickable aisle rows + rails
+function buildMap(){
+  const rows = [
+    { aisle:"AEX", rails:21 },
+    { aisle:"Maserati", rails:6 },
+    { aisle:"Mercedes", rails:3 },
+    { aisle:"Bentley", rails:12 },
+    { aisle:"Pagani", rails:8 },
+    { aisle:"Aston Martin", rails:12 },
+    { aisle:"McLaren", rails:10 },
+    { aisle:"Ferrari", rails:10 },
+    { aisle:"Lamborghini", rails:12 },
+    { aisle:"Bugatti", rails:21 },
+  ];
+
+  const host = document.createElement("div");
+  host.style.padding = "12px";
+  host.style.display = "flex";
+  host.style.flexDirection = "column";
+  host.style.gap = "10px";
+
+  for(const r of rows){
+    const row = document.createElement("div");
+    row.style.border = "1px solid rgba(255,255,255,.10)";
+    row.style.borderRadius = "14px";
+    row.style.padding = "10px";
+    row.style.background = "rgba(0,0,0,.14)";
+
+    const head = document.createElement("div");
+    head.className = "row";
+    head.style.justifyContent = "space-between";
+    head.innerHTML = `<div class="tag">${r.aisle}</div><div class="meta">rails: ${r.rails}</div>`;
+    row.appendChild(head);
+
+    const rails = document.createElement("div");
+    rails.style.display = "grid";
+    rails.style.gridTemplateColumns = "repeat(7, 1fr)";
+    rails.style.gap = "8px";
+    rails.style.marginTop = "10px";
+
+    for(let i=1;i<=RAIL_MAX;i++){
+      const b = document.createElement("button");
+      b.className = "btn";
+      b.style.padding = "8px 10px";
+      b.style.borderRadius = "12px";
+      b.textContent = String(i);
+      const active = i <= r.rails;
+      b.disabled = !active;
+      b.style.opacity = active ? "1" : ".35";
+      b.addEventListener("click", ()=>{
+        ui.aisleSel.value = r.aisle;
+        ui.railSel.value = String(i);
+        pushHistory();
+        syncMapToDropdown();
+      });
+      rails.appendChild(b);
+    }
+
+    row.appendChild(rails);
+    host.appendChild(row);
+  }
+
+  ui.mapHost.innerHTML = "";
+  ui.mapHost.appendChild(host);
+  syncMapToDropdown();
+}
+function syncMapToDropdown(){
+  const aisle = safe(ui.aisleSel.value);
+  const rail = safe(ui.railSel.value);
+  ui.mapPick.textContent = (aisle && rail) ? `${aisle} • Rail ${rail}` : "No selection";
+}
+
 /** ================================
- *  Warehouse: Save/Search/Purge
+ *  Warehouse: save/search/purge
  * ================================ */
 async function saveTag(){
   if(!ensureEdit("warehouse", ui.saveMsg, "No permission to edit warehouse.")) return;
 
   const tagId = safe(ui.tagId.value);
   const aisle = safe(ui.aisleSel.value);
-  const rail = parseInt(ui.railSel.value, 10);
+  const rail  = parseInt(ui.railSel.value, 10);
   const level = parseInt(ui.levelSel.value, 10);
   const status = ui.statusSel.value;
   const notes = safe(ui.notes.value);
@@ -1161,19 +1299,13 @@ async function saveTag(){
   ui.saveMsg.textContent = "";
 
   try{
+    // upsert by tag_id if you want “current location”, otherwise insert history.
+    // This does INSERT history (safe).
     const { data: row, error } = await sb
       .from("pallet_tags")
-      .insert([{
-        tag_id: tagId,
-        aisle_name: aisle,
-        rail,
-        level,
-        status,
-        notes: notes || null
-      }])
+      .insert([{ tag_id: tagId, aisle_name: aisle, rail, level, status, notes: notes || null }])
       .select("*")
       .single();
-
     if(error) throw error;
 
     if(file){
@@ -1191,7 +1323,7 @@ async function saveTag(){
     msg(ui.saveMsg, "Saved ✅", true);
     ui.photoFile.value = "";
   }catch(e){
-    msg(ui.saveMsg, e.message || "Save failed.");
+    msg(ui.saveMsg, (e && e.message) ? e.message : "Save failed.");
   }finally{
     ui.saveBtn.disabled = false;
     ui.saveBtn.textContent = "Save";
@@ -1203,18 +1335,20 @@ async function renderTagResults(tagId){
   tagId = safe(tagId);
   if(!tagId) return;
 
-  const { data, error } = await sb
+  let data=null, error=null;
+  ({ data, error } = await sb
     .from("pallet_tags")
     .select("id, tag_id, aisle_name, rail, level, status, notes, updated_at, created_at")
     .eq("tag_id", tagId)
-    .order("created_at", { ascending: false })
-    .limit(10);
+    .order("created_at", { ascending:false })
+    .limit(10)
+  );
 
   if(error){
-    ui.results.innerHTML = `<div class="item"><div class="bad">${error.message}</div></div>`;
+    ui.results.innerHTML = `<div class="item"><div class="bad">${error.message}</div><div class="meta">If you don’t have tables yet, create: pallet_tags, tag_photos, aisles.</div></div>`;
     return;
   }
-  if(!data || data.length === 0){
+  if(!data?.length){
     ui.results.innerHTML = `<div class="item"><div class="meta">No results for <b>${tagId}</b></div></div>`;
     return;
   }
@@ -1222,28 +1356,29 @@ async function renderTagResults(tagId){
   const movedCutoff = Date.now() - 24*60*60*1000;
 
   for(const r of data){
-    const updated = new Date(r.updated_at).getTime();
+    const updated = r.updated_at ? new Date(r.updated_at).getTime() : 0;
     const moved = updated >= movedCutoff;
 
-    const { data: photos } = await sb
-      .from("tag_photos")
-      .select("object_path, file_name, created_at")
-      .eq("pallet_tag_id", r.id)
-      .order("created_at", { ascending: false })
-      .limit(6);
+    let photos = [];
+    try{
+      const res = await sb.from("tag_photos")
+        .select("object_path, file_name, created_at")
+        .eq("pallet_tag_id", r.id)
+        .order("created_at",{ascending:false})
+        .limit(6);
+      photos = res.data || [];
+    }catch(_){ photos = []; }
 
     const photoHtml = [];
-    if(photos && photos.length){
-      for(const p of photos){
-        const url = await signedUrl(BUCKET_WAREHOUSE, p.object_path);
-        if(!url) continue;
-        photoHtml.push(`
-          <div class="photo">
-            <img src="${url}" alt="photo"/>
-            <div class="cap">${p.file_name || "photo"}</div>
-          </div>
-        `);
-      }
+    for(const p of photos){
+      const url = await signedUrl(BUCKET_WAREHOUSE, p.object_path);
+      if(!url) continue;
+      photoHtml.push(`
+        <div class="photo">
+          <img src="${url}" alt="photo"/>
+          <div class="cap">${p.file_name || "photo"}</div>
+        </div>
+      `);
     }
 
     ui.results.innerHTML += `
@@ -1257,7 +1392,7 @@ async function renderTagResults(tagId){
             </div>
             ${r.notes ? `<div class="meta" style="margin-top:6px;">${r.notes}</div>` : ""}
           </div>
-          <div class="meta">Updated: ${new Date(r.updated_at).toLocaleString()}</div>
+          <div class="meta">Updated: ${r.updated_at ? new Date(r.updated_at).toLocaleString() : "—"}</div>
         </div>
         ${photoHtml.length ? `<div class="photos">${photoHtml.join("")}</div>` : `<div class="meta" style="margin-top:10px;">No photos</div>`}
       </div>
@@ -1267,25 +1402,24 @@ async function renderTagResults(tagId){
 
 async function renderRecent(){
   ui.results.innerHTML = "";
-
   const { data, error } = await sb
     .from("pallet_tags")
     .select("tag_id, aisle_name, rail, level, status, updated_at")
-    .order("updated_at", { ascending: false })
+    .order("updated_at", { ascending:false })
     .limit(20);
 
   if(error){
     ui.results.innerHTML = `<div class="item"><div class="bad">${error.message}</div></div>`;
     return;
   }
-  if(!data || data.length === 0){
+  if(!data?.length){
     ui.results.innerHTML = `<div class="item"><div class="meta">No data yet.</div></div>`;
     return;
   }
 
-  ui.results.innerHTML = data.map(r => {
-    const moved = new Date(r.updated_at).getTime() >= (Date.now()-24*60*60*1000);
-    const safeTag = r.tag_id.replace(/'/g,"\\'");
+  ui.results.innerHTML = data.map(r=>{
+    const moved = r.updated_at && new Date(r.updated_at).getTime() >= (Date.now()-24*60*60*1000);
+    const safeTag = (r.tag_id||"").replace(/'/g,"\\'");
     return `
       <div class="item" style="${moved ? 'border-color: rgba(255,204,102,.45);' : ''}">
         <div class="itemTop">
@@ -1293,7 +1427,7 @@ async function renderRecent(){
             <div class="tag">${r.tag_id} ${moved ? `<span class="pill" style="margin-left:8px;"><span class="warn">●</span> Recently moved</span>` : ""}</div>
             <div class="meta">${r.aisle_name} • Rail ${r.rail} • Level ${r.level} • <b class="${r.status==='OUTBOUND'?'bad':'ok'}">${r.status}</b></div>
           </div>
-          <div class="meta">${new Date(r.updated_at).toLocaleString()}</div>
+          <div class="meta">${r.updated_at ? new Date(r.updated_at).toLocaleString() : "—"}</div>
         </div>
         <div class="actions" style="margin-top:10px;">
           <button class="btn" onclick="window.__openTag('${safeTag}')">Open</button>
@@ -1306,24 +1440,21 @@ window.__openTag = (t)=>{ ui.searchInput.value=t; renderTagResults(t); };
 
 async function purgeOutbound(){
   if(!ensureEdit("warehouse", ui.saveMsg, "No permission to purge.")) return;
-
   ui.purgeBtn.disabled = true;
   ui.purgeBtn.textContent = "Purging...";
   try{
+    // expects a Supabase RPC: purge_outbound_older_than(days int)
     const { data, error } = await sb.rpc("purge_outbound_older_than", { days: 5 });
     if(error) throw error;
-    msg(ui.saveMsg, `Purged ✅ Tags: ${data.pallet_tags_deleted} | Photos: ${data.tag_photos_deleted}`, true);
+    msg(ui.saveMsg, `Purged ✅ ${JSON.stringify(data || {})}`, true);
   }catch(e){
-    msg(ui.saveMsg, e.message || "Purge failed.");
+    msg(ui.saveMsg, (e && e.message) ? e.message : "Purge failed.");
   }finally{
     ui.purgeBtn.disabled = false;
     ui.purgeBtn.textContent = "Purge OUTBOUND > 5 days";
   }
 }
 
-/** ================================
- *  Warehouse: Back button
- * ================================ */
 function pushHistory(){
   selectionHistory.push({
     aisle: ui.aisleSel.value,
@@ -1344,181 +1475,13 @@ function popHistory(){
 }
 
 /** ================================
- *  Warehouse: MAP (SVG)
- * ================================ */
-function svgEl(tag, attrs={}){
-  const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
-  for(const [k,v] of Object.entries(attrs)) el.setAttribute(k, v);
-  return el;
-}
-function hash(s){
-  let h = 0;
-  for(let i=0;i<s.length;i++) h = ((h<<5) - h) + s.charCodeAt(i), h|=0;
-  return h;
-}
-function aisleColor(aisle){
-  const base = [
-    "rgba(56,210,122,.18)",
-    "rgba(246,213,122,.18)",
-    "rgba(202,162,77,.16)",
-    "rgba(120,180,255,.14)",
-    "rgba(255,120,180,.12)"
-  ];
-  const i = Math.abs(hash(aisle)) % base.length;
-  return base[i];
-}
-function buildMap(){
-  const width = 1080;
-  const pad = 18;
-  const cellW = 28;
-  const cellH = 22;
-  const gapY = 14;
-  const labelW = 150;
-
-  const rows = [
-    { aisle:"AEX", rails: RAIL_MAX, height: 58, note:"Top zone" },
-    { aisle:"Maserati", rails: 6, height: cellH, note:"Top right" },
-    { aisle:"Mercedes", rails: 3, height: cellH, note:"Top right" },
-    { aisle:"Bentley", rails: 12, height: cellH*2+6, note:"Top middle" },
-    { aisle:"Pagani", rails: 8, height: cellH, note:"Top middle" },
-    { aisle:"Aston Martin", rails: 12, height: cellH*2+6, note:"Mid long" },
-    { aisle:"McLaren", rails: 10, height: cellH*2+6, note:"Mid right" },
-    { aisle:"Ferrari", rails: 10, height: cellH*2+6, note:"Mid right" },
-    { aisle:"Lamborghini", rails: 12, height: cellH*2+6, note:"Lower middle" },
-    { aisle:"Bugatti", rails: RAIL_MAX, height: cellH, note:"Bottom long" },
-  ];
-
-  let y = pad;
-  for(const r of rows){ y += 32; y += r.height; y += gapY; }
-  const height = y + pad + 40;
-  const svg = svgEl("svg", { viewBox:`0 0 ${width} ${height}` });
-
-  svg.appendChild(svgEl("rect", {
-    x: 8, y: 8, width: width-16, height: height-16,
-    rx: 18, fill:"rgba(0,0,0,.12)", stroke:"rgba(255,255,255,.14)", "stroke-width":"2"
-  }));
-
-  const door = (x,y,label)=>{
-    const g = svgEl("g");
-    g.appendChild(svgEl("rect",{x, y, width:90, height:32, rx:12, fill:"rgba(255,255,255,.05)", stroke:"rgba(255,255,255,.14)"}));
-    const t = svgEl("text",{x:x+45, y:y+21, "text-anchor":"middle", class:"labelText"});
-    t.textContent = label;
-    g.appendChild(t);
-    svg.appendChild(g);
-  };
-  door(width-120, 60, "A");
-  door(width-120, height/2-16, "B");
-  door(width-120, height-110, "C");
-
-  const dump = svgEl("text",{x:width-120, y:height-70, class:"tiny"});
-  dump.textContent = "Dumpster";
-  svg.appendChild(dump);
-
-  let curY = pad + 12;
-  for(const r of rows){
-    const aisle = r.aisle;
-
-    svg.appendChild(svgEl("rect",{
-      x: pad, y: curY, width: width - pad*2 - 130, height: 28,
-      rx: 12, fill:"rgba(255,255,255,.05)", stroke:"rgba(255,255,255,.10)"
-    }));
-    const t = svgEl("text",{x: pad+12, y: curY+19, class:"labelText"});
-    t.textContent = aisle;
-    svg.appendChild(t);
-
-    const n = svgEl("text",{x: width - pad - 150, y: curY+19, class:"tiny"});
-    n.textContent = r.note || "";
-    svg.appendChild(n);
-
-    curY += 32;
-
-    const rowW = labelW + (RAIL_MAX * cellW) + 12;
-    svg.appendChild(svgEl("rect",{
-      x: pad, y: curY, width: rowW, height: r.height,
-      rx: 14, fill:"rgba(0,0,0,.18)", stroke:"rgba(255,255,255,.10)"
-    }));
-
-    svg.appendChild(svgEl("rect",{
-      x: pad+8, y: curY+8, width: labelW-10, height: r.height-16,
-      rx: 12, fill: aisleColor(aisle), stroke:"rgba(255,255,255,.12)"
-    }));
-    const lt = svgEl("text",{x: pad+18, y: curY+26, class:"labelText"});
-    lt.textContent = `${aisle}`;
-    svg.appendChild(lt);
-    const subt = svgEl("text",{x: pad+18, y: curY+44, class:"tiny"});
-    subt.textContent = `click rails →`;
-    svg.appendChild(subt);
-
-    const startX = pad + labelW;
-    const startY = curY + 10;
-
-    for(let rail=1; rail<=RAIL_MAX; rail++){
-      const active = rail <= (r.rails || RAIL_MAX);
-      const x = startX + (rail-1)*cellW;
-      const rect = svgEl("rect",{
-        x, y:startY, width:cellW-4, height:cellH,
-        rx: 6,
-        fill: active ? "rgba(255,255,255,.08)" : "rgba(255,255,255,.03)",
-        stroke: active ? "rgba(255,255,255,.14)" : "rgba(255,255,255,.06)",
-        "stroke-width":"1.2",
-        class:"railCell",
-        "data-aisle": aisle,
-        "data-rail": String(rail),
-        "data-active": active ? "1" : "0"
-      });
-      rect.addEventListener("click", ()=> pickFromMap(aisle, rail));
-      svg.appendChild(rect);
-
-      const num = svgEl("text",{x:x+(cellW-4)/2, y:startY+15, "text-anchor":"middle", class:"tiny"});
-      num.textContent = rail;
-      svg.appendChild(num);
-    }
-
-    curY += r.height + gapY;
-  }
-
-  ui.mapHost.innerHTML = "";
-  ui.mapHost.appendChild(svg);
-  syncMapToDropdown();
-}
-function pickFromMap(aisle, rail){
-  ui.mapPick.textContent = `${aisle} • Rail ${rail}`;
-  ui.aisleSel.value = aisle;
-  ui.railSel.value = String(rail);
-  pushHistory();
-  syncMapToDropdown();
-}
-function syncMapToDropdown(){
-  const aisle = safe(ui.aisleSel.value);
-  const rail = parseInt(ui.railSel.value, 10) || 0;
-  ui.mapPick.textContent = aisle && rail ? `${aisle} • Rail ${rail}` : "No selection";
-
-  const svg = ui.mapHost.querySelector("svg");
-  if(!svg) return;
-
-  svg.querySelectorAll(".railCell").forEach(r=>{
-    const active = r.getAttribute("data-active")==="1";
-    r.setAttribute("fill", active ? "rgba(255,255,255,.08)" : "rgba(255,255,255,.03)");
-    r.setAttribute("stroke", active ? "rgba(255,255,255,.14)" : "rgba(255,255,255,.06)");
-  });
-
-  if(!aisle || !rail) return;
-  const match = svg.querySelector(`.railCell[data-aisle="${CSS.escape(aisle)}"][data-rail="${rail}"]`);
-  if(match){
-    match.setAttribute("fill","rgba(246,213,122,.28)");
-    match.setAttribute("stroke","rgba(246,213,122,.70)");
-  }
-}
-
-/** ================================
- *  Fleet: local profile dropdown
+ *  Fleet: local profiles
  * ================================ */
 function getLocalProfiles(){
-  try{ return JSON.parse(localStorage.getItem("locateme_profiles") || "[]"); }
-  catch(_){ return []; }
+  try{ return JSON.parse(localStorage.getItem("locateme_profiles") || "[]"); }catch(_){ return []; }
 }
 function setLocalProfiles(arr){
-  localStorage.setItem("locateme_profiles", JSON.stringify(arr || []));
+  localStorage.setItem("locateme_profiles", JSON.stringify(arr||[]));
 }
 function addLocalProfile(licenseNo){
   licenseNo = safe(licenseNo).toUpperCase();
@@ -1533,7 +1496,7 @@ function addLocalProfile(licenseNo){
 function renderMyProfilesDropdown(){
   const arr = getLocalProfiles();
   const current = (localStorage.getItem("locateme_driver_license") || "").toUpperCase();
-  ui.myProfiles.innerHTML = `<option value="">Select…</option>` + arr.map(l=>`<option value="${l}">${l}</option>`).join("");
+  ui.myProfiles.innerHTML = `<option value="">Select…</option>` + arr.map(l=>`<option value="${l}">${maskLicense(l)}</option>`).join("");
   ui.myProfiles.value = current || "";
 }
 
@@ -1556,11 +1519,293 @@ ui.dmgBtns.forEach(b=>{
 updateDamageAreaText();
 
 /** ================================
- *  Fleet: Drivers + Vehicles + Trips
+ *  Fleet: jobs + drivers + reports
+ * ================================ */
+async function loadJobs(){
+  try{
+    const { data, error } = await sb.from("jobs").select("*").order("job_name",{ascending:true});
+    if(error) throw error;
+    __jobsCache = data || [];
+  }catch(_){
+    __jobsCache = [];
+  }
+
+  ui.jobSel.innerHTML = `<option value="">(Select job)</option>` + __jobsCache.map(j=>
+    `<option value="${j.id}">${j.job_name}${j.job_code ? ` • ${j.job_code}`:""}</option>`
+  ).join("");
+}
+
+window.__openJob = (id)=>{
+  if(!isManagerLike()) return;
+  const j = __jobsCache.find(x=>String(x.id)===String(id));
+  if(!j) return;
+  ui.jobIdHidden.value = j.id || "";
+  ui.jobName.value = j.job_name || "";
+  ui.jobCode.value = j.job_code || "";
+  ui.jobStatus.value = (j.status || "OPEN");
+  ui.jobNotes.value = j.notes || "";
+  msg(ui.jobMsg, "Loaded job ✅", true);
+};
+
+async function saveJob(){
+  if(!ensureManagerAdmin(ui.jobMsg)) return;
+  // treat jobs as fleet_manager area; admin requires confirm via ensureEdit
+  if(!ensureEdit("fleet_manager", ui.jobMsg, "No permission to manage jobs.")) return;
+
+  const id = safe(ui.jobIdHidden.value);
+  const payload = {
+    job_name: safe(ui.jobName.value),
+    job_code: safe(ui.jobCode.value) || null,
+    status: safe(ui.jobStatus.value) || "OPEN",
+    notes: safe(ui.jobNotes.value) || null,
+  };
+  if(!payload.job_name) return msg(ui.jobMsg, "Job name required.");
+
+  try{
+    const { error } = id
+      ? await sb.from("jobs").update(payload).eq("id", id)
+      : await sb.from("jobs").insert([payload]);
+    if(error) throw error;
+
+    ui.jobIdHidden.value = "";
+    msg(ui.jobMsg, "Job saved ✅", true);
+    await loadJobs();
+  }catch(e){
+    msg(ui.jobMsg, e.message || "Job save failed.");
+  }
+}
+
+async function loadDriversForReporting(){
+  if(!isManagerLike()){
+    ui.drvReportSel.innerHTML = `<option value="">(Manager/Admin only)</option>`;
+    ui.driversGrouped.innerHTML = `<div class="item"><div class="meta">Manager/Admin only.</div></div>`;
+    return;
+  }
+  try{
+    const { data, error } = await sb.from("drivers").select("id,name,license_no,license_status").order("name",{ascending:true});
+    if(error) throw error;
+    __driversCache = data || [];
+  }catch(_){
+    __driversCache = [];
+  }
+
+  // dropdown
+  ui.drvReportSel.innerHTML = `<option value="">(Select driver)</option>` + __driversCache.map(d=>
+    `<option value="${d.license_no}">${d.name} • ${maskLicense(d.license_no)}</option>`
+  ).join("");
+
+  // grouped list
+  const groups = {};
+  for(const d of __driversCache){
+    const st = (d.license_status || "UNKNOWN").toUpperCase();
+    (groups[st] ||= []).push(d);
+  }
+  const order = ["ACTIVE","PERMIT","SUSPENDED","NO_LICENSE","UNKNOWN"];
+  ui.driversGrouped.innerHTML = order.filter(k=>groups[k]?.length).map(k=>`
+    <div class="item">
+      <div class="itemTop">
+        <div>
+          <div class="tag">${k} <span class="pill" style="margin-left:8px;">${groups[k].length}</span></div>
+          <div class="meta">Click a driver to load trips</div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="list" style="margin-top:0;">
+        ${groups[k].map(d=>`
+          <div class="item" style="background:rgba(255,255,255,.03);">
+            <div class="itemTop">
+              <div>
+                <div class="tag">${d.name}</div>
+                <div class="meta">License: <b>${maskLicense(d.license_no)}</b></div>
+              </div>
+              <div class="actions">
+                <button class="btn" onclick="window.__openDriverTrips('${(d.license_no||"").replace(/'/g,"\\'")}')">Open</button>
+              </div>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `).join("") || `<div class="item"><div class="meta">No drivers yet.</div></div>`;
+}
+
+window.__openDriverTrips = async (licenseNo)=>{
+  if(!isManagerLike()) return;
+  ui.drvReportSel.value = safe(licenseNo).toUpperCase();
+  await runTripReport();
+};
+
+async function runTripReport(){
+  const canRunAsManager = isManagerLike();
+  const myLic = currentLicense();
+
+  const requested = safe(ui.drvReportSel.value).toUpperCase();
+  const enforced = canRunAsManager ? requested : myLic;
+
+  if(!enforced) return msg(ui.drvReportMsg, "Pick a driver / load your profile first.");
+
+  const from = ymdStart(ui.drvFrom.value);
+  const to   = ymdEnd(ui.drvTo.value);
+
+  // trips_view expected columns: driver_license_no, driver_name, vehicle_unit, vehicle_plate, mileage_out, mileage_in, job_name, created_at, notes
+  let q = sb.from("trips_view").select("*").order("created_at",{ascending:false}).eq("driver_license_no", enforced);
+  if(from) q = q.gte("created_at", from);
+  if(to)   q = q.lte("created_at", to);
+
+  const { data, error } = await q.limit(800);
+  if(error) return msg(ui.drvReportMsg, error.message);
+
+  __reportTripsCache = data || [];
+
+  let totalMiles = 0;
+  for(const r of __reportTripsCache){
+    const m = Number(r.mileage_in) - Number(r.mileage_out);
+    if(Number.isFinite(m)) totalMiles += m;
+  }
+
+  ui.drvReportTotals.innerHTML = `
+    <span class="pill"><span class="info">●</span> Trips: <b>${__reportTripsCache.length}</b></span>
+    <span class="pill"><span class="ok">●</span> Miles: <b>${totalMiles}</b></span>
+  `;
+
+  ui.drvReportOut.innerHTML = __reportTripsCache.length ? __reportTripsCache.map(r=>`
+    <div class="item">
+      <div class="itemTop">
+        <div>
+          <div class="tag">${r.vehicle_unit || "Vehicle"} • ${r.driver_name || "Driver"}</div>
+          <div class="meta">
+            ${new Date(r.created_at).toLocaleString()} • ${r.mileage_out} → ${r.mileage_in} (${(r.mileage_in-r.mileage_out)} mi)
+            ${r.job_name ? ` • <span class="gold"><b>${r.job_name}</b></span>` : ""}
+          </div>
+          ${r.notes ? `<div class="meta" style="margin-top:6px;">${r.notes}</div>` : ""}
+        </div>
+        <div class="meta">${r.vehicle_plate || ""}</div>
+      </div>
+    </div>
+  `).join("") : `<div class="item"><div class="meta">No trips in that range.</div></div>`;
+
+  msg(ui.drvReportMsg, "Report ready ✅", true);
+}
+
+async function runJobMileageReport(){
+  if(!ensureManagerAdmin(ui.jobReportMsg)) return;
+
+  const from = ymdStart(ui.jobFrom.value);
+  const to   = ymdEnd(ui.jobTo.value);
+
+  let q = sb.from("trips_view").select("*").order("created_at",{ascending:false});
+  if(from) q = q.gte("created_at", from);
+  if(to)   q = q.lte("created_at", to);
+
+  const { data, error } = await q.limit(2000);
+  if(error) return msg(ui.jobReportMsg, error.message);
+
+  const rows = data || [];
+  const map = new Map();
+  for(const r of rows){
+    const j = r.job_name || "UNASSIGNED";
+    const miles = Number(r.mileage_in) - Number(r.mileage_out);
+    if(!map.has(j)) map.set(j, { miles:0, trips:0 });
+    const o = map.get(j);
+    o.trips += 1;
+    if(Number.isFinite(miles)) o.miles += miles;
+  }
+
+  const out = Array.from(map.entries()).map(([job, v])=>({ job, ...v }))
+    .sort((a,b)=> b.miles - a.miles);
+
+  ui.jobReportOut.innerHTML = out.length ? out.map(r=>`
+    <div class="item">
+      <div class="itemTop">
+        <div>
+          <div class="tag">${r.job}</div>
+          <div class="meta">Trips: <b>${r.trips}</b> • Miles: <b>${r.miles}</b></div>
+        </div>
+      </div>
+    </div>
+  `).join("") : `<div class="item"><div class="meta">No data.</div></div>`;
+
+  msg(ui.jobReportMsg, "Job mileage report ready ✅", true);
+}
+
+/** ================================
+ *  Export helpers
+ * ================================ */
+function toCSV(rows){
+  if(!rows || !rows.length) return "";
+  const keys = Array.from(rows.reduce((s,r)=>{ Object.keys(r||{}).forEach(k=>s.add(k)); return s; }, new Set()));
+  const esc = (v)=> `"${String(v ?? "").replace(/"/g,'""')}"`;
+  const lines = [];
+  lines.push(keys.map(esc).join(","));
+  for(const r of rows) lines.push(keys.map(k=>esc(r[k])).join(","));
+  return lines.join("\n");
+}
+function downloadBlob(name, text, type="text/plain"){
+  const blob = new Blob([text], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 800);
+}
+function exportCSVFile(name, rows){
+  const csv = toCSV(rows);
+  if(!csv) return alert("No rows to export.");
+  downloadBlob(name, csv, "text/csv");
+}
+function exportPrintPDF(title, rows){
+  if(!rows || !rows.length) return alert("No rows to export.");
+  const keys = Object.keys(rows[0] || {});
+  const html = `
+    <html><head><meta charset="utf-8"/><title>${title}</title>
+      <style>
+        body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; padding:18px;}
+        h1{margin:0 0 6px;font-size:18px}
+        .sub{color:#555;font-size:12px;margin-bottom:12px}
+        table{width:100%; border-collapse:collapse; font-size:12px;}
+        th,td{border:1px solid #999; padding:6px 8px; text-align:left; vertical-align:top;}
+        th{background:#eee;}
+      </style>
+    </head><body>
+      <h1>${title}</h1>
+      <div class="sub">Generated: ${new Date().toLocaleString()}</div>
+      <table><thead><tr>${keys.map(k=>`<th>${k}</th>`).join("")}</tr></thead>
+      <tbody>${rows.map(r=>`<tr>${keys.map(k=>`<td>${(r[k]??"")}</td>`).join("")}</tr>`).join("")}</tbody></table>
+      <script>window.onload=()=>{ window.print(); }<\/script>
+    </body></html>
+  `;
+  const w = window.open("", "_blank");
+  if(!w) return alert("Pop-up blocked. Allow pop-ups to export PDF.");
+  w.document.open(); w.document.write(html); w.document.close();
+}
+
+// export buttons
+async function exportTripsCSV(){
+  if(!__reportTripsCache.length) await runTripReport();
+  exportCSVFile(`trips_${Date.now()}.csv`, __reportTripsCache);
+}
+async function exportTripsPDF(){
+  if(!__reportTripsCache.length) await runTripReport();
+  exportPrintPDF("Trips Report", __reportTripsCache);
+}
+async function exportDamagesCSV(){
+  if(!ensureManagerAdmin(ui.expMsg)) return;
+  const { data, error } = await sb.from("fleet_damage_updates").select("*").order("created_at",{ascending:false}).limit(2000);
+  if(error) return msg(ui.expMsg, error.message);
+  exportCSVFile(`damages_${Date.now()}.csv`, data||[]);
+}
+async function exportWarehouseHistoryCSV(){
+  if(!ensureManagerAdmin(ui.expMsg)) return;
+  const { data, error } = await sb.from("pallet_tags").select("*").order("updated_at",{ascending:false}).limit(5000);
+  if(error) return msg(ui.expMsg, error.message);
+  exportCSVFile(`warehouse_history_${Date.now()}.csv`, data||[]);
+}
+
+/** ================================
+ *  Fleet: drivers/vehicles/trips
  * ================================ */
 async function saveDriver(){
-  if(role === "WAREHOUSE") return msg(ui.drvMsg, "No permission.");
-
+  if(role==="WAREHOUSE") return msg(ui.drvMsg, "No permission.");
   if(!ensureEdit("fleet_driver", ui.drvMsg, "No permission to edit fleet.")) return;
 
   const name = safe(ui.drvName.value);
@@ -1577,11 +1822,7 @@ async function saveDriver(){
   ui.drvSaveBtn.textContent = "Saving...";
   try{
     const { error } = await sb.from("drivers").upsert([{
-      license_no: lic,
-      name,
-      middle_name: middle,
-      dob,
-      license_status: status
+      license_no: lic, name, middle_name: middle, dob, license_status: status
     }], { onConflict: "license_no" });
 
     if(error) throw error;
@@ -1591,6 +1832,8 @@ async function saveDriver(){
     renderMyProfilesDropdown();
 
     msg(ui.drvMsg, "Driver profile saved ✅", true);
+
+    if(isManagerLike()) loadDriversForReporting();
   }catch(e){
     msg(ui.drvMsg, e.message || "Save failed.");
   }finally{
@@ -1606,21 +1849,18 @@ async function loadDriverByLicense(lic){
     .select("name,middle_name,dob,license_no,license_status")
     .eq("license_no", lic)
     .maybeSingle();
-  if(error) return;
-  if(data){
-    ui.drvName.value = data.name || "";
-    ui.drvMid.value = data.middle_name || "";
-    ui.drvDob.value = data.dob || "";
-    ui.drvLic.value = data.license_no || "";
-    ui.licStatus.value = (data.license_status || "ACTIVE").toUpperCase();
-  }
+  if(error || !data) return;
+  ui.drvName.value = data.name || "";
+  ui.drvMid.value = data.middle_name || "";
+  ui.drvDob.value = data.dob || "";
+  ui.drvLic.value = data.license_no || "";
+  ui.licStatus.value = (data.license_status || "ACTIVE").toUpperCase();
 }
 
 async function loadDriverFromLocal(){
   renderMyProfilesDropdown();
   const lic = (localStorage.getItem("locateme_driver_license") || "").toUpperCase();
-  if(!lic) return;
-  await loadDriverByLicense(lic);
+  if(lic) await loadDriverByLicense(lic);
 }
 
 ui.myProfiles.addEventListener("change", async ()=>{
@@ -1632,9 +1872,9 @@ ui.myProfiles.addEventListener("change", async ()=>{
 });
 
 async function loadVehicles(){
-  const { data, error } = await sb.from("vehicles").select("*").order("unit_name", {ascending:true});
+  const { data, error } = await sb.from("vehicles").select("*").order("unit_name",{ascending:true});
   if(error){
-    ui.vehSel.innerHTML = `<option value="">(vehicles error)</option>`;
+    ui.vehSel.innerHTML = `<option value="">(vehicles table missing)</option>`;
     msg(ui.vehMsg, error.message);
     return;
   }
@@ -1655,6 +1895,7 @@ async function createVehicle(){
   const miles = parseInt(ui.vehMiles.value, 10);
 
   if(!unit) return msg(ui.vehMsg, "Unit # required.");
+
   ui.vehCreateBtn.disabled = true;
   ui.vehCreateBtn.textContent = "Saving...";
   try{
@@ -1666,6 +1907,7 @@ async function createVehicle(){
       status: "ACTIVE"
     }]);
     if(error) throw error;
+
     msg(ui.vehMsg, "Vehicle saved ✅", true);
     ui.vehUnit.value = ui.vehPlate.value = ui.vehModel.value = ui.vehMiles.value = "";
     await loadVehicles();
@@ -1690,16 +1932,18 @@ async function saveTrip(){
   const vehicleId = safe(ui.vehSel.value);
   if(!vehicleId) return msg(ui.tripMsg, "Pick a vehicle.");
 
+  const jobId = safe(ui.jobSel.value);
+
   const mileOut = parseInt(ui.mileOut.value, 10);
-  const mileIn = parseInt(ui.mileIn.value, 10);
+  const mileIn  = parseInt(ui.mileIn.value, 10);
   if(!Number.isFinite(mileOut)) return msg(ui.tripMsg, "Mileage BEFORE required.");
   if(!Number.isFinite(mileIn)) return msg(ui.tripMsg, "Mileage AFTER required.");
   if(mileIn < mileOut) return msg(ui.tripMsg, "Mileage AFTER can’t be less than BEFORE.");
 
   const beforeFile = ui.cabBefore.files && ui.cabBefore.files[0];
-  const afterFile = ui.cabAfter.files && ui.cabAfter.files[0];
+  const afterFile  = ui.cabAfter.files && ui.cabAfter.files[0];
   if(!beforeFile) return msg(ui.tripMsg, "Cab BEFORE photo required.");
-  if(!afterFile) return msg(ui.tripMsg, "Cab AFTER photo required.");
+  if(!afterFile)  return msg(ui.tripMsg, "Cab AFTER photo required.");
   if(!ui.ackBox.checked) return msg(ui.tripMsg, "You must confirm accountability checkbox.");
 
   const dmgType = safe(ui.dmgType.value);
@@ -1713,6 +1957,7 @@ async function saveTrip(){
     const { data: trip, error } = await sb.from("trips").insert([{
       driver_id: driver.id,
       vehicle_id: vehicleId,
+      job_id: jobId || null,
       mileage_out: mileOut,
       mileage_in: mileIn,
       notes: safe(ui.tripNotes.value) || null,
@@ -1729,11 +1974,10 @@ async function saveTrip(){
 
     const { error: phErr } = await sb.from("trip_photos").insert([
       { trip_id: trip.id, kind: "CAB_BEFORE", bucket: BUCKET_FLEET, object_path: upB.objectPath, file_name: upB.fileName, content_type: upB.contentType },
-      { trip_id: trip.id, kind: "CAB_AFTER",  bucket: BUCKET_FLEET, object_path: upA.objectPath, file_name: upA.fileName, content_type: upA.contentType }
+      { trip_id: trip.id, kind: "CAB_AFTER",  bucket: BUCKET_FLEET, object_path: upA.objectPath, file_name: upA.fileName, content_type: upA.contentType },
     ]);
     if(phErr) throw phErr;
 
-    // If damage update selected, create an update row + upload optional photos
     if(dmgType){
       const { data: dmgRow, error: dmgErr } = await sb.from("fleet_damage_updates").insert([{
         trip_id: trip.id,
@@ -1746,41 +1990,35 @@ async function saveTrip(){
       if(dmgErr) throw dmgErr;
 
       const files = ui.dmgPhotos.files ? Array.from(ui.dmgPhotos.files) : [];
-      if(files.length){
-        for(const f of files){
-          const up = await uploadPhoto(BUCKET_FLEET, f, `damage_${dmgRow.id}`);
-          const { error: dpErr } = await sb.from("fleet_damage_photos").insert([{
-            damage_update_id: dmgRow.id,
-            bucket: BUCKET_FLEET,
-            object_path: up.objectPath,
-            file_name: up.fileName,
-            content_type: up.contentType
-          }]);
-          if(dpErr) throw dpErr;
-        }
+      for(const f of files){
+        const up = await uploadPhoto(BUCKET_FLEET, f, `damage_${dmgRow.id}`);
+        const { error: dpErr } = await sb.from("fleet_damage_photos").insert([{
+          damage_update_id: dmgRow.id,
+          bucket: BUCKET_FLEET,
+          object_path: up.objectPath,
+          file_name: up.fileName,
+          content_type: up.contentType
+        }]);
+        if(dpErr) throw dpErr;
       }
     }
 
-    const { error: vErr } = await sb.from("vehicles").update({
-      current_mileage: mileIn,
-      last_trip_at: nowISO()
-    }).eq("id", vehicleId);
-    if(vErr) throw vErr;
+    await sb.from("vehicles").update({ current_mileage: mileIn, last_trip_at: nowISO() }).eq("id", vehicleId);
 
     msg(ui.tripMsg, "Trip submitted ✅", true);
 
-    // Reset
+    // reset
     ui.mileOut.value = ui.mileIn.value = "";
     ui.cabBefore.value = ui.cabAfter.value = "";
     ui.tripNotes.value = "";
     ui.ackBox.checked = false;
-
     ui.dmgType.value = "";
     ui.dmgNotes.value = "";
     ui.dmgPhotos.value = "";
     damageAreas.clear();
     ui.dmgBtns.forEach(b=>b.classList.remove("sel"));
     updateDamageAreaText();
+    ui.jobSel.value = "";
 
     await renderTripList();
     if(localStorage.getItem("locateme_last_tab")==="dashboard") refreshDashboard();
@@ -1794,14 +2032,9 @@ async function saveTrip(){
 
 async function renderTripList(){
   ui.tripList.innerHTML = "";
-  const { data, error } = await sb
-    .from("trips_view")
-    .select("*")
-    .order("created_at", {ascending:false})
-    .limit(10);
-
+  const { data, error } = await sb.from("trips_view").select("*").order("created_at",{ascending:false}).limit(10);
   if(error){
-    ui.tripList.innerHTML = `<div class="item"><div class="bad">${error.message}</div></div>`;
+    ui.tripList.innerHTML = `<div class="item"><div class="bad">${error.message}</div><div class="meta">If trips_view doesn’t exist, create it or change this query to trips + joins.</div></div>`;
     return;
   }
   const rows = data || [];
@@ -1811,7 +2044,8 @@ async function renderTripList(){
         <div>
           <div class="tag">${r.vehicle_unit || "Vehicle"} • ${r.driver_name || "Driver"}</div>
           <div class="meta">
-            ${new Date(r.created_at).toLocaleString()} • ${r.mileage_out} → ${r.mileage_in} (${(r.mileage_in - r.mileage_out)} mi)
+            ${new Date(r.created_at).toLocaleString()} • ${r.mileage_out} → ${r.mileage_in} (${(r.mileage_in-r.mileage_out)} mi)
+            ${r.job_name ? ` • <span class="gold"><b>${r.job_name}</b></span>` : ""}
           </div>
           ${r.notes ? `<div class="meta" style="margin-top:6px;">${r.notes}</div>` : ""}
         </div>
@@ -1822,14 +2056,13 @@ async function renderTripList(){
 }
 
 async function createRepairTicket(){
-  // Anyone who can see Fleet can create a ticket, but ADMIN requires manager approval
   if(!ensureEdit("fleet_driver", ui.vehMsg, "No permission to create tickets.")) return;
 
   const vehicleId = safe(ui.vehSel.value);
   if(!vehicleId) return msg(ui.vehMsg, "Pick a vehicle first.");
 
   const lic = safe(ui.drvLic.value).toUpperCase();
-  if(!lic) return msg(ui.vehMsg, "Select/load your driver profile first (license #).");
+  if(!lic) return msg(ui.vehMsg, "Load your driver profile first.");
 
   const { data: driver, error: dErr } = await sb.from("drivers").select("id").eq("license_no", lic).maybeSingle();
   if(dErr) return msg(ui.vehMsg, dErr.message);
@@ -1837,16 +2070,12 @@ async function createRepairTicket(){
 
   const summary = prompt("Repair summary (short):", "Brakes / lights / tire / damage / etc");
   if(!summary) return;
-
-  const area = prompt("Area (FRONT/BACK/DRIVER_SIDE/PASSENGER_SIDE/MIRRORS/OTHER):", "FRONT") || "OTHER";
+  const area = (prompt("Area (FRONT/BACK/DRIVER_SIDE/PASSENGER_SIDE/MIRRORS/OTHER):", "FRONT") || "OTHER").toUpperCase();
   const priority = (prompt("Priority: LOW / MEDIUM / HIGH", "MEDIUM") || "MEDIUM").toUpperCase();
   const remarks = prompt("Remarks (optional):", "") || "";
 
-  // Optional: attach one photo quickly
-  const attach = confirm("Attach a photo to this repair ticket?");
   let file = null;
-  if(attach){
-    alert("After you click OK, choose a photo file.");
+  if(confirm("Attach a photo to this repair ticket?")){
     file = await pickSingleImage();
   }
 
@@ -1857,7 +2086,7 @@ async function createRepairTicket(){
       summary,
       priority,
       status: "OPEN",
-      area: area.toUpperCase(),
+      area,
       remarks: remarks || null
     }]).select("*").single();
     if(error) throw error;
@@ -1879,20 +2108,17 @@ async function createRepairTicket(){
     msg(ui.vehMsg, e.message || "Ticket failed.");
   }
 }
-
-// Helper: file picker in JS prompt flow
 function pickSingleImage(){
   return new Promise((resolve)=>{
     const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/*";
-    input.onchange = ()=> resolve(input.files && input.files[0] ? input.files[0] : null);
+    input.type="file"; input.accept="image/*";
+    input.onchange=()=> resolve(input.files && input.files[0] ? input.files[0] : null);
     input.click();
   });
 }
 
 /** ================================
- *  Logistics: Shipments
+ *  Logistics: shipments
  * ================================ */
 async function saveShipment(){
   if(!ensureEdit("logistics", ui.shMsg, "No permission to edit logistics.")) return;
@@ -1919,13 +2145,11 @@ async function saveShipment(){
       .upsert([payload], { onConflict: "shipment_id" })
       .select("*")
       .single();
-
     if(error) throw error;
 
     const file = ui.shPhoto.files && ui.shPhoto.files[0];
     if(file){
-      const prefix = `shipment_${ship.id}`;
-      const up = await uploadPhoto(BUCKET_LOGISTICS, file, prefix);
+      const up = await uploadPhoto(BUCKET_LOGISTICS, file, `shipment_${ship.id}`);
       const { error: phErr } = await sb.from("shipment_photos").insert([{
         shipment_id: ship.id,
         bucket: BUCKET_LOGISTICS,
@@ -1950,14 +2174,9 @@ async function saveShipment(){
 
 async function refreshShipments(){
   ui.shList.innerHTML = "";
-  const { data, error } = await sb
-    .from("shipments")
-    .select("*")
-    .order("updated_at", {ascending:false})
-    .limit(30);
-
+  const { data, error } = await sb.from("shipments").select("*").order("updated_at",{ascending:false}).limit(30);
   if(error){
-    ui.shList.innerHTML = `<div class="item"><div class="bad">${error.message}</div></div>`;
+    ui.shList.innerHTML = `<div class="item"><div class="bad">${error.message}</div><div class="meta">If shipments table doesn’t exist yet, create it first.</div></div>`;
     return;
   }
   const rows = data || [];
@@ -1969,10 +2188,10 @@ async function refreshShipments(){
           <div class="meta">${r.carrier || "—"} • PO: ${r.po_no || "—"} • BOL: ${r.bol_no || "—"}</div>
           <div class="meta" style="margin-top:6px;">${r.pickup || "—"} → ${r.dropoff || "—"}</div>
         </div>
-        <div class="meta">Updated: ${new Date(r.updated_at).toLocaleString()}</div>
+        <div class="meta">Updated: ${r.updated_at ? new Date(r.updated_at).toLocaleString() : "—"}</div>
       </div>
       <div class="actions" style="margin-top:10px;">
-        <button class="btn" onclick="window.__openShipment('${r.shipment_id.replace(/'/g,"\\'")}')">Open</button>
+        <button class="btn" onclick="window.__openShipment('${(r.shipment_id||"").replace(/'/g,"\\'")}')">Open</button>
       </div>
     </div>
   `).join("") : `<div class="item"><div class="meta">No shipments yet.</div></div>`;
@@ -1994,13 +2213,12 @@ window.__openShipment = async (shipmentId)=>{
 async function searchShipments(){
   const q = safe(ui.shSearch.value);
   if(!q) return refreshShipments();
-
   ui.shList.innerHTML = "";
-  const { data, error } = await sb
-    .from("shipments")
+
+  const { data, error } = await sb.from("shipments")
     .select("*")
     .or(`shipment_id.ilike.%${q}%,po_no.ilike.%${q}%,bol_no.ilike.%${q}%,carrier.ilike.%${q}%`)
-    .order("updated_at", {ascending:false})
+    .order("updated_at",{ascending:false})
     .limit(30);
 
   if(error){
@@ -2016,10 +2234,10 @@ async function searchShipments(){
           <div class="meta">${r.carrier || "—"} • PO: ${r.po_no || "—"} • BOL: ${r.bol_no || "—"}</div>
           <div class="meta" style="margin-top:6px;">${r.pickup || "—"} → ${r.dropoff || "—"}</div>
         </div>
-        <div class="meta">Updated: ${new Date(r.updated_at).toLocaleString()}</div>
+        <div class="meta">Updated: ${r.updated_at ? new Date(r.updated_at).toLocaleString() : "—"}</div>
       </div>
       <div class="actions" style="margin-top:10px;">
-        <button class="btn" onclick="window.__openShipment('${r.shipment_id.replace(/'/g,"\\'")}')">Open</button>
+        <button class="btn" onclick="window.__openShipment('${(r.shipment_id||"").replace(/'/g,"\\'")}')">Open</button>
       </div>
     </div>
   `).join("") : `<div class="item"><div class="meta">No matches.</div></div>`;
@@ -2027,13 +2245,11 @@ async function searchShipments(){
 
 async function shipmentsRecentlyUpdated(){
   ui.shList.innerHTML = "";
-  const { data, error } = await sb
-    .from("shipments")
+  const { data, error } = await sb.from("shipments")
     .select("*")
     .gte("updated_at", daysAgoISO(1))
-    .order("updated_at", {ascending:false})
+    .order("updated_at",{ascending:false})
     .limit(30);
-
   if(error){
     ui.shList.innerHTML = `<div class="item"><div class="bad">${error.message}</div></div>`;
     return;
@@ -2047,10 +2263,10 @@ async function shipmentsRecentlyUpdated(){
           <div class="meta">${r.carrier || "—"} • PO: ${r.po_no || "—"} • BOL: ${r.bol_no || "—"}</div>
           <div class="meta" style="margin-top:6px;">${r.pickup || "—"} → ${r.dropoff || "—"}</div>
         </div>
-        <div class="meta">Updated: ${new Date(r.updated_at).toLocaleString()}</div>
+        <div class="meta">Updated: ${r.updated_at ? new Date(r.updated_at).toLocaleString() : "—"}</div>
       </div>
       <div class="actions" style="margin-top:10px;">
-        <button class="btn" onclick="window.__openShipment('${r.shipment_id.replace(/'/g,"\\'")}')">Open</button>
+        <button class="btn" onclick="window.__openShipment('${(r.shipment_id||"").replace(/'/g,"\\'")}')">Open</button>
       </div>
     </div>
   `).join("") : `<div class="item"><div class="meta">None updated in last 24h.</div></div>`;
@@ -2060,17 +2276,18 @@ async function shipmentsRecentlyUpdated(){
  *  Dashboard
  * ================================ */
 async function refreshDashboard(){
+  // counts
   const [wCount, movedCount, vCount, shipOpen] = await Promise.all([
-    sb.from("pallet_tags").select("id", { count: "exact", head: true }),
-    sb.from("pallet_tags").select("id", { count: "exact", head: true }).gte("updated_at", daysAgoISO(1)),
-    sb.from("vehicles").select("id", { count: "exact", head: true }),
-    sb.from("shipments").select("id", { count: "exact", head: true }).not("status","eq","DELIVERED").not("status","eq","CANCELLED"),
+    sb.from("pallet_tags").select("id", { count:"exact", head:true }),
+    sb.from("pallet_tags").select("id", { count:"exact", head:true }).gte("updated_at", daysAgoISO(1)),
+    sb.from("vehicles").select("id", { count:"exact", head:true }),
+    sb.from("shipments").select("id", { count:"exact", head:true }).not("status","eq","DELIVERED").not("status","eq","CANCELLED"),
   ]);
 
   ui.kWarehouse.textContent = (wCount.count ?? "—");
-  ui.kMoved.textContent = (movedCount.count ?? "—");
-  ui.kFleet.textContent = (vCount.count ?? "—");
-  ui.kShip.textContent = (shipOpen.count ?? "—");
+  ui.kMoved.textContent     = (movedCount.count ?? "—");
+  ui.kFleet.textContent     = (vCount.count ?? "—");
+  ui.kShip.textContent      = (shipOpen.count ?? "—");
 
   const [moves, trips, exc] = await Promise.all([
     sb.from("pallet_tags").select("tag_id, aisle_name, rail, level, status, updated_at").order("updated_at",{ascending:false}).limit(8),
@@ -2085,7 +2302,7 @@ async function refreshDashboard(){
           <div class="tag">${r.tag_id} • <span class="${r.status==='OUTBOUND'?'bad':'ok'}">${r.status}</span></div>
           <div class="meta">${r.aisle_name} • Rail ${r.rail} • Level ${r.level}</div>
         </div>
-        <div class="meta">${new Date(r.updated_at).toLocaleString()}</div>
+        <div class="meta">${r.updated_at ? new Date(r.updated_at).toLocaleString() : "—"}</div>
       </div>
     </div>
   `).join("") : `<div class="item"><div class="meta">No movements yet.</div></div>`;
@@ -2110,7 +2327,7 @@ async function refreshDashboard(){
           <div class="meta">${r.carrier || "—"} • PO: ${r.po_no || "—"} • BOL: ${r.bol_no || "—"}</div>
           <div class="meta" style="margin-top:6px;">${r.pickup || "—"} → ${r.dropoff || "—"}</div>
         </div>
-        <div class="meta">${new Date(r.updated_at).toLocaleString()}</div>
+        <div class="meta">${r.updated_at ? new Date(r.updated_at).toLocaleString() : "—"}</div>
       </div>
     </div>
   `).join("") : `<div class="item"><div class="meta">No exceptions ✅</div></div>`;
@@ -2118,12 +2335,8 @@ async function refreshDashboard(){
 
 async function saveManagerNotes(){
   if(!ensureEdit("dashboard", ui.notesMsg, "No permission to edit notes.")) return;
-
   const text = safe(ui.mgrNotes.value);
-  const { error } = await sb.from("manager_notes").upsert([{
-    key: "ops_notes",
-    content: text || ""
-  }], { onConflict: "key" });
+  const { error } = await sb.from("manager_notes").upsert([{ key:"ops_notes", content:text || "" }], { onConflict:"key" });
   if(error) return msg(ui.notesMsg, error.message);
   msg(ui.notesMsg, "Saved ✅", true);
 }
@@ -2135,14 +2348,14 @@ async function loadManagerNotes(){
 }
 
 /** ================================
- *  Mode (Driver can't switch)
+ *  Mode + UI rules
  * ================================ */
 function applyMode(){
-  if(role === "DRIVER"){
-    mode = "DRIVER";
-    ui.modeSel.value = "DRIVER";
+  if(role==="DRIVER"){
+    mode="DRIVER";
+    ui.modeSel.value="DRIVER";
     msg(ui.modeMsg, "Driver role: mode locked ✅", true);
-  } else {
+  }else{
     mode = ui.modeSel.value;
     msg(ui.modeMsg, `Mode set to ${mode} ✅`, true);
   }
@@ -2151,25 +2364,25 @@ function applyMode(){
   applyFleetUIRules();
 }
 function applyFleetUIRules(){
-  const isDriverView = (role === "DRIVER") || (mode === "DRIVER");
+  const isDriverView = (role==="DRIVER") || (mode==="DRIVER");
 
-  // Hide/disable manager-only tools in driver view
-  ui.vehCreateBtn.disabled = isDriverView;
-  ui.mtAddBtn.disabled = false; // anyone can create tickets, but admin requires approval at save-time
-  [ui.vehUnit, ui.vehPlate, ui.vehModel, ui.vehMiles].forEach(x=>{ if(x) x.disabled = isDriverView; });
+  // vehicle creation manager-only
+  const allowVehicleCreate = isManagerLike() && !isDriverView;
+  ui.vehCreateBtn.disabled = !allowVehicleCreate;
+  [ui.vehUnit, ui.vehPlate, ui.vehModel, ui.vehMiles].forEach(x=> x.disabled = !allowVehicleCreate);
+
+  // reporting panels manager/admin only
+  ui.fleetReportsCard.style.display = isManagerLike() ? "" : "none";
 }
 
-/** ================================
- *  Auto purge (device-side daily call)
- * ================================ */
 async function autoPurgeOncePerDay(){
   const k = "locateme_last_purge";
   const last = parseInt(localStorage.getItem(k) || "0", 10);
   const now = Date.now();
-  if(!last || (now - last) > 24*60*60*1000){
+  if(!last || (now-last) > 24*60*60*1000){
     try{
-      if(role === "MANAGER" || role === "ADMIN"){
-        await sb.rpc("purge_outbound_older_than", { days: 5 });
+      if(role==="MANAGER" || role==="ADMIN"){
+        await sb.rpc("purge_outbound_older_than", { days:5 });
       }
       localStorage.setItem(k, String(now));
     }catch(_){}
@@ -2180,19 +2393,13 @@ async function autoPurgeOncePerDay(){
  *  Init
  * ================================ */
 async function initApp(){
-  if(ui.whPinRow) ui.whPinRow.style.display = "none";
-
+  // show/hide tabs by role
   ui.tabs.forEach(t=>{
     const tab = t.dataset.tab;
     t.style.display = canSee(tab) ? "" : "none";
   });
 
-  const preferred = localStorage.getItem("locateme_last_tab") || "warehouse";
-  const fallback = (role === "DRIVER") ? "fleet" : (role === "WAREHOUSE" ? "warehouse" : preferred);
-  const chosen = canSee(fallback) ? fallback : (role === "DRIVER" ? "fleet" : "warehouse");
-  localStorage.setItem("locateme_last_tab", chosen);
-
-  // warehouse
+  // warehouse init
   fillNumericSelect(ui.railSel, RAIL_MAX);
   fillNumericSelect(ui.levelSel, LEVEL_MAX);
   await loadAisles();
@@ -2205,26 +2412,31 @@ async function initApp(){
     ui.statusSel.addEventListener(evt, pushHistory);
   });
 
-  // fleet
-  if(role === "DRIVER"){
-    mode = "DRIVER";
-    ui.modeSel.value = "DRIVER";
-  } else {
-    ui.modeSel.value = mode;
-  }
+  // fleet init
+  if(role==="DRIVER"){ mode="DRIVER"; ui.modeSel.value="DRIVER"; }
+  else { ui.modeSel.value = mode; }
   setRolePill();
   applyFleetUIRules();
-  await loadDriverFromLocal();
-  if(canSee("fleet")) await loadVehicles();
 
-  // logistics
+  await loadDriverFromLocal();
+
+  if(canSee("fleet")){
+    await loadVehicles();
+    await loadJobs();
+    await loadDriversForReporting();
+  }
+
+  // logistics init
   if(canSee("logistics")) await refreshShipments();
 
   // dashboard
   if(canSee("dashboard")) await refreshDashboard();
 
   await autoPurgeOncePerDay();
-  setTab(chosen);
+
+  const preferred = localStorage.getItem("locateme_last_tab") || "warehouse";
+  const fallback = (role==="DRIVER") ? "fleet" : (role==="WAREHOUSE" ? "warehouse" : preferred);
+  setTab(canSee(fallback) ? fallback : ((role==="DRIVER") ? "fleet" : "warehouse"));
 }
 
 /** ================================
@@ -2256,6 +2468,22 @@ ui.vehRefreshBtn.addEventListener("click", loadVehicles);
 ui.vehCreateBtn.addEventListener("click", createVehicle);
 ui.mtAddBtn.addEventListener("click", createRepairTicket);
 
+// reporting + exports + jobs
+ui.drvReportBtn.addEventListener("click", runTripReport);
+ui.drvReportCsvBtn.addEventListener("click", ()=> exportCSVFile(`driver_report_${Date.now()}.csv`, __reportTripsCache));
+ui.jobReportBtn.addEventListener("click", runJobMileageReport);
+ui.jobReportCsvBtn.addEventListener("click", ()=>{
+  // quick export from DOM list is messy; re-run and export from computed output by running again:
+  alert("Tip: Click “Run Job Report” first, then use Trips → CSV if you want raw rows. If you want a dedicated job-export table, tell me and I’ll add it.");
+});
+ui.jobSaveBtn.addEventListener("click", saveJob);
+ui.jobRefreshBtn.addEventListener("click", loadJobs);
+
+ui.expTripsCsvBtn.addEventListener("click", exportTripsCSV);
+ui.expTripsPdfBtn.addEventListener("click", exportTripsPDF);
+ui.expDmgCsvBtn.addEventListener("click", exportDamagesCSV);
+ui.expWhCsvBtn.addEventListener("click", exportWarehouseHistoryCSV);
+
 // logistics
 ui.shSaveBtn.addEventListener("click", saveShipment);
 ui.shRefreshBtn.addEventListener("click", refreshShipments);
@@ -2267,7 +2495,7 @@ ui.shTodayBtn.addEventListener("click", shipmentsRecentlyUpdated);
 ui.notesSaveBtn.addEventListener("click", saveManagerNotes);
 ui.notesLoadBtn.addEventListener("click", loadManagerNotes);
 
-// boot: always locked
+// boot (always locked)
 (function boot(){
   ui.overlay.style.display = "flex";
   ui.lockBtn.style.display = "none";
