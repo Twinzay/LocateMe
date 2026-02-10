@@ -1,4 +1,3 @@
-```html
 <!doctype html>
 <html lang="en">
 <head>
@@ -70,9 +69,7 @@
     .small{font-size:12px;color:var(--muted)}
     .divider{height:1px;background:rgba(255,255,255,.10);margin:12px 0}
 
-    .tabs{
-      display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;
-    }
+    .tabs{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;}
     .tab{
       border:1px solid var(--stroke);
       background:rgba(0,0,0,.22);
@@ -90,7 +87,6 @@
 
     .grid{display:grid; grid-template-columns: 1.1fr .9fr; gap:14px; margin-top:14px}
     @media (max-width: 980px){ .grid{grid-template-columns:1fr} }
-
     .grid3{display:grid; grid-template-columns: 1fr 1fr 1fr; gap:14px; margin-top:14px}
     @media (max-width: 980px){ .grid3{grid-template-columns:1fr} }
 
@@ -118,27 +114,17 @@
     .itemTop{display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap}
     .tag{font-weight:900; letter-spacing:.2px}
     .meta{color:var(--muted); font-size:12px}
-    .kpi{
-      display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; margin-top:10px;
-    }
+    .kpi{display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; margin-top:10px;}
     @media (max-width: 980px){ .kpi{grid-template-columns:1fr 1fr} }
-    .kcard{
-      border:1px solid var(--stroke); border-radius:16px; padding:12px;
-      background:rgba(0,0,0,.22);
-    }
+    .kcard{border:1px solid var(--stroke); border-radius:16px; padding:12px; background:rgba(0,0,0,.22);}
     .knum{font-weight:900; font-size:18px}
     .klabel{font-size:12px;color:var(--muted)}
 
-    /* Photos */
     .photos{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}
-    .photo{
-      width:170px; border-radius:14px; border:1px solid var(--stroke);
-      overflow:hidden; background:rgba(255,255,255,.05);
-    }
+    .photo{width:170px; border-radius:14px; border:1px solid var(--stroke); overflow:hidden; background:rgba(255,255,255,.05);}
     .photo img{width:100%; height:120px; object-fit:cover; display:block}
     .photo .cap{padding:8px 10px; font-size:12px; color:var(--muted)}
 
-    /* Overlay PIN */
     .overlay{
       position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
       background:rgba(0,0,0,.72);
@@ -156,13 +142,7 @@
     .pinhead{display:flex; align-items:center; justify-content:space-between; gap:10px}
     .pinhead .big{font-weight:900; font-size:18px}
 
-    /* MAP */
-    .mapWrap{
-      border:1px solid var(--stroke);
-      border-radius:16px;
-      background:rgba(0,0,0,.18);
-      overflow:hidden;
-    }
+    .mapWrap{border:1px solid var(--stroke); border-radius:16px; background:rgba(0,0,0,.18); overflow:hidden;}
     .mapHead{
       display:flex; align-items:center; justify-content:space-between; gap:10px;
       padding:10px 12px;
@@ -172,17 +152,11 @@
     .mapLegend{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
     .chip{
       display:inline-flex; align-items:center; gap:6px;
-      padding:6px 10px;
-      border:1px solid rgba(255,255,255,.12);
-      border-radius:999px;
-      font-size:12px;
-      color:var(--muted);
+      padding:6px 10px; border:1px solid rgba(255,255,255,.12);
+      border-radius:999px; font-size:12px; color:var(--muted);
       background:rgba(0,0,0,.18);
     }
-    .swatch{
-      width:10px;height:10px;border-radius:3px;display:inline-block;
-      background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.14);
-    }
+    .swatch{width:10px;height:10px;border-radius:3px;display:inline-block; background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.14);}
     .swatch.sel{background:rgba(246,213,122,.30); border-color:rgba(246,213,122,.70)}
     .swatch.ais{background:rgba(56,210,122,.22); border-color:rgba(56,210,122,.55)}
     svg{display:block; width:100%; height:auto}
@@ -191,7 +165,6 @@
     .labelText{font-size:11px; fill:rgba(234,236,239,.85)}
     .tiny{font-size:10px; fill:rgba(234,236,239,.65)}
 
-    /* Modal camera */
     .modal{
       position:fixed; inset:0; display:none; align-items:center; justify-content:center;
       background:rgba(0,0,0,.72);
@@ -207,8 +180,32 @@
       padding:14px;
     }
     video{width:100%; border-radius:16px; border:1px solid rgba(255,255,255,.12); background:rgba(0,0,0,.35)}
+
+    /* Damage click buttons */
+    .damageGrid{
+      display:grid; grid-template-columns: repeat(5, 1fr);
+      gap:10px; margin-top:10px;
+    }
+    @media (max-width: 980px){ .damageGrid{grid-template-columns: 1fr 1fr;} }
+    .dBtn{
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.06);
+      border-radius:14px;
+      padding:10px 12px;
+      cursor:pointer;
+      font-weight:850;
+      color:rgba(234,236,239,.9);
+      text-align:center;
+      user-select:none;
+    }
+    .dBtn.sel{
+      background:linear-gradient(180deg, rgba(246,213,122,.16), rgba(0,0,0,.20));
+      border-color:rgba(246,213,122,.45);
+      color:var(--text);
+    }
   </style>
 </head>
+
 <body>
 
   <!-- PIN Gate -->
@@ -286,7 +283,6 @@
 
           <div class="divider"></div>
 
-          <!-- OLD Warehouse PIN row kept for layout but auto-hidden by JS -->
           <div class="row" id="whPinRow">
             <div style="flex:1; min-width:240px;">
               <label>Warehouse PIN (to edit)</label>
@@ -397,10 +393,18 @@
       <div class="grid3">
         <div class="card">
           <h3 class="h">Driver Profile (saved for future drives)</h3>
-          <div class="small">Drivers must save profile before logging a trip.</div>
+          <div class="small">Drivers save profile once. After that, pick your profile from the dropdown.</div>
+
+          <label>My Saved Profiles (this device)</label>
+          <select id="myProfiles"></select>
+
+          <div class="divider"></div>
 
           <label>Driver Name</label>
           <input id="drvName" placeholder="Full name" />
+
+          <label>Middle Name (optional)</label>
+          <input id="drvMid" placeholder="Optional (helps if names duplicate)" />
 
           <div class="row">
             <div style="flex:1; min-width:200px;">
@@ -412,6 +416,14 @@
               <input id="drvLic" placeholder="Driver license number" />
             </div>
           </div>
+
+          <label>License Status</label>
+          <select id="licStatus">
+            <option value="ACTIVE">Active</option>
+            <option value="SUSPENDED">Suspended</option>
+            <option value="PERMIT">Permit</option>
+            <option value="NO_LICENSE">No license</option>
+          </select>
 
           <div class="actions">
             <button class="btn" id="drvSaveBtn">Save Driver Profile</button>
@@ -437,7 +449,8 @@
         <div class="card">
           <h3 class="h">Driver Trip Log</h3>
           <div class="small">
-            Required: mileage out/in + inside cab photos before/after + notes + accountability checkbox.
+            Required: mileage out/in + cab photos before/after + notes + accountability checkbox.
+            <br/>New: add a damage update (optional) + damage photos.
           </div>
 
           <label>Select Vehicle</label>
@@ -460,6 +473,38 @@
           <label>Inside Cab Photo AFTER</label>
           <input id="cabAfter" type="file" accept="image/*" />
 
+          <div class="divider"></div>
+
+          <h3 class="h" style="margin-top:0;">Damage Update (optional)</h3>
+          <div class="small">If any new damage exists, log it here and attach photos.</div>
+
+          <label>Damage Type</label>
+          <select id="dmgType">
+            <option value="">No new damage</option>
+            <option value="SCRATCH">Scratch</option>
+            <option value="DENT">Dent</option>
+            <option value="BROKEN">Broken</option>
+            <option value="OTHER">Other</option>
+          </select>
+
+          <label>Click where the damage is</label>
+          <div class="damageGrid">
+            <div class="dBtn" data-area="FRONT">Front</div>
+            <div class="dBtn" data-area="BACK">Back</div>
+            <div class="dBtn" data-area="DRIVER_SIDE">Driver side</div>
+            <div class="dBtn" data-area="PASSENGER_SIDE">Passenger side</div>
+            <div class="dBtn" data-area="MIRRORS">Mirrors</div>
+          </div>
+          <div class="small" id="dmgAreasText" style="margin-top:8px;">Selected: none</div>
+
+          <label>Damage Notes (optional)</label>
+          <textarea id="dmgNotes" placeholder="What happened / where exactly / any details…"></textarea>
+
+          <label>Damage Photos (optional)</label>
+          <input id="dmgPhotos" type="file" accept="image/*" multiple />
+
+          <div class="divider"></div>
+
           <label>Trip Notes</label>
           <textarea id="tripNotes" placeholder="Route, stops, issues, anything to know…"></textarea>
 
@@ -478,8 +523,11 @@
         </div>
 
         <div class="card">
-          <h3 class="h">Manager Fleet Tools</h3>
-          <div class="small">Vehicles, repairs, inspections, and trip history.</div>
+          <h3 class="h">Fleet Tools</h3>
+          <div class="small">
+            Vehicles, repairs, inspections, trip history.
+            <br/>Driver mode hides manager-only controls.
+          </div>
 
           <div class="actions">
             <button class="btn" id="vehRefreshBtn">Refresh Vehicles</button>
@@ -489,7 +537,7 @@
 
           <div class="divider"></div>
 
-          <div class="small">Quick Add Vehicle</div>
+          <div class="small">Quick Add Vehicle (Manager/Admin only)</div>
           <div class="row">
             <div style="flex:1; min-width:220px;">
               <label>Unit # / Name</label>
@@ -753,9 +801,12 @@ const ui = {
   centerSelectBtn: document.getElementById("centerSelectBtn"),
 
   // fleet
+  myProfiles: document.getElementById("myProfiles"),
   drvName: document.getElementById("drvName"),
+  drvMid: document.getElementById("drvMid"),
   drvDob: document.getElementById("drvDob"),
   drvLic: document.getElementById("drvLic"),
+  licStatus: document.getElementById("licStatus"),
   drvSaveBtn: document.getElementById("drvSaveBtn"),
   drvMsg: document.getElementById("drvMsg"),
 
@@ -772,6 +823,12 @@ const ui = {
   ackBox: document.getElementById("ackBox"),
   tripSaveBtn: document.getElementById("tripSaveBtn"),
   tripMsg: document.getElementById("tripMsg"),
+
+  dmgType: document.getElementById("dmgType"),
+  dmgNotes: document.getElementById("dmgNotes"),
+  dmgPhotos: document.getElementById("dmgPhotos"),
+  dmgAreasText: document.getElementById("dmgAreasText"),
+  dmgBtns: Array.from(document.querySelectorAll(".dBtn")),
 
   vehRefreshBtn: document.getElementById("vehRefreshBtn"),
   vehAddBtn: document.getElementById("vehAddBtn"),
@@ -825,27 +882,26 @@ let existingAisles = new Set();
 let camStream = null;
 let camDetector = null;
 
+let damageAreas = new Set();
+
 /** ================================
  *  Helpers
  * ================================ */
 function safe(s){ return (s||"").toString().trim(); }
+function nowISO(){ return new Date().toISOString(); }
+function daysAgoISO(days){ return new Date(Date.now() - days*24*60*60*1000).toISOString(); }
 
 function setConn(ok){
-  ui.connPill.innerHTML = ok
-    ? `<span class="ok">●</span> Unlocked`
-    : `<span class="gold">●</span> Locked`;
+  ui.connPill.innerHTML = ok ? `<span class="ok">●</span> Unlocked` : `<span class="gold">●</span> Locked`;
 }
-
 function setRolePill(){
   const m = (role === "DRIVER") ? "Driver" : (mode === "DRIVER" ? "Driver" : "Manager");
   const r = (role === "LOCKED") ? "Locked" : role;
   ui.rolePill.innerHTML = `<span class="info">●</span> Role: ${r} • Mode: ${m}`;
 }
-
 function msg(el, text, good=false){
   el.innerHTML = good ? `<span class="ok">${text}</span>` : `<span class="bad">${text}</span>`;
 }
-
 function fillNumericSelect(sel, max){
   sel.innerHTML = "";
   for(let i=1;i<=max;i++){
@@ -855,13 +911,8 @@ function fillNumericSelect(sel, max){
   }
 }
 
-function nowISO(){ return new Date().toISOString(); }
-function daysAgoISO(days){
-  return new Date(Date.now() - days*24*60*60*1000).toISOString();
-}
-
 /** ================================
- *  Permissions (strict)
+ *  Permissions
  * ================================ */
 function roleFromPin(pin){
   if(pin === PIN_MANAGER) return "MANAGER";
@@ -870,15 +921,12 @@ function roleFromPin(pin){
   if(pin === PIN_DRIVER) return "DRIVER";
   return "LOCKED";
 }
-
 function canSee(tab){
   if(role === "MANAGER" || role === "ADMIN") return true;
-  if(role === "WAREHOUSE") return tab === "warehouse";   // STRICT
-  if(role === "DRIVER") return tab === "fleet";          // STRICT
+  if(role === "WAREHOUSE") return tab === "warehouse";
+  if(role === "DRIVER") return tab === "fleet";
   return false;
 }
-
-// Used to decide whether the role is allowed to edit without extra approval
 function canEdit(area){
   if(role === "MANAGER") return true;
 
@@ -888,27 +936,22 @@ function canEdit(area){
   // ADMIN edits ALWAYS require manager confirmation
   return false;
 }
-
 function requireManagerConfirmIfAdmin(){
   if(role !== "ADMIN") return true;
   const pin = prompt("Manager PIN required to approve this edit:");
   return safe(pin) === PIN_MANAGER;
 }
-
 function ensureEdit(area, elForMsg, noPermText){
-  // direct permission
   if(canEdit(area)) return true;
 
-  // admin path: confirm manager
   if(role === "ADMIN"){
     if(!requireManagerConfirmIfAdmin()){
       if(elForMsg) msg(elForMsg, "Edit blocked (manager approval not confirmed).");
       return false;
     }
-    return true; // approved for this action
+    return true;
   }
 
-  // otherwise blocked
   if(elForMsg) msg(elForMsg, noPermText || "No permission.");
   return false;
 }
@@ -918,20 +961,15 @@ function ensureEdit(area, elForMsg, noPermText){
  * ================================ */
 function setTab(tab){
   if(!canSee(tab)){
-    // force fallback
     const fallback = (role === "DRIVER") ? "fleet" : "warehouse";
     tab = fallback;
   }
-
   ui.tabs.forEach(t=>t.classList.toggle("active", t.dataset.tab===tab));
   Object.entries(ui.panes).forEach(([k,p])=> p.style.display = (k===tab) ? "" : "none");
   localStorage.setItem("locateme_last_tab", tab);
   if(tab==="dashboard") refreshDashboard();
 }
-
-ui.tabs.forEach(t=>{
-  t.addEventListener("click", ()=> setTab(t.dataset.tab));
-});
+ui.tabs.forEach(t=> t.addEventListener("click", ()=> setTab(t.dataset.tab)));
 
 /** ================================
  *  AUTH (Role PINs)
@@ -949,7 +987,6 @@ function unlockMaster(pin){
   role = r;
   appUnlocked = true;
 
-  // Driver pin forces DRIVER mode (and prevents switching)
   mode = (role === "DRIVER") ? "DRIVER" : (localStorage.getItem("locateme_mode") || "MANAGER");
 
   ui.overlay.style.display = "none";
@@ -958,7 +995,6 @@ function unlockMaster(pin){
   setRolePill();
   initApp();
 }
-
 function lockAll(){
   appUnlocked = false;
   role = "LOCKED";
@@ -975,7 +1011,6 @@ function lockAll(){
 function camSet(text, ok=false){
   ui.camMsg.innerHTML = ok ? `<span class="ok">●</span> ${text}` : `<span class="gold">●</span> ${text}`;
 }
-
 async function camStart(){
   try{
     if(!navigator.mediaDevices?.getUserMedia){
@@ -998,7 +1033,6 @@ async function camStart(){
     camSet(e.message || "Camera failed.");
   }
 }
-
 async function scanLoop(){
   if(!camDetector || !camStream) return;
   try{
@@ -1015,7 +1049,6 @@ async function scanLoop(){
   }catch(_){}
   requestAnimationFrame(scanLoop);
 }
-
 function camStop(){
   if(camStream){
     camStream.getTracks().forEach(t=>t.stop());
@@ -1024,11 +1057,7 @@ function camStop(){
   camDetector = null;
   camSet("Idle");
 }
-
-ui.scanBtn.addEventListener("click", ()=>{
-  ui.camModal.style.display = "flex";
-  camSet("Idle");
-});
+ui.scanBtn.addEventListener("click", ()=>{ ui.camModal.style.display = "flex"; camSet("Idle"); });
 ui.camClose.addEventListener("click", ()=>{ camStop(); ui.camModal.style.display = "none"; });
 ui.camStart.addEventListener("click", camStart);
 ui.camStop.addEventListener("click", camStop);
@@ -1041,7 +1070,6 @@ async function signedUrl(bucket, path){
   if(error) return null;
   return data.signedUrl;
 }
-
 async function uploadPhoto(bucket, file, keyPrefix){
   const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
   const objectPath = `${keyPrefix}/${Date.now()}_${Math.random().toString(16).slice(2)}.${ext}`;
@@ -1053,6 +1081,7 @@ async function uploadPhoto(bucket, file, keyPrefix){
   if(error) throw error;
   return { objectPath, fileName: file.name, contentType: file.type };
 }
+function sanitizeKey(s){ return safe(s).replace(/[^a-zA-Z0-9._-]/g, "_"); }
 
 /** ================================
  *  Warehouse: Aisles
@@ -1068,26 +1097,21 @@ async function loadAisles(){
   existingAisles = new Set((data||[]).map(x=>x.name));
 
   const ordered = [];
-  for(const n of AISLE_ORDER){
-    if(existingAisles.has(n)) ordered.push(n);
-  }
-  for(const n of Array.from(existingAisles).sort()){
-    if(!ordered.includes(n)) ordered.push(n);
-  }
+  for(const n of AISLE_ORDER) if(existingAisles.has(n)) ordered.push(n);
+  for(const n of Array.from(existingAisles).sort()) if(!ordered.includes(n)) ordered.push(n);
+
   ui.aisleSel.innerHTML = ordered.length
     ? ordered.map(n=>`<option value="${n}">${n}</option>`).join("")
     : `<option value="">(No aisles yet)</option>`;
 
   showAisleMissingWarning();
 }
-
 function showAisleMissingWarning(){
   const missing = AISLE_ORDER.filter(a => !existingAisles.has(a));
   ui.aisleWarn.innerHTML = missing.length
     ? `<span class="warn">Missing aisles:</span> ${missing.join(", ")}`
     : `<span class="ok">All map aisles exist ✅</span>`;
 }
-
 async function createMissingAisles(){
   if(!ensureEdit("warehouse", ui.aisleWarn, "No permission to create aisles.")) return;
 
@@ -1153,16 +1177,14 @@ async function saveTag(){
     if(error) throw error;
 
     if(file){
-      const up = await uploadPhoto(BUCKET_WAREHOUSE, file, tagId.replace(/[^a-zA-Z0-9._-]/g, "_"));
-      const { error: phErr } = await sb
-        .from("tag_photos")
-        .insert([{
-          pallet_tag_id: row.id,
-          bucket: BUCKET_WAREHOUSE,
-          object_path: up.objectPath,
-          file_name: up.fileName,
-          content_type: up.contentType
-        }]);
+      const up = await uploadPhoto(BUCKET_WAREHOUSE, file, sanitizeKey(tagId));
+      const { error: phErr } = await sb.from("tag_photos").insert([{
+        pallet_tag_id: row.id,
+        bucket: BUCKET_WAREHOUSE,
+        object_path: up.objectPath,
+        file_name: up.fileName,
+        content_type: up.contentType
+      }]);
       if(phErr) throw phErr;
     }
 
@@ -1263,6 +1285,7 @@ async function renderRecent(){
 
   ui.results.innerHTML = data.map(r => {
     const moved = new Date(r.updated_at).getTime() >= (Date.now()-24*60*60*1000);
+    const safeTag = r.tag_id.replace(/'/g,"\\'");
     return `
       <div class="item" style="${moved ? 'border-color: rgba(255,204,102,.45);' : ''}">
         <div class="itemTop">
@@ -1273,13 +1296,12 @@ async function renderRecent(){
           <div class="meta">${new Date(r.updated_at).toLocaleString()}</div>
         </div>
         <div class="actions" style="margin-top:10px;">
-          <button class="btn" onclick="window.__openTag('${r.tag_id.replace(/'/g,"\\'")}')">Open</button>
+          <button class="btn" onclick="window.__openTag('${safeTag}')">Open</button>
         </div>
       </div>
     `;
   }).join("");
 }
-
 window.__openTag = (t)=>{ ui.searchInput.value=t; renderTagResults(t); };
 
 async function purgeOutbound(){
@@ -1367,11 +1389,7 @@ function buildMap(){
   ];
 
   let y = pad;
-  for(const r of rows){
-    y += 32;
-    y += r.height;
-    y += gapY;
-  }
+  for(const r of rows){ y += 32; y += r.height; y += gapY; }
   const height = y + pad + 40;
   const svg = svgEl("svg", { viewBox:`0 0 ${width} ${height}` });
 
@@ -1493,18 +1511,63 @@ function syncMapToDropdown(){
 }
 
 /** ================================
+ *  Fleet: local profile dropdown
+ * ================================ */
+function getLocalProfiles(){
+  try{ return JSON.parse(localStorage.getItem("locateme_profiles") || "[]"); }
+  catch(_){ return []; }
+}
+function setLocalProfiles(arr){
+  localStorage.setItem("locateme_profiles", JSON.stringify(arr || []));
+}
+function addLocalProfile(licenseNo){
+  licenseNo = safe(licenseNo).toUpperCase();
+  if(!licenseNo) return;
+  const arr = getLocalProfiles();
+  if(!arr.includes(licenseNo)){
+    arr.unshift(licenseNo);
+    if(arr.length > 20) arr.length = 20;
+    setLocalProfiles(arr);
+  }
+}
+function renderMyProfilesDropdown(){
+  const arr = getLocalProfiles();
+  const current = (localStorage.getItem("locateme_driver_license") || "").toUpperCase();
+  ui.myProfiles.innerHTML = `<option value="">Select…</option>` + arr.map(l=>`<option value="${l}">${l}</option>`).join("");
+  ui.myProfiles.value = current || "";
+}
+
+/** ================================
+ *  Fleet: damage selection
+ * ================================ */
+function updateDamageAreaText(){
+  const arr = Array.from(damageAreas);
+  ui.dmgAreasText.textContent = "Selected: " + (arr.length ? arr.join(", ") : "none");
+}
+ui.dmgBtns.forEach(b=>{
+  b.addEventListener("click", ()=>{
+    const a = b.getAttribute("data-area");
+    if(!a) return;
+    if(damageAreas.has(a)){ damageAreas.delete(a); b.classList.remove("sel"); }
+    else { damageAreas.add(a); b.classList.add("sel"); }
+    updateDamageAreaText();
+  });
+});
+updateDamageAreaText();
+
+/** ================================
  *  Fleet: Drivers + Vehicles + Trips
  * ================================ */
 async function saveDriver(){
-  // Driver profile is allowed for MANAGER/ADMIN/DRIVER only (WAREHOUSE can't see fleet anyway)
   if(role === "WAREHOUSE") return msg(ui.drvMsg, "No permission.");
 
-  // Admin must confirm for edits (upsert)
   if(!ensureEdit("fleet_driver", ui.drvMsg, "No permission to edit fleet.")) return;
 
   const name = safe(ui.drvName.value);
+  const middle = safe(ui.drvMid.value) || null;
   const dob = ui.drvDob.value || null;
   const lic = safe(ui.drvLic.value).toUpperCase();
+  const status = safe(ui.licStatus.value || "ACTIVE").toUpperCase();
 
   if(!name) return msg(ui.drvMsg, "Driver name required.");
   if(!dob) return msg(ui.drvMsg, "DOB required.");
@@ -1516,11 +1579,17 @@ async function saveDriver(){
     const { error } = await sb.from("drivers").upsert([{
       license_no: lic,
       name,
-      dob
+      middle_name: middle,
+      dob,
+      license_status: status
     }], { onConflict: "license_no" });
 
     if(error) throw error;
+
     localStorage.setItem("locateme_driver_license", lic);
+    addLocalProfile(lic);
+    renderMyProfilesDropdown();
+
     msg(ui.drvMsg, "Driver profile saved ✅", true);
   }catch(e){
     msg(ui.drvMsg, e.message || "Save failed.");
@@ -1530,16 +1599,37 @@ async function saveDriver(){
   }
 }
 
-async function loadDriverFromLocal(){
-  const lic = localStorage.getItem("locateme_driver_license");
+async function loadDriverByLicense(lic){
+  lic = safe(lic).toUpperCase();
   if(!lic) return;
-  const { data } = await sb.from("drivers").select("name,dob,license_no").eq("license_no", lic).maybeSingle();
+  const { data, error } = await sb.from("drivers")
+    .select("name,middle_name,dob,license_no,license_status")
+    .eq("license_no", lic)
+    .maybeSingle();
+  if(error) return;
   if(data){
     ui.drvName.value = data.name || "";
+    ui.drvMid.value = data.middle_name || "";
     ui.drvDob.value = data.dob || "";
     ui.drvLic.value = data.license_no || "";
+    ui.licStatus.value = (data.license_status || "ACTIVE").toUpperCase();
   }
 }
+
+async function loadDriverFromLocal(){
+  renderMyProfilesDropdown();
+  const lic = (localStorage.getItem("locateme_driver_license") || "").toUpperCase();
+  if(!lic) return;
+  await loadDriverByLicense(lic);
+}
+
+ui.myProfiles.addEventListener("change", async ()=>{
+  const lic = safe(ui.myProfiles.value).toUpperCase();
+  if(!lic) return;
+  localStorage.setItem("locateme_driver_license", lic);
+  await loadDriverByLicense(lic);
+  msg(ui.drvMsg, "Loaded profile ✅", true);
+});
 
 async function loadVehicles(){
   const { data, error } = await sb.from("vehicles").select("*").order("unit_name", {ascending:true});
@@ -1557,7 +1647,6 @@ async function loadVehicles(){
 }
 
 async function createVehicle(){
-  // Only MANAGER can do without confirmation; ADMIN needs confirmation; drivers cannot
   if(!ensureEdit("fleet_manager", ui.vehMsg, "No permission to create vehicles.")) return;
 
   const unit = safe(ui.vehUnit.value);
@@ -1589,14 +1678,13 @@ async function createVehicle(){
 }
 
 async function saveTrip(){
-  // Drivers can submit; Managers can submit; Admin requires manager confirm (edit)
-  const area = (role === "DRIVER") ? "fleet_driver" : "fleet_driver";
-  if(!ensureEdit(area, ui.tripMsg, "No permission to submit trips.")) return;
+  if(!ensureEdit("fleet_driver", ui.tripMsg, "No permission to submit trips.")) return;
 
   const lic = safe(ui.drvLic.value).toUpperCase();
   if(!lic) return msg(ui.tripMsg, "Driver profile required first (license #).");
 
-  const { data: driver } = await sb.from("drivers").select("id").eq("license_no", lic).maybeSingle();
+  const { data: driver, error: dErr } = await sb.from("drivers").select("id").eq("license_no", lic).maybeSingle();
+  if(dErr) return msg(ui.tripMsg, dErr.message);
   if(!driver?.id) return msg(ui.tripMsg, "Driver profile not found. Save it first.");
 
   const vehicleId = safe(ui.vehSel.value);
@@ -1614,6 +1702,10 @@ async function saveTrip(){
   if(!afterFile) return msg(ui.tripMsg, "Cab AFTER photo required.");
   if(!ui.ackBox.checked) return msg(ui.tripMsg, "You must confirm accountability checkbox.");
 
+  const dmgType = safe(ui.dmgType.value);
+  const dmgArea = Array.from(damageAreas).join(",");
+  const dmgNotes = safe(ui.dmgNotes.value);
+
   ui.tripSaveBtn.disabled = true;
   ui.tripSaveBtn.textContent = "Submitting...";
 
@@ -1624,7 +1716,10 @@ async function saveTrip(){
       mileage_out: mileOut,
       mileage_in: mileIn,
       notes: safe(ui.tripNotes.value) || null,
-      ack_damage_policy: true
+      ack_damage_policy: true,
+      damage_update_type: dmgType || null,
+      damage_update_notes: dmgNotes || null,
+      damage_area: dmgArea || null
     }]).select("*").single();
     if(error) throw error;
 
@@ -1638,6 +1733,34 @@ async function saveTrip(){
     ]);
     if(phErr) throw phErr;
 
+    // If damage update selected, create an update row + upload optional photos
+    if(dmgType){
+      const { data: dmgRow, error: dmgErr } = await sb.from("fleet_damage_updates").insert([{
+        trip_id: trip.id,
+        vehicle_id: vehicleId,
+        driver_id: driver.id,
+        update_type: dmgType,
+        area: dmgArea || "UNSPECIFIED",
+        notes: dmgNotes || null
+      }]).select("*").single();
+      if(dmgErr) throw dmgErr;
+
+      const files = ui.dmgPhotos.files ? Array.from(ui.dmgPhotos.files) : [];
+      if(files.length){
+        for(const f of files){
+          const up = await uploadPhoto(BUCKET_FLEET, f, `damage_${dmgRow.id}`);
+          const { error: dpErr } = await sb.from("fleet_damage_photos").insert([{
+            damage_update_id: dmgRow.id,
+            bucket: BUCKET_FLEET,
+            object_path: up.objectPath,
+            file_name: up.fileName,
+            content_type: up.contentType
+          }]);
+          if(dpErr) throw dpErr;
+        }
+      }
+    }
+
     const { error: vErr } = await sb.from("vehicles").update({
       current_mileage: mileIn,
       last_trip_at: nowISO()
@@ -1645,10 +1768,19 @@ async function saveTrip(){
     if(vErr) throw vErr;
 
     msg(ui.tripMsg, "Trip submitted ✅", true);
+
+    // Reset
     ui.mileOut.value = ui.mileIn.value = "";
     ui.cabBefore.value = ui.cabAfter.value = "";
     ui.tripNotes.value = "";
     ui.ackBox.checked = false;
+
+    ui.dmgType.value = "";
+    ui.dmgNotes.value = "";
+    ui.dmgPhotos.value = "";
+    damageAreas.clear();
+    ui.dmgBtns.forEach(b=>b.classList.remove("sel"));
+    updateDamageAreaText();
 
     await renderTripList();
     if(localStorage.getItem("locateme_last_tab")==="dashboard") refreshDashboard();
@@ -1690,28 +1822,73 @@ async function renderTripList(){
 }
 
 async function createRepairTicket(){
-  if(!ensureEdit("fleet_manager", ui.vehMsg, "No permission to create repair tickets.")) return;
+  // Anyone who can see Fleet can create a ticket, but ADMIN requires manager approval
+  if(!ensureEdit("fleet_driver", ui.vehMsg, "No permission to create tickets.")) return;
 
   const vehicleId = safe(ui.vehSel.value);
   if(!vehicleId) return msg(ui.vehMsg, "Pick a vehicle first.");
 
+  const lic = safe(ui.drvLic.value).toUpperCase();
+  if(!lic) return msg(ui.vehMsg, "Select/load your driver profile first (license #).");
+
+  const { data: driver, error: dErr } = await sb.from("drivers").select("id").eq("license_no", lic).maybeSingle();
+  if(dErr) return msg(ui.vehMsg, dErr.message);
+  if(!driver?.id) return msg(ui.vehMsg, "Driver not found. Save profile first.");
+
   const summary = prompt("Repair summary (short):", "Brakes / lights / tire / damage / etc");
   if(!summary) return;
 
-  const priority = prompt("Priority: LOW / MEDIUM / HIGH", "MEDIUM") || "MEDIUM";
+  const area = prompt("Area (FRONT/BACK/DRIVER_SIDE/PASSENGER_SIDE/MIRRORS/OTHER):", "FRONT") || "OTHER";
+  const priority = (prompt("Priority: LOW / MEDIUM / HIGH", "MEDIUM") || "MEDIUM").toUpperCase();
+  const remarks = prompt("Remarks (optional):", "") || "";
+
+  // Optional: attach one photo quickly
+  const attach = confirm("Attach a photo to this repair ticket?");
+  let file = null;
+  if(attach){
+    alert("After you click OK, choose a photo file.");
+    file = await pickSingleImage();
+  }
 
   try{
-    const { error } = await sb.from("maintenance_tickets").insert([{
+    const { data: ticket, error } = await sb.from("maintenance_tickets").insert([{
       vehicle_id: vehicleId,
+      driver_id: driver.id,
       summary,
-      priority: (priority || "MEDIUM").toUpperCase(),
-      status: "OPEN"
-    }]);
+      priority,
+      status: "OPEN",
+      area: area.toUpperCase(),
+      remarks: remarks || null
+    }]).select("*").single();
     if(error) throw error;
+
+    if(file){
+      const up = await uploadPhoto(BUCKET_FLEET, file, `ticket_${ticket.id}`);
+      const { error: pErr } = await sb.from("maintenance_ticket_photos").insert([{
+        maintenance_ticket_id: ticket.id,
+        bucket: BUCKET_FLEET,
+        object_path: up.objectPath,
+        file_name: up.fileName,
+        content_type: up.contentType
+      }]);
+      if(pErr) throw pErr;
+    }
+
     msg(ui.vehMsg, "Repair ticket created ✅", true);
   }catch(e){
     msg(ui.vehMsg, e.message || "Ticket failed.");
   }
+}
+
+// Helper: file picker in JS prompt flow
+function pickSingleImage(){
+  return new Promise((resolve)=>{
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = ()=> resolve(input.files && input.files[0] ? input.files[0] : null);
+    input.click();
+  });
 }
 
 /** ================================
@@ -1973,19 +2150,13 @@ function applyMode(){
   setRolePill();
   applyFleetUIRules();
 }
-
 function applyFleetUIRules(){
   const isDriverView = (role === "DRIVER") || (mode === "DRIVER");
 
   // Hide/disable manager-only tools in driver view
   ui.vehCreateBtn.disabled = isDriverView;
-  ui.mtAddBtn.disabled = isDriverView;
-
-  // Also disable manager-only quick-add inputs (keeps it clean)
-  [ui.vehUnit, ui.vehPlate, ui.vehModel, ui.vehMiles].forEach(x=>{
-    if(!x) return;
-    x.disabled = isDriverView;
-  });
+  ui.mtAddBtn.disabled = false; // anyone can create tickets, but admin requires approval at save-time
+  [ui.vehUnit, ui.vehPlate, ui.vehModel, ui.vehMiles].forEach(x=>{ if(x) x.disabled = isDriverView; });
 }
 
 /** ================================
@@ -1997,7 +2168,6 @@ async function autoPurgeOncePerDay(){
   const now = Date.now();
   if(!last || (now - last) > 24*60*60*1000){
     try{
-      // only manager/admin should auto-run purge; warehouse role can still purge manually
       if(role === "MANAGER" || role === "ADMIN"){
         await sb.rpc("purge_outbound_older_than", { days: 5 });
       }
@@ -2010,16 +2180,13 @@ async function autoPurgeOncePerDay(){
  *  Init
  * ================================ */
 async function initApp(){
-  // Hide the old warehouse pin row (we’re role-based now)
   if(ui.whPinRow) ui.whPinRow.style.display = "none";
 
-  // Role-based tab access
   ui.tabs.forEach(t=>{
     const tab = t.dataset.tab;
     t.style.display = canSee(tab) ? "" : "none";
   });
 
-  // Force a valid tab
   const preferred = localStorage.getItem("locateme_last_tab") || "warehouse";
   const fallback = (role === "DRIVER") ? "fleet" : (role === "WAREHOUSE" ? "warehouse" : preferred);
   const chosen = canSee(fallback) ? fallback : (role === "DRIVER" ? "fleet" : "warehouse");
@@ -2056,10 +2223,7 @@ async function initApp(){
   // dashboard
   if(canSee("dashboard")) await refreshDashboard();
 
-  // daily purge call
   await autoPurgeOncePerDay();
-
-  // show chosen tab
   setTab(chosen);
 }
 
@@ -2113,4 +2277,3 @@ ui.notesLoadBtn.addEventListener("click", loadManagerNotes);
 </script>
 </body>
 </html>
-```
