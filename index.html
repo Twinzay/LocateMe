@@ -762,7 +762,8 @@
       </div>
       <div id="billMsg" class="small" style="margin-top:10px;"></div>
       <div id="billBackdateNote" class="small bad" style="margin-top:6px; display:none;">
-  Backdating is restricted to managers/admins.
+  <div id="billBackdateNote" class="small bad" style="margin-top:6px; display:none;">
+  Backdating is restricted to Manager PIN 9262.
 </div>
 
     </div>
@@ -1369,208 +1370,43 @@ window.__billingReject = async (id)=>{
 };
 
 /** ================================
- *  Movement Billing (PIN-only approvals)
- *  - 9262 (MANAGER) logs/edits => APPROVED
- *  - 2026 (ADMIN) logs/edits => PENDING until manager approves
+ *  (Movement Billing removed)
+ *  This section used to contain Movement Billing RPCs + UI.
+ *  Safe to delete. Keeping only shared helpers used across the app.
  * ================================ */
 
-// Normalize helpers
-function normStr(v){ return (v === undefined || v === null || String(v).trim()==="") ? null : String(v).trim(); }
-function normInt(v){
-  if(v === undefined || v === null || String(v).trim()==="") return null;
-  const n = parseInt(v, 10);
-  return Number.isFinite(n) ? n : null;
-}
-
-// Convert date inputs to safe ISO range
-function toISOStart(dateStr){
-  const v = safe(dateStr);
-  if(!v) return null;
-  const dt = new Date(v + "T00:00:00");
-  return isNaN(dt.getTime()) ? null : dt.toISOString();
-}
-function toISOEnd(dateStr){
-  const v = safe(dateStr);
-  if(!v) return null;
-  const dt = new Date(v + "T23:59:59.999");
-  return isNaN(dt.getTime()) ? null : dt.toISOString();
-}
-
-// RPC: add event (your SQL should provide: mbe_add_event or add_movement_billing_event)
-// If your function is named add_movement_billing_event, keep that.
-// If it is mbe_add_event, switch it below.
-async function mbeLogMove(payload){
-  const fn = "mbe_add_event";
-
-  const rpcPayload = {
-    p_pin: activePin,
-    ...payload
-  };
-
-  const { data, error } = await sb.rpc(fn, rpcPayload);
-  if(error) throw error;
-  return data;
-}
-
-
-// RPC: update event (your SQL function we created: mbe_update_event)
-async function mbeUpdateMove(payload){
-  const { data, error } = await sb.rpc("mbe_update_event", payload);
-  if(error) throw error;
-  return data;
-}
-
-// RPC: approve/reject (your SQL should provide these)
-async function mbeApprove(manager_pin, event_id){
-  const { data, error } = await sb.rpc("mbe_approve_event", { p_manager_pin: String(manager_pin), p_event_id: Number(event_id) });
-  if(error) throw error;
-  return data;
-}
-async function mbeReject(manager_pin, event_id, reason){
-  const { data, error } = await sb.rpc("mbe_reject_event", { p_manager_pin: String(manager_pin), p_event_id: Number(event_id), p_reason: reason || null });
-  if(error) throw error;
-  return data;
-}
-
-// Fetch daily invoice lines (view)
-async function mbeFetchDailyLines(clientCode, fromISO, toISO){
-  let q = sb.from("v_aex_invoice_lines_daily").select("*").order("day",{ascending:false}).order("movement_type",{ascending:true});
-  if(clientCode) q = q.eq("client_code", clientCode);
-  if(fromISO) q = q.gte("day", fromISO);
-  if(toISO) q = q.lte("day", toISO);
-  const { data, error } = await q.limit(5000);
-  if(error) throw error;
-  return data || [];
-}
-
-// Fetch pending approvals
-async function mbeFetchPending(clientCode){
-  let q = sb.from("movement_billing_events")
-    .select("id, client_code, movement_type, qty, occurred_at, notes, submitted_by_pin, approval_status")
-    .eq("approval_status","PENDING")
-    .order("occurred_at",{ascending:false});
-  if(clientCode) q = q.eq("client_code", clientCode);
-  const { data, error } = await q.limit(300);
-  if(error) throw error;
-  return data || [];
-}
-
-// Render helpers
-function renderDailyLines(rows){
-  ui.mbeDailyOut.innerHTML = rows.length ? rows.map(r=>`
-    <div class="item">
-      <div class="itemTop">
-        <div>
-          <div class="tag">${(r.day ? new Date(r.day).toLocaleDateString() : "—")} • ${r.movement_type}</div>
-          <div class="meta">Qty: <b>${r.moves}</b> • Amount: <b>$${Number(r.amount||0).toFixed(2)}</b></div>
-        </div>
-        <div class="meta">${r.client_code || ""}</div>
-      </div>
-    </div>
-  `).join("") : `<div class="item"><div class="meta">No rows found for that range.</div></div>`;
-}
-
-function renderPending(rows){
-  ui.mbePendingOut.innerHTML = rows.length ? rows.map(r=>`
-    <div class="item">
-      <div class="itemTop">
-        <div>
-          <div class="tag">#${r.id} • ${r.movement_type} • Qty ${r.qty}</div>
-          <div class="meta">${r.client_code} • ${r.occurred_at ? new Date(r.occurred_at).toLocaleString() : "—"}</div>
-          ${r.notes ? `<div class="meta" style="margin-top:6px;">${r.notes}</div>` : ""}
-          <div class="meta" style="margin-top:6px;">Submitted by PIN: <b>${r.submitted_by_pin || "—"}</b></div>
-        </div>
-        <div class="actions">
-          <button class="btn" onclick="window.__mbeApprove(${r.id})">Approve</button>
-          <button class="btn" onclick="window.__mbeReject(${r.id})">Reject</button>
-        </div>
-      </div>
-    </div>
-  `).join("") : `<div class="item"><div class="meta">No pending approvals ✅</div></div>`;
-}
-
-window.__mbeApprove = async (id)=>{
-  try{
-    const mp = prompt("Manager PIN to approve:", "");
-    if(!mp) return;
-    if(safe(mp) !== PIN_MANAGER) return alert("Wrong manager PIN.");
-    await mbeApprove(mp, id);
-    await refreshPendingApprovals();
-    alert(`Approved #${id}`);
-  }catch(e){
-    alert(e.message || e);
-  }
-};
-
-window.__mbeReject = async (id)=>{
-  try{
-    const mp = prompt("Manager PIN to reject:", "");
-    if(!mp) return;
-    if(safe(mp) !== PIN_MANAGER) return alert("Wrong manager PIN.");
-    const reason = prompt("Reason (optional):", "") || null;
-    await mbeReject(mp, id, reason);
-    await refreshPendingApprovals();
-    alert(`Rejected #${id}`);
-  }catch(e){
-    alert(e.message || e);
-  }
-};
-
-async function refreshPendingApprovals(){
-  try{
-    ui.mbePendingMsg.textContent = "Loading…";
-    const rows = await mbeFetchPending(ui.mbeClient.value || "AEX");
-    renderPending(rows);
-    ui.mbePendingMsg.textContent = "";
-  }catch(e){
-    ui.mbePendingMsg.textContent = e.message || String(e);
-  }
-}
-
-async function runDailyLines(){
-  try{
-    ui.mbeDailyMsg.textContent = "Loading…";
-    const client = safe(ui.mbeClient.value || "AEX");
-    const fromISO = toISOStart(ui.mbeFrom.value);
-    const toISO   = toISOEnd(ui.mbeTo.value);
-    const rows = await mbeFetchDailyLines(client, fromISO, toISO);
-    renderDailyLines(rows);
-    ui.mbeDailyMsg.textContent = "";
-  }catch(e){
-    ui.mbeDailyMsg.textContent = e.message || String(e);
-  }
-}
-
+// ✅ shared message helper (used everywhere)
 function msg(el, text, good=false){
   if(!el) return;
   el.innerHTML = good ? `<span class="ok">${text}</span>` : `<span class="bad">${text}</span>`;
 }
 
+// ✅ lock/unlock pill
 function setConn(unlocked){
-  ui.connPill.innerHTML = unlocked ? `<span class="ok">●</span> Unlocked` : `<span class="gold">●</span> Locked`;
+  ui.connPill.innerHTML = unlocked
+    ? `<span class="ok">●</span> Unlocked`
+    : `<span class="gold">●</span> Locked`;
 }
+
+// ✅ role pill (billing note removed)
 function setRolePill(){
   const r = (role==="LOCKED") ? "Locked" : role;
   const m = (role==="DRIVER") ? "Driver" : mode;
   ui.rolePill.innerHTML = `<span class="info">●</span> Role: ${r} • Mode: ${m}`;
-
-  // ✅ Billing backdate note: only show for NON manager/admin
-  const n = document.getElementById("billBackdateNote");
-  if(n){
-    n.style.display = (role==="MANAGER" || role==="ADMIN") ? "none" : "";
-  }
 }
 
-
+// ✅ dropdown fill helper
 function fillNumericSelect(sel, max){
   sel.innerHTML = "";
   for(let i=1;i<=max;i++){
     const opt=document.createElement("option");
-    opt.value=i; opt.textContent=i;
+    opt.value=i;
+    opt.textContent=i;
     sel.appendChild(opt);
   }
 }
 
+// ✅ role logic
 function roleFromPin(pin){
   if(pin === PIN_MANAGER) return "MANAGER";
   if(pin === PIN_ADMIN) return "ADMIN";
@@ -1581,6 +1417,7 @@ function roleFromPin(pin){
 function isManagerLike(){ return role==="MANAGER" || role==="ADMIN"; }
 function isManagerOnly(){ return role==="MANAGER"; }
 
+// ✅ tab visibility
 function canSee(tab){
   if(isManagerLike()) return true;              // manager/admin see everything
   if(role==="WAREHOUSE") return tab==="warehouse";
@@ -1588,20 +1425,24 @@ function canSee(tab){
   return false;
 }
 
+// ✅ admin edits require manager confirm
 function requireManagerConfirmIfAdmin(){
   if(role !== "ADMIN") return true;
   const pin = prompt("Manager PIN required to approve this edit:");
   return safe(pin) === PIN_MANAGER;
 }
+
 function canEdit(area){
   if(role==="MANAGER") return true;
   if(role==="WAREHOUSE") return area==="warehouse";
   if(role==="DRIVER") return area==="fleet_driver";
-  // ADMIN requires manager confirm for edits
+  // ADMIN requires manager confirm for edits (handled in ensureEdit)
   return false;
 }
+
 function ensureEdit(area, elForMsg, noPermText){
   if(canEdit(area)) return true;
+
   if(role==="ADMIN"){
     if(!requireManagerConfirmIfAdmin()){
       msg(elForMsg, "Edit blocked (manager approval not confirmed).");
@@ -1609,16 +1450,18 @@ function ensureEdit(area, elForMsg, noPermText){
     }
     return true;
   }
+
   msg(elForMsg, noPermText || "No permission.");
   return false;
 }
+
 function ensureManagerAdmin(elForMsg){
   if(isManagerLike()) return true;
   msg(elForMsg, "Manager/Admin only.");
   return false;
 }
 
-// Mask license unless manager-like
+// ✅ mask license unless manager-like
 function maskLicense(lic){
   lic = safe(lic).toUpperCase();
   if(!lic) return "—";
@@ -1626,6 +1469,7 @@ function maskLicense(lic){
   const keep = lic.length >= 4 ? 4 : 2;
   return "••••" + lic.slice(-keep);
 }
+
 function currentLicense(){
   return safe(ui.drvLic.value || localStorage.getItem("locateme_driver_license") || "").toUpperCase();
 }
