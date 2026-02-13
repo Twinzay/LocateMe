@@ -3394,11 +3394,11 @@ ui.expDmgCsvBtn.addEventListener("click", exportDamagesCSV);
 ui.expWhCsvBtn.addEventListener("click", exportWarehouseHistoryCSV);
 
 // logistics
-ui.shSaveBtn.addEventListener("click", saveShipment);
-ui.shRefreshBtn.addEventListener("click", refreshShipments);
-ui.shSearchBtn.addEventListener("click", searchShipments);
-ui.shSearch.addEventListener("keydown", (e)=>{ if(e.key==="Enter") searchShipments(); });
-ui.shTodayBtn.addEventListener("click", shipmentsRecentlyUpdated);
+ui.shSaveBtn?.addEventListener("click", saveShipment);
+ui.shRefreshBtn?.addEventListener("click", refreshShipments);
+ui.shSearchBtn?.addEventListener("click", searchShipments);
+ui.shSearch?.addEventListener("keydown", (e)=>{ if(e.key==="Enter") searchShipments(); });
+ui.shTodayBtn?.addEventListener("click", shipmentsRecentlyUpdated);
 
 // dashboard notes
 ui.notesSaveBtn.addEventListener("click", saveManagerNotes);
