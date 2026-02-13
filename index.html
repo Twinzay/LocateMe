@@ -1188,19 +1188,27 @@ async function billingLogMovement(){
   const p_qty = parseInt(ui.billQty.value, 10) || 1;
 
   const p_occurred_at = dtLocalToISO(ui.billOccurred.value) || new Date().toISOString();
-  // ✅ Block backdating for non-manager/admin
-if(!(role==="MANAGER" || role==="ADMIN")){
-  const iso = dtLocalToISO(ui.billOccurred.value);
-  if(iso){
-    const when = new Date(iso).getTime();
+   // ✅ Backdate control: ONLY Manager PIN 9262 can backdate
+  // (admin can log, but cannot set occurred_at in the past)
+  const chosenIso = dtLocalToISO(ui.billOccurred.value);
+  if(chosenIso){
+    const when = new Date(chosenIso).getTime();
     const now  = Date.now();
-    // if chosen time is earlier than now by more than 2 minutes -> treat as backdating
-    if(when < (now - 2*60*1000)){
-      throw new Error("Backdating is restricted to managers/admins.");
+
+    // if earlier than now by more than 2 minutes -> backdating
+    const isBackdating = when < (now - 2*60*1000);
+
+    if(isBackdating && safe(p_pin) !== PIN_MANAGER){
+      // show the red note under the form (if present)
+      const n = document.getElementById("billBackdateNote");
+      if(n) n.style.display = "";
+
+      msg(ui.billMsg, "Backdating is restricted to PIN 9262.");
+      ui.billLogBtn.disabled = false;
+      ui.billLogBtn.textContent = "Log Movement";
+      return;
     }
   }
-}
-
 
   if(!p_pin) return msg(ui.billMsg, "Missing active PIN. Lock and unlock again.");
   if(!p_client_code) return msg(ui.billMsg, "Client code required.");
