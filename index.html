@@ -761,6 +761,10 @@
         <button class="btn" id="billClearBtn">Clear</button>
       </div>
       <div id="billMsg" class="small" style="margin-top:10px;"></div>
+      <div id="billBackdateNote" class="small bad" style="margin-top:6px; display:none;">
+  Backdating is restricted to managers/admins.
+</div>
+
     </div>
 
     <!-- Daily lines + approvals -->
@@ -1184,6 +1188,19 @@ async function billingLogMovement(){
   const p_qty = parseInt(ui.billQty.value, 10) || 1;
 
   const p_occurred_at = dtLocalToISO(ui.billOccurred.value) || new Date().toISOString();
+  // ✅ Block backdating for non-manager/admin
+if(!(role==="MANAGER" || role==="ADMIN")){
+  const iso = dtLocalToISO(ui.billOccurred.value);
+  if(iso){
+    const when = new Date(iso).getTime();
+    const now  = Date.now();
+    // if chosen time is earlier than now by more than 2 minutes -> treat as backdating
+    if(when < (now - 2*60*1000)){
+      throw new Error("Backdating is restricted to managers/admins.");
+    }
+  }
+}
+
 
   if(!p_pin) return msg(ui.billMsg, "Missing active PIN. Lock and unlock again.");
   if(!p_client_code) return msg(ui.billMsg, "Client code required.");
@@ -1200,6 +1217,7 @@ async function billingLogMovement(){
       p_qty,
       p_occurred_at
       // IMPORTANT: only add more fields IF your function actually has them
+      
     });
     if(error) throw error;
 
@@ -1527,7 +1545,14 @@ function setRolePill(){
   const r = (role==="LOCKED") ? "Locked" : role;
   const m = (role==="DRIVER") ? "Driver" : mode;
   ui.rolePill.innerHTML = `<span class="info">●</span> Role: ${r} • Mode: ${m}`;
+
+  // ✅ Billing backdate note: only show for NON manager/admin
+  const n = document.getElementById("billBackdateNote");
+  if(n){
+    n.style.display = (role==="MANAGER" || role==="ADMIN") ? "none" : "";
+  }
 }
+
 
 function fillNumericSelect(sel, max){
   sel.innerHTML = "";
@@ -3368,7 +3393,6 @@ ui.expTripsPdfBtn.addEventListener("click", exportTripsPDF);
 ui.expDmgCsvBtn.addEventListener("click", exportDamagesCSV);
 ui.expWhCsvBtn.addEventListener("click", exportWarehouseHistoryCSV);
 // billing
-ui.billLogBtn.addEventListener("click", billingLogMove);
 ui.billRefreshBtn.addEventListener("click", billingLoadPending);
 ui.billPendingLoadBtn.addEventListener("click", billingLoadPending);
 ui.billApproveAllBtn.addEventListener("click", billingApproveAll);
