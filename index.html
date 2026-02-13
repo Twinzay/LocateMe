@@ -229,6 +229,7 @@
       <div class="tab active" data-tab="warehouse">Warehouse</div>
       <div class="tab" data-tab="fleet">Fleet</div>
       <div class="tab" data-tab="logistics">Logistics</div>
+      <div class="tab" data-tab="billing">Billing</div>
       <div class="tab" data-tab="dashboard">Ops Dashboard</div>
     </div>
 
@@ -698,6 +699,110 @@
     </div>
 
     <!-- DASHBOARD -->
+     <!-- BILLING -->
+<div id="tab-billing" class="tabpane" style="display:none;">
+  <div class="grid">
+    <!-- Log a movement -->
+    <div class="card">
+      <h3 class="h">Billing: Log Movement</h3>
+      <div class="small">Manager logs approved. Admin logs pending until manager approves.</div>
+
+      <label>Client Code</label>
+      <input id="billClient" value="AEX" />
+
+      <label>Movement Type</label>
+      <select id="billType">
+        <option value="PUTAWAY">PUTAWAY</option>
+        <option value="PICK">PICK</option>
+        <option value="MOVE">MOVE</option>
+        <option value="LOAD">LOAD</option>
+        <option value="UNLOAD">UNLOAD</option>
+        <option value="OTHER">OTHER</option>
+      </select>
+
+      <div class="row">
+        <div style="flex:1; min-width:200px;">
+          <label>Qty</label>
+          <input id="billQty" type="number" inputmode="numeric" placeholder="e.g. 12" />
+        </div>
+        <div style="flex:1; min-width:240px;">
+          <label>Occurred At</label>
+          <input id="billOccurred" type="datetime-local" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div style="flex:1; min-width:220px;">
+          <label>Item Tag (optional)</label>
+          <input id="billItemTag" placeholder="optional" />
+        </div>
+        <div style="flex:1; min-width:220px;">
+          <label>Pallet Tag (optional)</label>
+          <input id="billPalletTag" placeholder="optional" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div style="flex:1; min-width:220px;">
+          <label>From Location (optional)</label>
+          <input id="billFromLoc" placeholder="optional" />
+        </div>
+        <div style="flex:1; min-width:220px;">
+          <label>To Location (optional)</label>
+          <input id="billToLoc" placeholder="optional" />
+        </div>
+      </div>
+
+      <label>Notes (optional)</label>
+      <textarea id="billNotes" placeholder="optional…"></textarea>
+
+      <div class="actions">
+        <button class="btn" id="billLogBtn">Log Movement</button>
+        <button class="btn" id="billClearBtn">Clear</button>
+      </div>
+      <div id="billMsg" class="small" style="margin-top:10px;"></div>
+    </div>
+
+    <!-- Daily lines + approvals -->
+    <div class="card">
+      <h3 class="h">Billing: Daily Invoice Lines</h3>
+      <div class="small">Pulls from view v_aex_invoice_lines_daily (or your actual view name).</div>
+
+      <div class="row" style="margin-top:10px;">
+        <div style="flex:1; min-width:160px;">
+          <label>Client</label>
+          <input id="billLinesClient" value="AEX" />
+        </div>
+        <div style="flex:1; min-width:180px;">
+          <label>From</label>
+          <input id="billFrom" type="date" />
+        </div>
+        <div style="flex:1; min-width:180px;">
+          <label>To</label>
+          <input id="billTo" type="date" />
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn" id="billLinesRunBtn">Run</button>
+      </div>
+      <div id="billLinesMsg" class="small" style="margin-top:10px;"></div>
+      <div id="billLinesOut" class="list"></div>
+
+      <div class="divider"></div>
+
+      <h3 class="h" style="margin-top:0;">Approvals Queue</h3>
+      <div class="small">Shows PENDING events. Manager approves/rejects.</div>
+
+      <div class="actions" style="margin-top:10px;">
+        <button class="btn" id="billPendingBtn">Refresh Pending</button>
+      </div>
+      <div id="billPendingMsg" class="small" style="margin-top:10px;"></div>
+      <div id="billPendingOut" class="list"></div>
+    </div>
+  </div>
+</div>
+
     <div id="tab-dashboard" class="tabpane" style="display:none;">
       <div class="card">
         <h3 class="h">Ops Dashboard</h3>
@@ -730,6 +835,44 @@
             <h3 class="h">Logistics: Exceptions</h3>
             <div id="dashExceptions" class="list"></div>
           </div>
+          <div class="card" style="margin:0;">
+  <h3 class="h">Billing: Daily Invoice Lines</h3>
+  <div class="small">Shows approved invoice lines (view). Use real date range.</div>
+
+  <div class="row" style="margin-top:10px;">
+    <div style="flex:1; min-width:160px;">
+      <label>Client</label>
+      <select id="mbeClient">
+        <option value="AEX">AEX</option>
+      </select>
+    </div>
+    <div style="flex:1; min-width:180px;">
+      <label>From</label>
+      <input id="mbeFrom" type="date" />
+    </div>
+    <div style="flex:1; min-width:180px;">
+      <label>To</label>
+      <input id="mbeTo" type="date" />
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn" id="mbeDailyRunBtn">Run</button>
+  </div>
+  <div id="mbeDailyMsg" class="small" style="margin-top:10px;"></div>
+  <div id="mbeDailyOut" class="list"></div>
+
+  <div class="divider"></div>
+
+  <h3 class="h" style="margin-top:0;">Approvals Queue</h3>
+  <div class="small">Admin PIN entries show as PENDING until Manager approves.</div>
+
+  <div class="actions" style="margin-top:10px;">
+    <button class="btn" id="mbePendingBtn">Refresh Pending</button>
+  </div>
+  <div id="mbePendingMsg" class="small" style="margin-top:10px;"></div>
+  <div id="mbePendingOut" class="list"></div>
+</div>
           <div class="card" style="margin:0;">
             <h3 class="h">Manager Notes</h3>
             <textarea id="mgrNotes" placeholder="Today: …"></textarea>
@@ -788,6 +931,7 @@ const ui = {
     warehouse: document.getElementById("tab-warehouse"),
     fleet:     document.getElementById("tab-fleet"),
     logistics: document.getElementById("tab-logistics"),
+    billing:   document.getElementById("tab-billing"),
     dashboard: document.getElementById("tab-dashboard"),
   },
 
@@ -922,11 +1066,39 @@ const ui = {
   mgrNotes: document.getElementById("mgrNotes"),
   notesSaveBtn: document.getElementById("notesSaveBtn"),
   notesLoadBtn: document.getElementById("notesLoadBtn"),
-  notesMsg: document.getElementById("notesMsg"),
+      notesMsg: document.getElementById("notesMsg"),
+
+  // billing (new tab)
+  billClient: document.getElementById("billClient"),
+  billType: document.getElementById("billType"),
+  billQty: document.getElementById("billQty"),
+  billOccurred: document.getElementById("billOccurred"),
+  billItemTag: document.getElementById("billItemTag"),
+  billPalletTag: document.getElementById("billPalletTag"),
+  billFromLoc: document.getElementById("billFromLoc"),
+  billToLoc: document.getElementById("billToLoc"),
+  billNotes: document.getElementById("billNotes"),
+  billLogBtn: document.getElementById("billLogBtn"),
+  billClearBtn: document.getElementById("billClearBtn"),
+  billMsg: document.getElementById("billMsg"),
+
+  billLinesClient: document.getElementById("billLinesClient"),
+  billFrom: document.getElementById("billFrom"),
+  billTo: document.getElementById("billTo"),
+  billLinesRunBtn: document.getElementById("billLinesRunBtn"),
+  billLinesMsg: document.getElementById("billLinesMsg"),
+  billLinesOut: document.getElementById("billLinesOut"),
+
+  billPendingBtn: document.getElementById("billPendingBtn"),
+  billPendingMsg: document.getElementById("billPendingMsg"),
+  billPendingOut: document.getElementById("billPendingOut"),
 };
+
+
 
 let role = "LOCKED";     // MANAGER | ADMIN | WAREHOUSE | DRIVER | LOCKED
 let mode = "MANAGER";    // MANAGER | DRIVER (UI view mode)
+let __activePin = "";    // stores the PIN used to unlock (for billing functions)
 let selectionHistory = [];
 let existingAisles = new Set();
 let camStream = null;
@@ -956,6 +1128,361 @@ function ymdEnd(dateStr){
   if(!v) return null;
   const dt = new Date(v + "T23:59:59.999");
   return isNaN(dt.getTime()) ? null : dt.toISOString();
+}
+/** ================================
+ *  Billing Tab Logic
+ * ================================ */
+
+// IMPORTANT: set this once you confirm the function name in Supabase
+let BILLING_ADD_FN = "mbe_add_event"; 
+let BILLING_DAILY_VIEW = "v_aex_invoice_lines_daily"; 
+
+function dtLocalToISO(v){
+  v = safe(v);
+  if(!v) return null;
+  // datetime-local comes as "YYYY-MM-DDTHH:mm"
+  const dt = new Date(v);
+  return isNaN(dt.getTime()) ? null : dt.toISOString();
+}
+
+async function billingLogMovement(){
+  if(!(role==="MANAGER" || role==="ADMIN")) return msg(ui.billMsg, "Manager/Admin only.");
+
+  const p_pin = safe(__activePin);
+  const p_client_code = safe(ui.billClient.value || "AEX").toUpperCase();
+  const p_movement_type = safe(ui.billType.value).toUpperCase();
+  const p_qty = parseInt(ui.billQty.value, 10) || 1;
+
+  const p_occurred_at = dtLocalToISO(ui.billOccurred.value) || new Date().toISOString();
+
+  if(!p_pin) return msg(ui.billMsg, "Missing active PIN. Lock and unlock again.");
+  if(!p_client_code) return msg(ui.billMsg, "Client code required.");
+  if(!p_movement_type) return msg(ui.billMsg, "Movement type required.");
+
+  ui.billLogBtn.disabled = true;
+  ui.billLogBtn.textContent = "Logging...";
+
+  try{
+    const { data, error } = await sb.rpc("mbe_add_event", {
+      p_pin,
+      p_client_code,
+      p_movement_type,
+      p_qty,
+      p_occurred_at
+      // IMPORTANT: only add more fields IF your function actually has them
+    });
+    if(error) throw error;
+
+    const statusText = (role==="MANAGER") ? "APPROVED ✅" : "PENDING ⏳";
+    msg(ui.billMsg, `Logged movement • ${statusText}`, true);
+
+    await refreshBillingPending();
+  }catch(e){
+    msg(ui.billMsg, e.message || "Log failed.");
+  }finally{
+    ui.billLogBtn.disabled = false;
+    ui.billLogBtn.textContent = "Log Movement";
+  }
+}
+
+
+function billingClearForm(){
+  ui.billQty.value = "";
+  ui.billOccurred.value = "";
+  ui.billItemTag.value = "";
+  ui.billPalletTag.value = "";
+  ui.billFromLoc.value = "";
+  ui.billToLoc.value = "";
+  ui.billNotes.value = "";
+  ui.billMsg.textContent = "";
+}
+
+async function billingRunDailyLines(){
+  try{
+    ui.billLinesMsg.textContent = "Loading…";
+    const client = safe(ui.billLinesClient.value || "AEX").toUpperCase();
+
+    const fromISO = ui.billFrom.value ? (ui.billFrom.value + "T00:00:00.000Z") : null;
+    const toISO   = ui.billTo.value ? (ui.billTo.value + "T23:59:59.999Z") : null;
+
+    // NOTE: Your earlier error happened because you used 2026-02-29 (invalid).
+    // The date inputs prevent that.
+
+    let q = sb.from(BILLING_DAILY_VIEW).select("*").order("day",{ascending:false}).order("movement_type",{ascending:true});
+    if(client) q = q.eq("client_code", client);
+    if(fromISO) q = q.gte("day", fromISO);
+    if(toISO) q = q.lte("day", toISO);
+
+    const { data, error } = await q.limit(5000);
+    if(error) throw error;
+
+    const rows = data || [];
+    ui.billLinesOut.innerHTML = rows.length ? rows.map(r=>`
+      <div class="item">
+        <div class="itemTop">
+          <div>
+            <div class="tag">${r.day ? new Date(r.day).toLocaleDateString() : "—"} • ${r.movement_type}</div>
+            <div class="meta">Qty: <b>${r.moves}</b> • Amount: <b>$${Number(r.amount||0).toFixed(2)}</b></div>
+          </div>
+          <div class="meta">${r.client_code || ""}</div>
+        </div>
+      </div>
+    `).join("") : `<div class="item"><div class="meta">No rows found for that range.</div></div>`;
+
+    ui.billLinesMsg.textContent = "";
+  }catch(e){
+    ui.billLinesMsg.textContent = e.message || String(e);
+  }
+}
+
+async function refreshBillingPending(){
+  if(role!=="MANAGER" && role!=="ADMIN"){
+    ui.billPendingOut.innerHTML = `<div class="item"><div class="meta">Manager/Admin only.</div></div>`;
+    return;
+  }
+  try{
+    ui.billPendingMsg.textContent = "Loading…";
+    const client = safe(ui.billLinesClient.value || "AEX").toUpperCase();
+
+    const { data, error } = await sb
+      .from("movement_billing_events")
+      .select("id, client_code, movement_type, qty, occurred_at, notes, submitted_by_pin, approval_status")
+      .eq("approval_status","PENDING")
+      .eq("client_code", client)
+      .order("occurred_at",{ascending:false})
+      .limit(300);
+
+    if(error) throw error;
+
+    const rows = data || [];
+    ui.billPendingOut.innerHTML = rows.length ? rows.map(r=>`
+      <div class="item">
+        <div class="itemTop">
+          <div>
+            <div class="tag">#${r.id} • ${r.movement_type} • Qty ${r.qty}</div>
+            <div class="meta">${r.client_code} • ${r.occurred_at ? new Date(r.occurred_at).toLocaleString() : "—"}</div>
+            ${r.notes ? `<div class="meta" style="margin-top:6px;">${r.notes}</div>` : ""}
+            <div class="meta" style="margin-top:6px;">Submitted by PIN: <b>${r.submitted_by_pin || "—"}</b></div>
+          </div>
+          <div class="actions">
+            <button class="btn" onclick="window.__billingApprove(${r.id})">Approve</button>
+            <button class="btn" onclick="window.__billingReject(${r.id})">Reject</button>
+          </div>
+        </div>
+      </div>
+    `).join("") : `<div class="item"><div class="meta">No pending approvals ✅</div></div>`;
+
+    ui.billPendingMsg.textContent = "";
+  }catch(e){
+    ui.billPendingMsg.textContent = e.message || String(e);
+  }
+}
+
+window.__billingApprove = async (id)=>{
+  try{
+    const mp = prompt("Manager PIN to approve:", "");
+    if(!mp) return;
+    if(safe(mp) !== PIN_MANAGER) return alert("Wrong manager PIN.");
+
+    const { error } = await sb.rpc("mbe_approve_event", { p_manager_pin: String(mp), p_event_id: Number(id) });
+    if(error) throw error;
+
+    await refreshBillingPending();
+    alert(`Approved #${id}`);
+  }catch(e){
+    alert(e.message || e);
+  }
+};
+
+window.__billingReject = async (id)=>{
+  try{
+    const mp = prompt("Manager PIN to reject:", "");
+    if(!mp) return;
+    if(safe(mp) !== PIN_MANAGER) return alert("Wrong manager PIN.");
+
+    const reason = prompt("Reason (optional):", "") || null;
+
+    const { error } = await sb.rpc("mbe_reject_event", { p_manager_pin: String(mp), p_event_id: Number(id), p_reason: reason });
+    if(error) throw error;
+
+    await refreshBillingPending();
+    alert(`Rejected #${id}`);
+  }catch(e){
+    alert(e.message || e);
+  }
+};
+
+/** ================================
+ *  Movement Billing (PIN-only approvals)
+ *  - 9262 (MANAGER) logs/edits => APPROVED
+ *  - 2026 (ADMIN) logs/edits => PENDING until manager approves
+ * ================================ */
+
+// Normalize helpers
+function normStr(v){ return (v === undefined || v === null || String(v).trim()==="") ? null : String(v).trim(); }
+function normInt(v){
+  if(v === undefined || v === null || String(v).trim()==="") return null;
+  const n = parseInt(v, 10);
+  return Number.isFinite(n) ? n : null;
+}
+
+// Convert date inputs to safe ISO range
+function toISOStart(dateStr){
+  const v = safe(dateStr);
+  if(!v) return null;
+  const dt = new Date(v + "T00:00:00");
+  return isNaN(dt.getTime()) ? null : dt.toISOString();
+}
+function toISOEnd(dateStr){
+  const v = safe(dateStr);
+  if(!v) return null;
+  const dt = new Date(v + "T23:59:59.999");
+  return isNaN(dt.getTime()) ? null : dt.toISOString();
+}
+
+// RPC: add event (your SQL should provide: mbe_add_event or add_movement_billing_event)
+// If your function is named add_movement_billing_event, keep that.
+// If it is mbe_add_event, switch it below.
+async function mbeLogMove(payload){
+  const fn = "mbe_add_event";
+
+  const rpcPayload = {
+    p_pin: activePin,
+    ...payload
+  };
+
+  const { data, error } = await sb.rpc(fn, rpcPayload);
+  if(error) throw error;
+  return data;
+}
+
+
+// RPC: update event (your SQL function we created: mbe_update_event)
+async function mbeUpdateMove(payload){
+  const { data, error } = await sb.rpc("mbe_update_event", payload);
+  if(error) throw error;
+  return data;
+}
+
+// RPC: approve/reject (your SQL should provide these)
+async function mbeApprove(manager_pin, event_id){
+  const { data, error } = await sb.rpc("mbe_approve_event", { p_manager_pin: String(manager_pin), p_event_id: Number(event_id) });
+  if(error) throw error;
+  return data;
+}
+async function mbeReject(manager_pin, event_id, reason){
+  const { data, error } = await sb.rpc("mbe_reject_event", { p_manager_pin: String(manager_pin), p_event_id: Number(event_id), p_reason: reason || null });
+  if(error) throw error;
+  return data;
+}
+
+// Fetch daily invoice lines (view)
+async function mbeFetchDailyLines(clientCode, fromISO, toISO){
+  let q = sb.from("v_aex_invoice_lines_daily").select("*").order("day",{ascending:false}).order("movement_type",{ascending:true});
+  if(clientCode) q = q.eq("client_code", clientCode);
+  if(fromISO) q = q.gte("day", fromISO);
+  if(toISO) q = q.lte("day", toISO);
+  const { data, error } = await q.limit(5000);
+  if(error) throw error;
+  return data || [];
+}
+
+// Fetch pending approvals
+async function mbeFetchPending(clientCode){
+  let q = sb.from("movement_billing_events")
+    .select("id, client_code, movement_type, qty, occurred_at, notes, submitted_by_pin, approval_status")
+    .eq("approval_status","PENDING")
+    .order("occurred_at",{ascending:false});
+  if(clientCode) q = q.eq("client_code", clientCode);
+  const { data, error } = await q.limit(300);
+  if(error) throw error;
+  return data || [];
+}
+
+// Render helpers
+function renderDailyLines(rows){
+  ui.mbeDailyOut.innerHTML = rows.length ? rows.map(r=>`
+    <div class="item">
+      <div class="itemTop">
+        <div>
+          <div class="tag">${(r.day ? new Date(r.day).toLocaleDateString() : "—")} • ${r.movement_type}</div>
+          <div class="meta">Qty: <b>${r.moves}</b> • Amount: <b>$${Number(r.amount||0).toFixed(2)}</b></div>
+        </div>
+        <div class="meta">${r.client_code || ""}</div>
+      </div>
+    </div>
+  `).join("") : `<div class="item"><div class="meta">No rows found for that range.</div></div>`;
+}
+
+function renderPending(rows){
+  ui.mbePendingOut.innerHTML = rows.length ? rows.map(r=>`
+    <div class="item">
+      <div class="itemTop">
+        <div>
+          <div class="tag">#${r.id} • ${r.movement_type} • Qty ${r.qty}</div>
+          <div class="meta">${r.client_code} • ${r.occurred_at ? new Date(r.occurred_at).toLocaleString() : "—"}</div>
+          ${r.notes ? `<div class="meta" style="margin-top:6px;">${r.notes}</div>` : ""}
+          <div class="meta" style="margin-top:6px;">Submitted by PIN: <b>${r.submitted_by_pin || "—"}</b></div>
+        </div>
+        <div class="actions">
+          <button class="btn" onclick="window.__mbeApprove(${r.id})">Approve</button>
+          <button class="btn" onclick="window.__mbeReject(${r.id})">Reject</button>
+        </div>
+      </div>
+    </div>
+  `).join("") : `<div class="item"><div class="meta">No pending approvals ✅</div></div>`;
+}
+
+window.__mbeApprove = async (id)=>{
+  try{
+    const mp = prompt("Manager PIN to approve:", "");
+    if(!mp) return;
+    if(safe(mp) !== PIN_MANAGER) return alert("Wrong manager PIN.");
+    await mbeApprove(mp, id);
+    await refreshPendingApprovals();
+    alert(`Approved #${id}`);
+  }catch(e){
+    alert(e.message || e);
+  }
+};
+
+window.__mbeReject = async (id)=>{
+  try{
+    const mp = prompt("Manager PIN to reject:", "");
+    if(!mp) return;
+    if(safe(mp) !== PIN_MANAGER) return alert("Wrong manager PIN.");
+    const reason = prompt("Reason (optional):", "") || null;
+    await mbeReject(mp, id, reason);
+    await refreshPendingApprovals();
+    alert(`Rejected #${id}`);
+  }catch(e){
+    alert(e.message || e);
+  }
+};
+
+async function refreshPendingApprovals(){
+  try{
+    ui.mbePendingMsg.textContent = "Loading…";
+    const rows = await mbeFetchPending(ui.mbeClient.value || "AEX");
+    renderPending(rows);
+    ui.mbePendingMsg.textContent = "";
+  }catch(e){
+    ui.mbePendingMsg.textContent = e.message || String(e);
+  }
+}
+
+async function runDailyLines(){
+  try{
+    ui.mbeDailyMsg.textContent = "Loading…";
+    const client = safe(ui.mbeClient.value || "AEX");
+    const fromISO = toISOStart(ui.mbeFrom.value);
+    const toISO   = toISOEnd(ui.mbeTo.value);
+    const rows = await mbeFetchDailyLines(client, fromISO, toISO);
+    renderDailyLines(rows);
+    ui.mbeDailyMsg.textContent = "";
+  }catch(e){
+    ui.mbeDailyMsg.textContent = e.message || String(e);
+  }
 }
 
 function msg(el, text, good=false){
@@ -1063,6 +1590,7 @@ function unlockMaster(pin){
   const r = roleFromPin(pin);
   if(r==="LOCKED") return msg(ui.pinMsg, "Wrong PIN.");
   role = r;
+   __activePin = pin; // ✅ store the pin for billing RPCs
   mode = (role==="DRIVER") ? "DRIVER" : (localStorage.getItem("locateme_mode") || "MANAGER");
   ui.overlay.style.display = "none";
   ui.lockBtn.style.display = "";
@@ -1070,9 +1598,11 @@ function unlockMaster(pin){
   setRolePill();
   initApp();
 }
+
 function lockAll(){
   role = "LOCKED";
   mode = "MANAGER";
+    __activePin = "";
   ui.overlay.style.display = "flex";
   ui.lockBtn.style.display = "none";
   setConn(false);
@@ -2494,6 +3024,16 @@ ui.shTodayBtn.addEventListener("click", shipmentsRecentlyUpdated);
 // dashboard notes
 ui.notesSaveBtn.addEventListener("click", saveManagerNotes);
 ui.notesLoadBtn.addEventListener("click", loadManagerNotes);
+// billing tab
+ui.billLogBtn?.addEventListener("click", billingLogMovement);
+ui.billClearBtn?.addEventListener("click", billingClearForm);
+ui.billLinesRunBtn?.addEventListener("click", billingRunDailyLines);
+ui.billPendingBtn?.addEventListener("click", refreshBillingPending);
+
+// billing (dashboard)
+ui.mbeDailyRunBtn?.addEventListener("click", runDailyLines);
+ui.mbePendingBtn?.addEventListener("click", refreshPendingApprovals);
+
 
 // boot (always locked)
 (function boot(){
