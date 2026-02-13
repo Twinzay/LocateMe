@@ -1054,6 +1054,36 @@ const ui = {
   shSearchBtn: document.getElementById("shSearchBtn"),
   shTodayBtn: document.getElementById("shTodayBtn"),
   shList: document.getElementById("shList"),
+  // billing
+  billClient: document.getElementById("billClient"),
+  billType: document.getElementById("billType"),
+  billQty: document.getElementById("billQty"),
+  billOccurredAt: document.getElementById("billOccurredAt"),
+  billItemTag: document.getElementById("billItemTag"),
+  billPalletTag: document.getElementById("billPalletTag"),
+  billFromLoc: document.getElementById("billFromLoc"),
+  billToLoc: document.getElementById("billToLoc"),
+  billNotes: document.getElementById("billNotes"),
+  billBillable: document.getElementById("billBillable"),
+  billLogBtn: document.getElementById("billLogBtn"),
+  billRefreshBtn: document.getElementById("billRefreshBtn"),
+  billMsg: document.getElementById("billMsg"),
+
+  billPendingClient: document.getElementById("billPendingClient"),
+  billPendingSearch: document.getElementById("billPendingSearch"),
+  billPendingLoadBtn: document.getElementById("billPendingLoadBtn"),
+  billApproveAllBtn: document.getElementById("billApproveAllBtn"),
+  billPendingMsg: document.getElementById("billPendingMsg"),
+  billPendingOut: document.getElementById("billPendingOut"),
+
+  billFrom: document.getElementById("billFrom"),
+  billTo: document.getElementById("billTo"),
+  billClientFilter: document.getElementById("billClientFilter"),
+  billDailyBtn: document.getElementById("billDailyBtn"),
+  billWeeklyBtn: document.getElementById("billWeeklyBtn"),
+  billMonthlyBtn: document.getElementById("billMonthlyBtn"),
+  billInvoiceMsg: document.getElementById("billInvoiceMsg"),
+  billInvoiceOut: document.getElementById("billInvoiceOut"),
 
   // dashboard
   kWarehouse: document.getElementById("kWarehouse"),
@@ -1519,7 +1549,7 @@ function isManagerLike(){ return role==="MANAGER" || role==="ADMIN"; }
 function isManagerOnly(){ return role==="MANAGER"; }
 
 function canSee(tab){
-  if(isManagerLike()) return true;
+  if(isManagerLike()) return true;              // manager/admin see everything
   if(role==="WAREHOUSE") return tab==="warehouse";
   if(role==="DRIVER") return tab==="fleet";
   return false;
@@ -2646,6 +2676,313 @@ function pickSingleImage(){
     input.click();
   });
 }
+/** ================================
+ *  Billing (Movement Billing Events)
+ * ================================ */
+
+// Your RPC names from Supabase:
+const BILL_FN_ADD     = "mbe_add_event";
+const BILL_FN_APPROVE = "mbe_approve_event";
+const BILL_FN_UPDATE  = "mbe_update_event";
+
+// Helper: datetime-local -> ISO
+function dtLocalToISO(v){
+  v = safe(v);
+  if(!v) return null;
+  const d = new Date(v);
+  return isNaN(d.getTime()) ? null : d.toISOString();
+}
+
+// RPC wrappers
+async function billAddEvent(payload){
+  if(!activePin) throw new Error("No PIN stored. Unlock again.");
+  const { data, error } = await sb.rpc(BILL_FN_ADD, { p_pin: activePin, ...payload });
+  if(error) throw error;
+  return data;
+}
+async function billApproveEvent(eventId){
+  if(!activePin) throw new Error("No PIN stored. Unlock again.");
+  const { data, error } = await sb.rpc(BILL_FN_APPROVE, { p_manager_pin: activePin, p_event_id: eventId });
+  if(error) throw error;
+  return data;
+}
+async function billUpdateEvent(eventId, patch){
+  if(!activePin) throw new Error("No PIN stored. Unlock again.");
+  const { data, error } = await sb.rpc(BILL_FN_UPDATE, { p_pin: activePin, p_event_id: eventId, ...patch });
+  if(error) throw error;
+  return data;
+}
+
+// UI actions
+async function billingLogMove(){
+  if(!ensureManagerAdmin(ui.billMsg)) return;
+
+  // Admin allowed but will create pending in DB logic
+  if(role==="ADMIN"){
+    // Admin can log, but cannot approve. We still allow the insert.
+  }
+
+  ui.billLogBtn.disabled = true;
+  ui.billLogBtn.textContent = "Logging...";
+
+  try{
+    const client = safe(ui.billClient.value).toUpperCase();
+    const type   = safe(ui.billType.value).toUpperCase();
+    const qty    = parseInt(ui.billQty.value, 10);
+
+    if(!client) throw new Error("Client code required.");
+    if(!type) throw new Error("Movement type required.");
+    if(!Number.isFinite(qty) || qty <= 0) throw new Error("Qty must be a positive number.");
+
+    const occurredISO = dtLocalToISO(ui.billOccurredAt.value);
+
+    const payload = {
+      p_client_code: client,
+      p_movement_type: type,
+      p_qty: qty,
+      p_occurred_at: occurredISO,              // can be null -> DB default now()
+      p_item_tag: safe(ui.billItemTag.value) || null,
+      p_pallet_tag: safe(ui.billPalletTag.value) || null,
+      p_from_location: safe(ui.billFromLoc.value) || null,
+      p_to_location: safe(ui.billToLoc.value) || null,
+      p_notes: safe(ui.billNotes.value) || null,
+      p_is_billable: !!ui.billBillable.checked,
+      // if your function also accepts entry_source / entered_by, DB handles defaults
+    };
+
+    await billAddEvent(payload);
+
+    msg(ui.billMsg, role==="MANAGER"
+      ? "Logged ✅ (Manager)"
+      : "Logged ✅ (Pending until Manager approves)", true);
+
+    // quick clear
+    ui.billType.value = "";
+    ui.billQty.value = "1";
+    ui.billItemTag.value = "";
+    ui.billPalletTag.value = "";
+    ui.billFromLoc.value = "";
+    ui.billToLoc.value = "";
+    ui.billNotes.value = "";
+
+    await billingLoadPending();
+  }catch(e){
+    msg(ui.billMsg, e.message || "Billing log failed.");
+  }finally{
+    ui.billLogBtn.disabled = false;
+    ui.billLogBtn.textContent = "Log Move";
+  }
+}
+
+async function billingLoadPending(){
+  if(!ensureManagerAdmin(ui.billPendingMsg)) return;
+
+  ui.billPendingOut.innerHTML = "";
+  ui.billPendingLoadBtn.disabled = true;
+  ui.billPendingLoadBtn.textContent = "Loading...";
+
+  try{
+    const client = safe(ui.billPendingClient.value).toUpperCase();
+    const search = safe(ui.billPendingSearch.value).toUpperCase();
+
+    // We try to be flexible: pending can be status='PENDING' OR approved_at is null
+    let q = sb.from("movement_billing_events")
+      .select("id, client_code, movement_type, qty, occurred_at, item_tag, pallet_tag, from_location, to_location, notes, is_billable, created_at, updated_at, approved_at, status")
+      .order("created_at", { ascending:false })
+      .limit(200)
+      .or("approved_at.is.null,status.eq.PENDING");
+
+    if(client) q = q.eq("client_code", client);
+    if(search){
+      q = q.or(
+        `movement_type.ilike.%${search}%,item_tag.ilike.%${search}%,pallet_tag.ilike.%${search}%,notes.ilike.%${search}%`
+      );
+    }
+
+    const { data, error } = await q;
+    if(error) throw error;
+
+    const rows = data || [];
+    if(!rows.length){
+      ui.billPendingOut.innerHTML = `<div class="item"><div class="meta">No pending events ✅</div></div>`;
+      msg(ui.billPendingMsg, "Loaded ✅", true);
+      return;
+    }
+
+    ui.billPendingOut.innerHTML = rows.map(r=>{
+      const when = r.occurred_at ? new Date(r.occurred_at).toLocaleString() : "—";
+      const canApprove = (role==="MANAGER"); // only manager can approve
+      return `
+        <div class="item">
+          <div class="itemTop">
+            <div>
+              <div class="tag">${r.client_code} • ${r.movement_type} • Qty ${r.qty}</div>
+              <div class="meta">
+                Occurred: ${when}
+                ${r.is_billable ? ` • <span class="ok"><b>BILLABLE</b></span>` : ` • <span class="warn"><b>NON-BILL</b></span>`}
+              </div>
+              <div class="meta" style="margin-top:6px;">
+                Item: ${r.item_tag || "—"} • Pallet: ${r.pallet_tag || "—"}
+              </div>
+              <div class="meta" style="margin-top:6px;">
+                ${r.from_location || "—"} → ${r.to_location || "—"}
+              </div>
+              ${r.notes ? `<div class="meta" style="margin-top:6px;">${r.notes}</div>` : ""}
+            </div>
+            <div class="actions">
+              ${canApprove ? `<button class="btn" onclick="window.__billApprove(${r.id})">Approve</button>` : ""}
+              ${canApprove ? `<button class="btn" onclick="window.__billReject(${r.id})">Mark Pending</button>` : ""}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    msg(ui.billPendingMsg, `Loaded ${rows.length} pending`, true);
+  }catch(e){
+    msg(ui.billPendingMsg, e.message || "Failed to load pending.");
+  }finally{
+    ui.billPendingLoadBtn.disabled = false;
+    ui.billPendingLoadBtn.textContent = "Load Pending";
+  }
+}
+
+// Approve / Mark Pending actions
+window.__billApprove = async (id)=>{
+  if(role!=="MANAGER") return alert("Manager only.");
+  try{
+    await billApproveEvent(id);
+    msg(ui.billPendingMsg, `Approved #${id} ✅`, true);
+    await billingLoadPending();
+  }catch(e){
+    msg(ui.billPendingMsg, e.message || "Approve failed.");
+  }
+};
+
+// “Marked pending” = update row status/pending flag if your function supports it.
+// If your DB doesn’t have status, this will error — and we’ll remove it.
+window.__billReject = async (id)=>{
+  if(role!=="MANAGER") return alert("Manager only.");
+  try{
+    // Try to set a status field if it exists
+    await billUpdateEvent(id, { p_status: "PENDING" });
+    msg(ui.billPendingMsg, `Marked pending #${id} ✅`, true);
+    await billingLoadPending();
+  }catch(e){
+    // fallback: if your RPC expects different param name, leave it.
+    msg(ui.billPendingMsg, e.message || "Update failed (your DB may not use status field).");
+  }
+};
+
+async function billingApproveAll(){
+  if(role!=="MANAGER") return alert("Manager only.");
+  try{
+    const { data, error } = await sb.from("movement_billing_events")
+      .select("id")
+      .or("approved_at.is.null,status.eq.PENDING")
+      .limit(200);
+    if(error) throw error;
+
+    const ids = (data||[]).map(x=>x.id);
+    if(!ids.length) return msg(ui.billPendingMsg, "Nothing pending ✅", true);
+
+    for(const id of ids){
+      await billApproveEvent(id);
+    }
+    msg(ui.billPendingMsg, `Approved ${ids.length} ✅`, true);
+    await billingLoadPending();
+  }catch(e){
+    msg(ui.billPendingMsg, e.message || "Approve all failed.");
+  }
+}
+
+// Invoice view loaders (AEX)
+async function billingLoadDaily(){
+  if(!ensureManagerAdmin(ui.billInvoiceMsg)) return;
+
+  const client = safe(ui.billClientFilter.value).toUpperCase() || "AEX";
+  const from = ui.billFrom.value ? ui.billFrom.value : null;
+  const to   = ui.billTo.value ? ui.billTo.value : null;
+
+  ui.billInvoiceOut.innerHTML = "";
+  try{
+    // v_aex_invoice_lines_daily is usually client-specific. If you created a generic view, tell me.
+    // We'll try AEX view first.
+    let q = sb.from("v_aex_invoice_lines_daily").select("*").order("day",{ascending:false}).order("movement_type",{ascending:true});
+
+    if(from) q = q.gte("day", from);
+    if(to)   q = q.lte("day", to);
+
+    const { data, error } = await q.limit(500);
+    if(error) throw error;
+
+    const rows = data || [];
+    ui.billInvoiceOut.innerHTML = rows.length ? rows.map(r=>`
+      <div class="item">
+        <div class="itemTop">
+          <div>
+            <div class="tag">${r.day} • ${r.movement_type}</div>
+            <div class="meta">Moves: <b>${r.moves}</b> • Qty: <b>${r.qty}</b> • Rate: <b>${r.rate}</b> • Amount: <b>${r.amount}</b></div>
+          </div>
+        </div>
+      </div>
+    `).join("") : `<div class="item"><div class="meta">No daily lines in that range.</div></div>`;
+
+    msg(ui.billInvoiceMsg, "Daily loaded ✅", true);
+  }catch(e){
+    msg(ui.billInvoiceMsg, e.message || "Daily load failed.");
+  }
+}
+
+async function billingLoadWeekly(){
+  if(!ensureManagerAdmin(ui.billInvoiceMsg)) return;
+  ui.billInvoiceOut.innerHTML = "";
+  try{
+    const { data, error } = await sb.from("v_aex_invoice_weekly").select("*").order("week_start",{ascending:false}).limit(200);
+    if(error) throw error;
+
+    const rows = data || [];
+    ui.billInvoiceOut.innerHTML = rows.length ? rows.map(r=>`
+      <div class="item">
+        <div class="itemTop">
+          <div>
+            <div class="tag">Week of ${r.week_start}</div>
+            <div class="meta">Moves: <b>${r.total_moves}</b> • Amount Due: <b>${r.amount_due}</b></div>
+          </div>
+        </div>
+      </div>
+    `).join("") : `<div class="item"><div class="meta">No weekly rows.</div></div>`;
+
+    msg(ui.billInvoiceMsg, "Weekly loaded ✅", true);
+  }catch(e){
+    msg(ui.billInvoiceMsg, e.message || "Weekly load failed.");
+  }
+}
+
+async function billingLoadMonthly(){
+  if(!ensureManagerAdmin(ui.billInvoiceMsg)) return;
+  ui.billInvoiceOut.innerHTML = "";
+  try{
+    const { data, error } = await sb.from("v_aex_invoice_monthly").select("*").order("month_start",{ascending:false}).limit(200);
+    if(error) throw error;
+
+    const rows = data || [];
+    ui.billInvoiceOut.innerHTML = rows.length ? rows.map(r=>`
+      <div class="item">
+        <div class="itemTop">
+          <div>
+            <div class="tag">Month of ${r.month_start}</div>
+            <div class="meta">Moves: <b>${r.total_moves}</b> • Amount Due: <b>${r.amount_due}</b></div>
+          </div>
+        </div>
+      </div>
+    `).join("") : `<div class="item"><div class="meta">No monthly rows.</div></div>`;
+
+    msg(ui.billInvoiceMsg, "Monthly loaded ✅", true);
+  }catch(e){
+    msg(ui.billInvoiceMsg, e.message || "Monthly load failed.");
+  }
+}
 
 /** ================================
  *  Logistics: shipments
@@ -2963,6 +3300,23 @@ async function initApp(){
   if(canSee("dashboard")) await refreshDashboard();
 
   await autoPurgeOncePerDay();
+  // billing defaults
+  if(ui.billOccurredAt && !ui.billOccurredAt.value){
+    const d = new Date();
+    // Set to local datetime-local format
+    const pad = (n)=> String(n).padStart(2,"0");
+    const v = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    ui.billOccurredAt.value = v;
+  }
+  if(ui.billFrom && !ui.billFrom.value){
+    const d = new Date();
+    const first = new Date(d.getFullYear(), d.getMonth(), 1);
+    ui.billFrom.value = first.toISOString().slice(0,10);
+  }
+  if(ui.billTo && !ui.billTo.value){
+    const d = new Date();
+    ui.billTo.value = d.toISOString().slice(0,10);
+  }
 
   const preferred = localStorage.getItem("locateme_last_tab") || "warehouse";
   const fallback = (role==="DRIVER") ? "fleet" : (role==="WAREHOUSE" ? "warehouse" : preferred);
@@ -3013,6 +3367,15 @@ ui.expTripsCsvBtn.addEventListener("click", exportTripsCSV);
 ui.expTripsPdfBtn.addEventListener("click", exportTripsPDF);
 ui.expDmgCsvBtn.addEventListener("click", exportDamagesCSV);
 ui.expWhCsvBtn.addEventListener("click", exportWarehouseHistoryCSV);
+// billing
+ui.billLogBtn.addEventListener("click", billingLogMove);
+ui.billRefreshBtn.addEventListener("click", billingLoadPending);
+ui.billPendingLoadBtn.addEventListener("click", billingLoadPending);
+ui.billApproveAllBtn.addEventListener("click", billingApproveAll);
+
+ui.billDailyBtn.addEventListener("click", billingLoadDaily);
+ui.billWeeklyBtn.addEventListener("click", billingLoadWeekly);
+ui.billMonthlyBtn.addEventListener("click", billingLoadMonthly);
 
 // logistics
 ui.shSaveBtn.addEventListener("click", saveShipment);
