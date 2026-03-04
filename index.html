@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>LocateMe Ops — Warehouse + Fleet + Logistics</title>
+  <title>Precision Ops — Warehouse + Fleet + Logistics</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -2184,11 +2184,33 @@ function camStop(){
   camDetector = null;
   camSet("Idle");
 }
-ui.scanBtn.addEventListener("click", ()=>{ ui.camModal.style.display="flex"; camSet("Idle"); });
-ui.camClose.addEventListener("click", ()=>{ camStop(); ui.camModal.style.display="none"; });
-ui.camStart.addEventListener("click", camStart);
-ui.camStop.addEventListener("click", camStop);
+// ===== Camera UI bindings (SAFE) =====
+function bind(el, evt, fn){
+  if(!el) return;
+  el.addEventListener(evt, fn);
+}
 
+// If your IDs changed, add fallbacks here:
+ui.scanBtn  = ui.scanBtn  || document.getElementById("scanBtn")  || document.getElementById("btnScan")  || document.querySelector("[data-scanbtn]");
+ui.camClose = ui.camClose || document.getElementById("camClose") || document.getElementById("btnCamClose");
+ui.camStart = ui.camStart || document.getElementById("camStart") || document.getElementById("btnCamStart");
+ui.camStop  = ui.camStop  || document.getElementById("camStop")  || document.getElementById("btnCamStop");
+ui.camModal = ui.camModal || document.getElementById("camModal") || document.getElementById("camModal1") || document.getElementById("camModal2");
+
+bind(ui.scanBtn, "click", ()=>{
+  if(!ui.camModal) return;
+  ui.camModal.style.display = "flex";
+  camSet("Idle");
+});
+
+bind(ui.camClose, "click", ()=>{
+  camStop();
+  if(ui.camModal) ui.camModal.style.display = "none";
+});
+
+bind(ui.camStart, "click", camStart);
+bind(ui.camStop,  "click", camStop);
+// ===== end bindings =====
 /** ================================
  *  Storage helpers
  * ================================ */
