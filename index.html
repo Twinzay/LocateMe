@@ -2571,20 +2571,21 @@ function dtLocalToISO(v){
 
 // RPC wrappers
 async function billAddEvent(payload){
-  if(!activePin) throw new Error("No PIN stored. Unlock again.");
-  const { data, error } = await sb.rpc(BILL_FN_ADD, { p_pin: activePin, ...payload });
+  // NOTE: your app stores the PIN in __activePin (not activePin)
+  if(!__activePin) throw new Error("No PIN stored. Unlock again.");
+  const { data, error } = await sb.rpc(BILL_FN_ADD, { p_pin: __activePin, ...payload });
   if(error) throw error;
   return data;
 }
 async function billApproveEvent(eventId){
-  if(!activePin) throw new Error("No PIN stored. Unlock again.");
-  const { data, error } = await sb.rpc(BILL_FN_APPROVE, { p_manager_pin: activePin, p_event_id: eventId });
+  if(!__activePin) throw new Error("No PIN stored. Unlock again.");
+  const { data, error } = await sb.rpc(BILL_FN_APPROVE, { p_manager_pin: __activePin, p_event_id: eventId });
   if(error) throw error;
   return data;
 }
 async function billUpdateEvent(eventId, patch){
-  if(!activePin) throw new Error("No PIN stored. Unlock again.");
-  const { data, error } = await sb.rpc(BILL_FN_UPDATE, { p_pin: activePin, p_event_id: eventId, ...patch });
+  if(!__activePin) throw new Error("No PIN stored. Unlock again.");
+  const { data, error } = await sb.rpc(BILL_FN_UPDATE, { p_pin: __activePin, p_event_id: eventId, ...patch });
   if(error) throw error;
   return data;
 }
@@ -2592,11 +2593,6 @@ async function billUpdateEvent(eventId, patch){
 // UI actions
 async function billingLogMove(){
   if(!ensureManagerAdmin(ui.billMsg)) return;
-
-  // Admin allowed but will create pending in DB logic
-  if(role==="ADMIN"){
-    // Admin can log, but cannot approve. We still allow the insert.
-  }
 
   ui.billLogBtn.disabled = true;
   ui.billLogBtn.textContent = "Logging...";
@@ -2610,7 +2606,8 @@ async function billingLogMove(){
     if(!type) throw new Error("Movement type required.");
     if(!Number.isFinite(qty) || qty <= 0) throw new Error("Qty must be a positive number.");
 
-    const occurredISO = dtLocalToISO(ui.billOccurredAt.value);
+    // NOTE: your input id is billOccurred (not billOccurredAt)
+    const occurredISO = dtLocalToISO(ui.billOccurred?.value);
 
     const payload = {
       p_client_code: client,
@@ -2622,15 +2619,17 @@ async function billingLogMove(){
       p_from_location: safe(ui.billFromLoc.value) || null,
       p_to_location: safe(ui.billToLoc.value) || null,
       p_notes: safe(ui.billNotes.value) || null,
-      p_is_billable: !!ui.billBillable.checked,
-      // if your function also accepts entry_source / entered_by, DB handles defaults
+      // if billBillable checkbox doesn't exist, default to true
+      p_is_billable: ui.billBillable ? !!ui.billBillable.checked : true,
     };
 
     await billAddEvent(payload);
 
-    msg(ui.billMsg, role==="MANAGER"
-      ? "Logged ✅ (Manager)"
-      : "Logged ✅ (Pending until Manager approves)", true);
+    msg(
+      ui.billMsg,
+      role==="MANAGER" ? "Logged ✅ (Manager)" : "Logged ✅ (Pending until Manager approves)",
+      true
+    );
 
     // quick clear
     ui.billType.value = "";
@@ -2736,16 +2735,13 @@ window.__billApprove = async (id)=>{
 };
 
 // “Marked pending” = update row status/pending flag if your function supports it.
-// If your DB doesn’t have status, this will error — and we’ll remove it.
 window.__billReject = async (id)=>{
   if(role!=="MANAGER") return alert("Manager only.");
   try{
-    // Try to set a status field if it exists
     await billUpdateEvent(id, { p_status: "PENDING" });
     msg(ui.billPendingMsg, `Marked pending #${id} ✅`, true);
     await billingLoadPending();
   }catch(e){
-    // fallback: if your RPC expects different param name, leave it.
     msg(ui.billPendingMsg, e.message || "Update failed (your DB may not use status field).");
   }
 };
@@ -2782,9 +2778,10 @@ async function billingLoadDaily(){
 
   ui.billInvoiceOut.innerHTML = "";
   try{
-    // v_aex_invoice_lines_daily is usually client-specific. If you created a generic view, tell me.
-    // We'll try AEX view first.
-    let q = sb.from("v_aex_invoice_lines_daily").select("*").order("day",{ascending:false}).order("movement_type",{ascending:true});
+    let q = sb.from("v_aex_invoice_lines_daily")
+      .select("*")
+      .order("day",{ascending:false})
+      .order("movement_type",{ascending:true});
 
     if(from) q = q.gte("day", from);
     if(to)   q = q.lte("day", to);
@@ -2814,7 +2811,10 @@ async function billingLoadWeekly(){
   if(!ensureManagerAdmin(ui.billInvoiceMsg)) return;
   ui.billInvoiceOut.innerHTML = "";
   try{
-    const { data, error } = await sb.from("v_aex_invoice_weekly").select("*").order("week_start",{ascending:false}).limit(200);
+    const { data, error } = await sb.from("v_aex_invoice_weekly")
+      .select("*")
+      .order("week_start",{ascending:false})
+      .limit(200);
     if(error) throw error;
 
     const rows = data || [];
@@ -2839,7 +2839,10 @@ async function billingLoadMonthly(){
   if(!ensureManagerAdmin(ui.billInvoiceMsg)) return;
   ui.billInvoiceOut.innerHTML = "";
   try{
-    const { data, error } = await sb.from("v_aex_invoice_monthly").select("*").order("month_start",{ascending:false}).limit(200);
+    const { data, error } = await sb.from("v_aex_invoice_monthly")
+      .select("*")
+      .order("month_start",{ascending:false})
+      .limit(200);
     if(error) throw error;
 
     const rows = data || [];
