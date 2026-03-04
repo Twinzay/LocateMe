@@ -2184,7 +2184,8 @@ function camStop(){
   camDetector = null;
   camSet("Idle");
 }
-ui.scanBtn.addEventListener("click", ()=>{ ui.camModal.style.display="flex"; camSet("Idle"); });
+const el = document.getElementById("SOME_ID");
+if (el) el.addEventListener("click", handler);
 ui.camClose.addEventListener("click", ()=>{ camStop(); ui.camModal.style.display="none"; });
 ui.camStart.addEventListener("click", camStart);
 ui.camStop.addEventListener("click", camStop);
