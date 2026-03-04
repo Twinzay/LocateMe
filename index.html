@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Precision Ops — Warehouse + Fleet + Logistics</title>
+  <title>LocateMe Ops — Warehouse + Fleet + Logistics</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -416,6 +416,8 @@
     </div>
   </div>
 </div>
+<script>
+
 /** ================================
  *  Warehouse v2: Inbound / Outbound
  *  Tables expected:
@@ -425,7 +427,6 @@
  *   - wh_outbound_scans(id PK, pallet_id FK, item_tag NULL ok, scanned_at, truck_no)
  *   - wh_truck_loads(id PK, order_no, truck_no, status, loaded_at)
  * ================================ */
-
 const WH = {
   // inbound
   inOrderNo: document.getElementById("inOrderNo"),
@@ -919,29 +920,30 @@ async function whLookupOrder(orderNo){
     const complete = await whPalletCompleteness(p).catch(()=>false);
     const borderColor = complete ? "rgba(56,210,122,.45)" : "rgba(255,89,100,.45)";
 
-   cards.push(`
-<div class="item" style="border-color:${borderColor};">
-  <div class="itemTop">
-    <div>
-      <div class="tag">
-        ${p.pallet_code}
-        ${
-          complete
-          ? `<span class="pill"><span class="ok">●</span> Complete</span>`
-          : `<span class="pill"><span class="bad">●</span> Incomplete</span>`
-        }
-      </div>
+    cards.push(`
+      <div class="item" style="border-color:${borderColor};">
+        <div class="itemTop">
+          <div>
+            <div class="tag">
+              ${p.pallet_code}
+              ${
+                complete
+                ? `<span class="pill"><span class="ok">●</span> Complete</span>`
+                : `<span class="pill"><span class="bad">●</span> Incomplete</span>`
+              }
+            </div>
 
-      <div class="meta">Location: <b>${locText}</b></div>
+            <div class="meta">Location: <b>${locText}</b></div>
 
-      <div class="meta" style="margin-top:6px;">
-        Status: <b>${p.status}</b> • ${p.is_open ? "OPEN" : "CLOSED"} •
-        Shrinkwrap: ${p.is_shrinkwrap ? "YES" : "NO"}
+            <div class="meta" style="margin-top:6px;">
+              Status: <b>${p.status}</b> • ${p.is_open ? "OPEN" : "CLOSED"} •
+              Shrinkwrap: ${p.is_shrinkwrap ? "YES" : "NO"}
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-</div>
-`);
+    `);
+  }
 
   WH.lkResults.innerHTML = cards.length
     ? cards.join("")
@@ -949,7 +951,7 @@ async function whLookupOrder(orderNo){
 
   WH.lkMsg.textContent = "";
 }
-
+</script>
     <!-- FLEET -->
     <div id="tab-fleet" class="tabpane" style="display:none;">
       <div class="grid3">
@@ -3203,14 +3205,6 @@ const BILL_FN_ADD     = "mbe_add_event";
 const BILL_FN_APPROVE = "mbe_approve_event";
 const BILL_FN_UPDATE  = "mbe_update_event";
 
-// Helper: datetime-local -> ISO
-function dtLocalToISO(v){
-  v = safe(v);
-  if(!v) return null;
-  const d = new Date(v);
-  return isNaN(d.getTime()) ? null : d.toISOString();
-}
-
 // RPC wrappers
 async function billAddEvent(payload){
   // NOTE: your app stores the PIN in __activePin (not activePin)
@@ -3906,9 +3900,8 @@ ui.billLinesRunBtn?.addEventListener("click", billingRunDailyLines);
 ui.billPendingBtn?.addEventListener("click", refreshBillingPending);
 
 // billing (dashboard)
-ui.mbeDailyRunBtn?.addEventListener("click", runDailyLines);
-ui.mbePendingBtn?.addEventListener("click", refreshPendingApprovals);
-
+ui.mbeDailyRunBtn?.addEventListener("click", billingRunDailyLines);
+ui.mbePendingBtn?.addEventListener("click", refreshBillingPending);
 
 // boot (always locked)
 (function boot(){
