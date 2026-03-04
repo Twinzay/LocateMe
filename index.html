@@ -31,6 +31,9 @@
       --warn:#ffcc66;
       --info:#7fb6ff;
       --pad:16px;
+      /* MODULE containers */
+.module{display:none}
+.module.active{display:block}
     }
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -319,12 +322,22 @@
       </div>
     </div>
 
-    <div class="tabs">
-      <button class="tabbtn active" data-view="inbound">Inbound</button>
-      <button class="tabbtn" data-view="outbound">Outbound</button>
-      <button class="tabbtn" data-view="lookup">Order Lookup</button>
-      <button class="tabbtn" data-view="camera">Camera</button>
-    </div>
+    <!-- MODULE TABS (TOP ROW) -->
+<div class="tabs" id="moduleTabs">
+  <button class="tabbtn active" data-module="warehouse">Warehouse</button>
+  <button class="tabbtn" data-module="fleet">Fleet</button>
+  <button class="tabbtn" data-module="logistics">Logistics</button>
+  <button class="tabbtn" data-module="billing">Billing</button>
+  <button class="tabbtn" data-module="ops">Ops Dashboard</button>
+</div>
+
+<!-- SUB TABS (2ND ROW) -->
+<div class="tabs" id="subTabs" style="margin-top:10px; justify-content:flex-start">
+  <button class="tabbtn active" data-view="inbound">Inbound</button>
+  <button class="tabbtn" data-view="outbound">Outbound</button>
+  <button class="tabbtn" data-view="lookup">Order Lookup</button>
+  <button class="tabbtn" data-view="camera">Camera</button>
+</div>
 
     <!-- INBOUND VIEW -->
     <section class="view active" id="view-inbound">
@@ -416,6 +429,62 @@
           <div class="list" id="in_summary"></div>
         </div>
       </div>
+      <!-- MODULE: WAREHOUSE -->
+<section class="module active" id="module-warehouse">
+
+  <!-- INBOUND VIEW -->
+  <section class="view active" id="view-inbound">
+    ...
+  </section>
+
+  <!-- OUTBOUND VIEW -->
+  <section class="view" id="view-outbound">
+    ...
+  </section>
+
+  <!-- LOOKUP VIEW -->
+  <section class="view" id="view-lookup">
+    ...
+  </section>
+
+  <!-- CAMERA VIEW -->
+  <section class="view" id="view-camera">
+    ...
+  </section>
+
+</section>
+<!-- MODULE: FLEET -->
+<section class="module" id="module-fleet">
+  <div class="card">
+    <h2>Fleet</h2>
+    <p class="hint">This module is back in the layout. We can reconnect your Fleet data next.</p>
+  </div>
+</section>
+
+<!-- MODULE: LOGISTICS -->
+<section class="module" id="module-logistics">
+  <div class="card">
+    <h2>Logistics</h2>
+    <p class="hint">This module is back in the layout. We can reconnect your Logistics screens next.</p>
+  </div>
+</section>
+
+<!-- MODULE: BILLING -->
+<section class="module" id="module-billing">
+  <div class="card">
+    <h2>Billing</h2>
+    <p class="hint">This module is back in the layout. We can reconnect your Billing screens next.</p>
+  </div>
+</section>
+
+<!-- MODULE: OPS DASHBOARD -->
+<section class="module" id="module-ops">
+  <div class="card">
+    <h2>Ops Dashboard</h2>
+    <p class="hint">This module is back in the layout. We can rebuild KPIs + summaries here.</p>
+  </div>
+</section>
+
     </section>
 
     <!-- OUTBOUND VIEW -->
@@ -687,23 +756,48 @@ $("pinInput").addEventListener("keydown",(e)=>{ if(e.key==="Enter") unlockWithPi
 /* =========================
    4) VIEWS / TABS (FIXES “NOTHING APPEARS”)
    ========================= */
-function setView(name){
-  if(!isUnlocked){
-    // don’t let tabs switch while locked
-    setLockUI(false);
-    return;
+function setModule(name){
+  document.querySelectorAll(".module").forEach(m=>m.classList.remove("active"));
+  document.querySelectorAll("#moduleTabs .tabbtn").forEach(b=>b.classList.remove("active"));
+
+  const m = document.getElementById(`module-${name}`);
+  if(m) m.classList.add("active");
+
+  const b = document.querySelector(`#moduleTabs .tabbtn[data-module="${name}"]`);
+  if(b) b.classList.add("active");
+
+  // Only show sub-tabs when in Warehouse
+  const sub = document.getElementById("subTabs");
+  if(sub) sub.style.display = (name === "warehouse") ? "flex" : "none";
+
+  // Default view when returning to Warehouse
+  if(name === "warehouse"){
+    const anyActive = document.querySelector("#module-warehouse .view.active");
+    if(!anyActive) setView("inbound");
   }
-  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
-  document.querySelectorAll(".tabbtn").forEach(b=>b.classList.remove("active"));
-  const v = document.getElementById(`view-${name}`);
-  if (v) v.classList.add("active");
-  const b = document.querySelector(`.tabbtn[data-view="${name}"]`);
-  if (b) b.classList.add("active");
 }
-document.querySelectorAll(".tabbtn").forEach(btn=>{
+
+// Module tab clicks
+document.querySelectorAll("#moduleTabs .tabbtn").forEach(btn=>{
+  btn.addEventListener("click", ()=> setModule(btn.dataset.module));
+});
+
+// Sub-tab clicks (Warehouse views)
+document.querySelectorAll("#subTabs .tabbtn").forEach(btn=>{
   btn.addEventListener("click", ()=> setView(btn.dataset.view));
 });
 
+// Update setView so it only affects Warehouse views (safe)
+function setView(name){
+  document.querySelectorAll("#module-warehouse .view").forEach(v=>v.classList.remove("active"));
+  document.querySelectorAll("#subTabs .tabbtn").forEach(b=>b.classList.remove("active"));
+
+  const v = document.getElementById(`view-${name}`);
+  if(v) v.classList.add("active");
+
+  const b = document.querySelector(`#subTabs .tabbtn[data-view="${name}"]`);
+  if(b) b.classList.add("active");
+}
 /* =========================
    5) INBOUND STATE
    ========================= */
@@ -1344,6 +1438,8 @@ document.addEventListener("keydown",(e)=>{
     }catch{}
     await listCameras();
   }
+  setModule("warehouse");
+setView("inbound");
 })();
 </script>
 </body>
