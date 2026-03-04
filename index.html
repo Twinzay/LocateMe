@@ -173,7 +173,7 @@
     <div class="pinbox">
       <div class="pinhead">
         <div class="big">Enter PIN</div>
-        <span class="pill">LocateMe Ops</span>
+        <span class="pill"><span class="gold">●</span> Precision</span>
       </div>
       <div class="small" style="margin-top:8px;">Access required to view or edit anything.</div>
 
@@ -214,8 +214,8 @@
       <div class="brand">
         <span class="dot"></span>
         <div>
-          <div class="title">LocateMe Ops</div>
-          <div class="sub">Warehouse + Fleet + Logistics • photo proof • audit trails</div>
+          <div class="title" style="color:var(--gold1);">Precision</div>
+          <div class="sub">Warehouse + Fleet + Logistics • Inbound/Outbound • photo proof • audit trails</div>
         </div>
       </div>
       <div class="row">
@@ -233,102 +233,722 @@
       <div class="tab" data-tab="dashboard">Ops Dashboard</div>
     </div>
 
-    <!-- WAREHOUSE -->
-    <div id="tab-warehouse" class="tabpane">
-      <div class="grid">
-        <div class="card">
-          <h3 class="h">Warehouse: Save / Update a Tag</h3>
-          <div class="small">Pick aisle → rail → level, optional photo, then save.</div>
+<!-- WAREHOUSE -->
+<div id="tab-warehouse" class="tabpane">
+  <div class="tabs" style="margin-top:14px;">
+    <div class="tab active" data-wtab="inbound">Inbound</div>
+    <div class="tab" data-wtab="outbound">Outbound</div>
+    <div class="tab" data-wtab="orderlookup">Order Lookup</div>
+  </div>
 
-          <div class="divider"></div>
+  <!-- INBOUND -->
+  <div id="wtab-inbound" class="grid" style="margin-top:14px;">
+    <div class="card">
+      <h3 class="h">Inbound: Start / Continue an Order</h3>
+      <div class="small">Enter Order # → create pallet codes → scan items → assign pallet to a bay → close pallet.</div>
 
-          <label>Tag ID</label>
-          <div class="row">
-            <div style="flex:1; min-width:240px;">
-              <input id="tagId" placeholder="Type or paste the tag" />
-            </div>
-            <div style="flex:.5; min-width:160px;">
-              <button class="btn" id="scanBtn">📱 Scan</button>
-            </div>
-          </div>
-
-          <div class="row">
-            <div style="flex:1; min-width:220px;">
-              <label>Aisle</label>
-              <select id="aisleSel"></select>
-            </div>
-            <div style="flex:.7; min-width:160px;">
-              <label>Rail</label>
-              <select id="railSel"></select>
-            </div>
-            <div style="flex:.7; min-width:160px;">
-              <label>Level</label>
-              <select id="levelSel"></select>
-            </div>
-          </div>
-
-          <label>Status</label>
-          <select id="statusSel">
-            <option value="INBOUND">INBOUND</option>
-            <option value="OUTBOUND">OUTBOUND</option>
-          </select>
-
-          <label>Notes (optional)</label>
-          <textarea id="notes" placeholder="Anything helpful…"></textarea>
-
-          <label>Photo (optional)</label>
-          <input id="photoFile" type="file" accept="image/*" />
-
-          <div class="actions">
-            <button class="btn" id="saveBtn">Save</button>
-            <button class="btn" id="backBtn">Back (Undo last)</button>
-            <button class="btn" id="purgeBtn">Purge OUTBOUND &gt; 5 days</button>
-          </div>
-
-          <div id="saveMsg" class="small" style="margin-top:10px;"></div>
+      <label>Order #</label>
+      <div class="row">
+        <div style="flex:1;min-width:240px;">
+          <input id="inOrderNo" placeholder="ex: AEX-10392" />
         </div>
+        <button class="btn" id="inStartOrderBtn">Open Order</button>
+      </div>
 
-        <div class="card">
-          <h3 class="h">Warehouse Map (simple)</h3>
-          <div class="small">Pick aisle + rail fast.</div>
+      <div class="divider"></div>
 
-          <div class="actions" style="margin-top:10px;">
-            <button class="btn" id="addAislesBtn">Create missing aisles</button>
-            <button class="btn" id="centerSelectBtn">Sync highlight</button>
-          </div>
+      <div class="row">
+        <div style="flex:1;min-width:220px;">
+          <label>Active Pallet Code</label>
+          <input id="inPalletCode" placeholder="Generated pallet code..." readonly />
+        </div>
+        <button class="btn" id="inNewPalletBtn">+ New Pallet</button>
+        <button class="btn" id="inOpenPalletBtn">Open Pallet</button>
+        <button class="btn" id="inClosePalletBtn">Close Pallet</button>
+      </div>
 
-          <div id="aisleWarn" class="small" style="margin-top:10px;"></div>
+      <label>Scan Item (barcode)</label>
+      <div class="row">
+        <div style="flex:1;min-width:240px;">
+          <input id="inItemTag" placeholder="Scan / type item barcode" />
+        </div>
+        <button class="btn" id="inAddItemBtn">Add Item</button>
+      </div>
 
-          <div class="divider"></div>
+      <div class="divider"></div>
 
-          <div class="mapWrap">
-            <div class="mapHead">
-              <div class="row" style="gap:8px">
-                <span class="chip">Rails 1–21</span>
-                <span class="chip">Levels 1–5</span>
-              </div>
-              <span class="pill" id="mapPick">No selection</span>
-            </div>
-            <div id="mapHost"></div>
-          </div>
+      <h3 class="h" style="margin-top:0;">Assign Pallet Location (Bay)</h3>
+      <div class="small">Pick aisle → rail → level then Save Location for this pallet.</div>
 
-          <div class="divider"></div>
-
-          <h3 class="h" style="margin-top:0;">Search by Tag</h3>
-          <div class="small">Type a tag → pulls last locations + photos (if your tables exist).</div>
-
-          <label>Search</label>
-          <input id="searchInput" placeholder="Tag ID…" />
-
-          <div class="actions">
-            <button class="btn" id="searchBtn">Search</button>
-            <button class="btn" id="recentBtn">Recently Updated</button>
-          </div>
-
-          <div id="results" class="list"></div>
+      <div class="row">
+        <div style="flex:1; min-width:220px;">
+          <label>Aisle</label>
+          <select id="inAisleSel"></select>
+        </div>
+        <div style="flex:.7; min-width:160px;">
+          <label>Rail</label>
+          <select id="inRailSel"></select>
+        </div>
+        <div style="flex:.7; min-width:160px;">
+          <label>Level</label>
+          <select id="inLevelSel"></select>
         </div>
       </div>
+
+      <label>Notes (optional)</label>
+      <textarea id="inNotes" placeholder="optional…"></textarea>
+
+      <div class="actions">
+        <button class="btn" id="inSaveLocationBtn">Save Pallet Location</button>
+        <button class="btn" id="inBackBtn">Back (Undo last)</button>
+      </div>
+
+      <div id="inMsg" class="small" style="margin-top:10px;"></div>
     </div>
+
+    <div class="card">
+      <h3 class="h">Inbound: Order Summary</h3>
+      <div class="small">Pallets + status. Click a pallet to load it.</div>
+      <div id="inOrderSummary" class="list"></div>
+    </div>
+  </div>
+
+  <!-- OUTBOUND -->
+  <div id="wtab-outbound" class="grid" style="margin-top:14px; display:none;">
+    <div class="card">
+      <h3 class="h">Outbound: Load Trucks</h3>
+      <div class="small">Pick truck (1–9) → assign pallets → scan items. Shrinkwrap pallets can be cleared with 1 scan.</div>
+
+      <label>Order #</label>
+      <div class="row">
+        <div style="flex:1;min-width:240px;">
+          <input id="outOrderNo" placeholder="ex: AEX-10392" />
+        </div>
+        <button class="btn" id="outLoadOrderBtn">Load Order</button>
+      </div>
+
+      <div class="row">
+        <div style="flex:1;min-width:220px;">
+          <label>Truck</label>
+          <select id="truckSel">
+            <option value="1">Truck 1</option><option value="2">Truck 2</option><option value="3">Truck 3</option>
+            <option value="4">Truck 4</option><option value="5">Truck 5</option><option value="6">Truck 6</option>
+            <option value="7">Truck 7</option><option value="8">Truck 8</option><option value="9">Truck 9</option>
+          </select>
+        </div>
+        <button class="btn" id="truckMarkLoadedBtn">Mark Truck Loaded</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <label>Assign Pallet Code to Truck</label>
+      <div class="row">
+        <div style="flex:1;min-width:240px;">
+          <input id="outPalletCode" placeholder="Scan / type pallet code" />
+        </div>
+        <button class="btn" id="outAssignPalletBtn">Assign Pallet</button>
+      </div>
+
+      <div class="row" style="margin-top:8px;">
+        <label style="margin:0;">Shrinkwrap / Sealed pallet (1 scan clears)</label>
+        <select id="outShrinkwrap">
+          <option value="NO">NO</option>
+          <option value="YES">YES</option>
+        </select>
+      </div>
+
+      <label style="margin-top:10px;">Scan Item (barcode)</label>
+      <div class="row">
+        <div style="flex:1;min-width:240px;">
+          <input id="outItemTag" placeholder="Scan / type item barcode" />
+        </div>
+        <button class="btn" id="outScanItemBtn">Scan Item</button>
+        <button class="btn" id="outClosePalletBtn">Close Pallet</button>
+      </div>
+
+      <div id="outMsg" class="small" style="margin-top:10px;"></div>
+      <div class="divider"></div>
+
+      <h3 class="h" style="margin-top:0;">Truck Status</h3>
+      <div id="truckStatus" class="list"></div>
+    </div>
+
+    <div class="card">
+      <h3 class="h">Outbound: Order Pallets</h3>
+      <div class="small">Red = incomplete (some item not cleared outbound). Green = complete.</div>
+      <div id="outPalletList" class="list"></div>
+    </div>
+  </div>
+
+  <!-- ORDER LOOKUP -->
+  <div id="wtab-orderlookup" class="grid" style="margin-top:14px; display:none;">
+    <div class="card">
+      <h3 class="h">Order Lookup</h3>
+      <div class="small">Enter order # to see every pallet and its current bay location.</div>
+
+      <label>Order #</label>
+      <div class="row">
+        <div style="flex:1;min-width:240px;">
+          <input id="lkOrderNo" placeholder="ex: AEX-10392" />
+        </div>
+        <button class="btn" id="lkSearchBtn">Search</button>
+      </div>
+
+      <div id="lkMsg" class="small" style="margin-top:10px;"></div>
+      <div class="divider"></div>
+
+      <div id="lkResults" class="list"></div>
+    </div>
+
+    <div class="card">
+      <h3 class="h">Warehouse Map (simple)</h3>
+      <div class="small">Same map behavior, just for quick context.</div>
+      <div class="mapWrap">
+        <div class="mapHead">
+          <div class="row" style="gap:8px">
+            <span class="chip">Rails 1–21</span>
+            <span class="chip">Levels 1–5</span>
+          </div>
+          <span class="pill" id="mapPick2">No selection</span>
+        </div>
+        <div id="mapHost2"></div>
+      </div>
+    </div>
+  </div>
+</div>
+/** ================================
+ *  Warehouse v2: Inbound / Outbound
+ *  Tables expected:
+ *   - wh_orders(order_no PK, status, created_at)
+ *   - wh_pallets(id PK, order_no FK, pallet_code UNIQUE, status, is_open, is_shrinkwrap, created_at, closed_at)
+ *   - wh_pallet_items(id PK, pallet_id FK, item_tag, created_at)
+ *   - wh_outbound_scans(id PK, pallet_id FK, item_tag NULL ok, scanned_at, truck_no)
+ *   - wh_truck_loads(id PK, order_no, truck_no, status, loaded_at)
+ * ================================ */
+
+const WH = {
+  // inbound
+  inOrderNo: document.getElementById("inOrderNo"),
+  inStartOrderBtn: document.getElementById("inStartOrderBtn"),
+  inPalletCode: document.getElementById("inPalletCode"),
+  inNewPalletBtn: document.getElementById("inNewPalletBtn"),
+  inOpenPalletBtn: document.getElementById("inOpenPalletBtn"),
+  inClosePalletBtn: document.getElementById("inClosePalletBtn"),
+  inItemTag: document.getElementById("inItemTag"),
+  inAddItemBtn: document.getElementById("inAddItemBtn"),
+  inAisleSel: document.getElementById("inAisleSel"),
+  inRailSel: document.getElementById("inRailSel"),
+  inLevelSel: document.getElementById("inLevelSel"),
+  inNotes: document.getElementById("inNotes"),
+  inSaveLocationBtn: document.getElementById("inSaveLocationBtn"),
+  inBackBtn: document.getElementById("inBackBtn"),
+  inMsg: document.getElementById("inMsg"),
+  inOrderSummary: document.getElementById("inOrderSummary"),
+
+  // outbound
+  outOrderNo: document.getElementById("outOrderNo"),
+  outLoadOrderBtn: document.getElementById("outLoadOrderBtn"),
+  truckSel: document.getElementById("truckSel"),
+  truckMarkLoadedBtn: document.getElementById("truckMarkLoadedBtn"),
+  outPalletCode: document.getElementById("outPalletCode"),
+  outAssignPalletBtn: document.getElementById("outAssignPalletBtn"),
+  outShrinkwrap: document.getElementById("outShrinkwrap"),
+  outItemTag: document.getElementById("outItemTag"),
+  outScanItemBtn: document.getElementById("outScanItemBtn"),
+  outClosePalletBtn: document.getElementById("outClosePalletBtn"),
+  outMsg: document.getElementById("outMsg"),
+  truckStatus: document.getElementById("truckStatus"),
+  outPalletList: document.getElementById("outPalletList"),
+
+  // lookup
+  lkOrderNo: document.getElementById("lkOrderNo"),
+  lkSearchBtn: document.getElementById("lkSearchBtn"),
+  lkMsg: document.getElementById("lkMsg"),
+  lkResults: document.getElementById("lkResults"),
+
+  // mini map copies
+  mapHost2: document.getElementById("mapHost2"),
+  mapPick2: document.getElementById("mapPick2"),
+};
+
+let whActiveOrder = null;
+let whActivePallet = null; // {id, pallet_code, order_no, status, is_open, is_shrinkwrap}
+let whSelectionHistory = []; // for inbound location undo
+
+// Escape for putting strings inside onclick='...'
+function whEscAttr(s){
+  return String(s ?? "").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+}
+
+function whPushHistory(){
+  whSelectionHistory.push({
+    aisle: WH.inAisleSel.value,
+    rail: WH.inRailSel.value,
+    level: WH.inLevelSel.value
+  });
+  if(whSelectionHistory.length > 25) whSelectionHistory.shift();
+}
+function whPopHistory(){
+  const prev = whSelectionHistory.pop();
+  if(!prev) return;
+  WH.inAisleSel.value = prev.aisle;
+  WH.inRailSel.value = prev.rail;
+  WH.inLevelSel.value = prev.level;
+}
+
+function whPalletCode(orderNo, seq){
+  const n = String(seq).padStart(3,"0");
+  return `${orderNo}-P${n}`;
+}
+
+async function whEnsureOrder(orderNo){
+  orderNo = safe(orderNo).toUpperCase();
+  if(!orderNo) throw new Error("Order # required.");
+
+  const { error } = await sb
+    .from("wh_orders")
+    .upsert([{ order_no: orderNo, status:"OPEN" }], { onConflict:"order_no" });
+
+  if(error) throw error;
+  whActiveOrder = orderNo;
+  return orderNo;
+}
+
+async function whGetNextPalletSeq(orderNo){
+  const { data, error } = await sb.from("wh_pallets").select("id").eq("order_no", orderNo);
+  if(error) throw error;
+  return (data?.length || 0) + 1;
+}
+
+async function whCreatePallet(orderNo){
+  const seq = await whGetNextPalletSeq(orderNo);
+  const code = whPalletCode(orderNo, seq);
+
+  const { data, error } = await sb.from("wh_pallets").insert([{
+    order_no: orderNo,
+    pallet_code: code,
+    status: "INBOUND",
+    is_open: true,
+    is_shrinkwrap: false
+  }]).select("*").single();
+
+  if(error) throw error;
+
+  whActivePallet = data;
+  WH.inPalletCode.value = data.pallet_code;
+  return data;
+}
+
+async function whLoadPalletByCode(palletCode){
+  palletCode = safe(palletCode).toUpperCase();
+  const { data, error } = await sb
+    .from("wh_pallets")
+    .select("*")
+    .eq("pallet_code", palletCode)
+    .maybeSingle();
+
+  if(error) throw error;
+  if(!data) throw new Error("Pallet not found.");
+
+  whActivePallet = data;
+  WH.inPalletCode.value = data.pallet_code;
+  return data;
+}
+
+async function whSetPalletOpen(isOpen){
+  if(!whActivePallet?.id) throw new Error("No active pallet.");
+
+  const { data, error } = await sb.from("wh_pallets")
+    .update({
+      is_open: !!isOpen,
+      closed_at: isOpen ? null : new Date().toISOString()
+    })
+    .eq("id", whActivePallet.id)
+    .select("*")
+    .single();
+
+  if(error) throw error;
+  whActivePallet = data;
+}
+
+async function whInboundAddItem(itemTag){
+  if(!whActivePallet?.id) throw new Error("Create/load a pallet first.");
+  if(!whActivePallet.is_open) throw new Error("Pallet is closed. Open it first.");
+
+  itemTag = safe(itemTag);
+  if(!itemTag) throw new Error("Item tag required.");
+
+  const { error } = await sb
+    .from("wh_pallet_items")
+    .insert([{ pallet_id: whActivePallet.id, item_tag: itemTag }]);
+
+  if(error) throw error;
+}
+
+async function whSavePalletLocation(){
+  if(!ensureEdit("warehouse", WH.inMsg, "No permission to edit warehouse.")) return;
+  if(!whActivePallet?.pallet_code) return msg(WH.inMsg, "Create/load a pallet first.");
+
+  const aisle = safe(WH.inAisleSel.value);
+  const rail  = parseInt(WH.inRailSel.value, 10);
+  const level = parseInt(WH.inLevelSel.value, 10);
+
+  if(!aisle) return msg(WH.inMsg, "Pick an aisle.");
+  if(!(rail>=1 && rail<=RAIL_MAX)) return msg(WH.inMsg, "Rail out of range.");
+  if(!(level>=1 && level<=LEVEL_MAX)) return msg(WH.inMsg, "Level out of range.");
+
+  const { error } = await sb.from("pallet_tags").insert([{
+    tag_id: whActivePallet.pallet_code,
+    aisle_name: aisle,
+    rail,
+    level,
+    status: "INBOUND",
+    notes: safe(WH.inNotes.value) || null
+  }]);
+
+  if(error) return msg(WH.inMsg, error.message);
+
+  msg(WH.inMsg, "Pallet location saved ✅", true);
+  WH.inNotes.value = "";
+  await whRenderInboundSummary();
+}
+
+async function whLatestPalletLocation(palletCode){
+  const { data, error } = await sb
+    .from("pallet_tags")
+    .select("aisle_name, rail, level, updated_at, created_at")
+    .eq("tag_id", palletCode)
+    .order("created_at", { ascending:false })
+    .limit(1);
+
+  if(error) return null;
+  return data?.[0] || null;
+}
+
+async function whRenderInboundSummary(){
+  if(!whActiveOrder) return;
+
+  const { data, error } = await sb.from("wh_pallets")
+    .select("id, pallet_code, status, is_open, is_shrinkwrap, created_at, closed_at")
+    .eq("order_no", whActiveOrder)
+    .order("created_at", { ascending:true });
+
+  if(error) return;
+
+  const rows = data || [];
+  const cards = [];
+
+  for(const p of rows){
+    const loc = await whLatestPalletLocation(p.pallet_code);
+    const locText = loc ? `${loc.aisle_name} • Rail ${loc.rail} • Level ${loc.level}` : "No bay saved";
+    const codeEsc = whEscAttr(p.pallet_code);
+
+    cards.push(`
+      <div class="item">
+        <div class="itemTop">
+          <div>
+            <div class="tag">${p.pallet_code}</div>
+            <div class="meta">
+              Status: <b>${p.status}</b> •
+              ${p.is_open ? `<span class="ok"><b>OPEN</b></span>` : `<span class="warn"><b>CLOSED</b></span>`}
+            </div>
+            <div class="meta" style="margin-top:6px;">Location: <b>${locText}</b></div>
+          </div>
+          <div class="actions">
+            <button class="btn" onclick="window.__whLoadPallet('${codeEsc}')">Load</button>
+          </div>
+        </div>
+      </div>
+    `);
+  }
+
+  WH.inOrderSummary.innerHTML = cards.length
+    ? cards.join("")
+    : `<div class="item"><div class="meta">No pallets yet.</div></div>`;
+}
+
+window.__whLoadPallet = async (code)=>{
+  try{
+    await whLoadPalletByCode(code);
+    msg(WH.inMsg, `Loaded pallet ${code} ✅`, true);
+  }catch(e){
+    msg(WH.inMsg, e.message || "Load failed.");
+  }
+};
+
+/** ---------- OUTBOUND ---------- **/
+
+async function whOutboundLoadOrder(orderNo){
+  orderNo = await whEnsureOrder(orderNo);
+
+  const { data, error } = await sb
+    .from("wh_pallets")
+    .select("*")
+    .eq("order_no", orderNo)
+    .order("created_at", { ascending:true });
+
+  if(error) throw error;
+
+  await whRenderOutbound(orderNo, data || []);
+}
+
+async function whPalletCompleteness(pallet){
+  if(pallet.is_shrinkwrap){
+    const { data } = await sb
+      .from("wh_outbound_scans")
+      .select("id")
+      .eq("pallet_id", pallet.id)
+      .limit(1);
+
+    return (data?.length > 0);
+  }
+
+  const [itemsRes, scansRes] = await Promise.all([
+    sb.from("wh_pallet_items").select("item_tag").eq("pallet_id", pallet.id).limit(5000),
+    sb.from("wh_outbound_scans").select("item_tag").eq("pallet_id", pallet.id).limit(5000),
+  ]);
+
+  const items = (itemsRes.data || []).map(x=>safe(x.item_tag));
+  const scans = new Set((scansRes.data || []).map(x=>safe(x.item_tag)));
+
+  if(!items.length) return false;
+  for(const it of items){
+    if(!scans.has(it)) return false;
+  }
+  return true;
+}
+
+async function whRenderOutbound(orderNo, pallets){
+  const { data: loads } = await sb
+    .from("wh_truck_loads")
+    .select("*")
+    .eq("order_no", orderNo)
+    .order("truck_no", { ascending:true });
+
+  const loadMap = new Map((loads||[]).map(x=>[String(x.truck_no), x]));
+
+  WH.truckStatus.innerHTML = Array.from({length:9}).map((_,i)=>{
+    const t = String(i+1);
+    const st = loadMap.get(t)?.status || "OPEN";
+    const cls = (st==="LOADED") ? "ok" : "warn";
+    return `<div class="item"><div class="itemTop"><div><div class="tag">Truck ${t}</div><div class="meta">Status: <b class="${cls}">${st}</b></div></div></div></div>`;
+  }).join("");
+
+  const outCards = [];
+
+  for(const p of pallets){
+    const loc = await whLatestPalletLocation(p.pallet_code);
+    const locText = loc ? `${loc.aisle_name} • Rail ${loc.rail} • Level ${loc.level}` : "No bay saved";
+
+    const complete = await whPalletCompleteness(p).catch(()=>false);
+    const border = complete ? "rgba(56,210,122,.45)" : "rgba(255,89,100,.45)";
+    const badge = complete
+      ? `<span class="pill"><span class="ok">●</span> Complete</span>`
+      : `<span class="pill"><span class="bad">●</span> Incomplete</span>`;
+
+    const codeEsc = whEscAttr(p.pallet_code);
+
+    outCards.push(`
+      <div class="item" style="border-color:${border};">
+        <div class="itemTop">
+          <div>
+            <div class="tag">${p.pallet_code} ${badge}</div>
+            <div class="meta">Location: <b>${locText}</b></div>
+            <div class="meta" style="margin-top:6px;">
+              Shrinkwrap: <b>${p.is_shrinkwrap ? "YES" : "NO"}</b> •
+              Pallet: ${p.is_open ? "OPEN" : "CLOSED"}
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn" onclick="window.__whOutPick('${codeEsc}')">Use</button>
+          </div>
+        </div>
+      </div>
+    `);
+  }
+
+  WH.outPalletList.innerHTML = outCards.length
+    ? outCards.join("")
+    : `<div class="item"><div class="meta">No pallets for this order.</div></div>`;
+}
+
+window.__whOutPick = async (code)=>{
+  try{
+    const p = await whLoadPalletByCode(code);
+    WH.outPalletCode.value = p.pallet_code;
+    WH.outShrinkwrap.value = p.is_shrinkwrap ? "YES" : "NO";
+    msg(WH.outMsg, `Selected ${p.pallet_code} ✅`, true);
+  }catch(e){
+    msg(WH.outMsg, e.message || "Pick failed.");
+  }
+};
+
+async function whOutboundAssignPalletToTruck(){
+  if(!whActiveOrder) throw new Error("Load an order first.");
+
+  const truckNo = parseInt(WH.truckSel.value, 10);
+  const palletCode = safe(WH.outPalletCode.value).toUpperCase();
+  if(!palletCode) throw new Error("Pallet code required.");
+
+  const pallet = await whLoadPalletByCode(palletCode);
+
+  const isShrink = (WH.outShrinkwrap.value === "YES");
+  await sb.from("wh_pallets")
+    .update({ is_shrinkwrap: isShrink, status:"OUTBOUND" })
+    .eq("id", pallet.id);
+
+  await sb.from("wh_truck_loads").upsert([{
+    order_no: whActiveOrder,
+    truck_no: truckNo,
+    status: "OPEN"
+  }], { onConflict:"order_no,truck_no" });
+
+  msg(WH.outMsg, `Assigned ${palletCode} → Truck ${truckNo} ✅`, true);
+}
+
+async function whOutboundScanItem(){
+  if(!whActiveOrder) throw new Error("Load an order first.");
+
+  const truckNo = parseInt(WH.truckSel.value, 10);
+  const palletCode = safe(WH.outPalletCode.value).toUpperCase();
+  if(!palletCode) throw new Error("Select a pallet.");
+
+  const pallet = await whLoadPalletByCode(palletCode);
+  const isShrink = (WH.outShrinkwrap.value === "YES");
+
+  let itemTag = safe(WH.outItemTag.value);
+
+  if(isShrink){
+    if(!itemTag) itemTag = "SHRINKWRAP";
+    const { error } = await sb.from("wh_outbound_scans").insert([{
+      pallet_id: pallet.id,
+      item_tag: itemTag,
+      truck_no: truckNo
+    }]);
+    if(error) throw error;
+
+    WH.outItemTag.value = "";
+    msg(WH.outMsg, `Shrinkwrap cleared for ${palletCode} ✅`, true);
+    return;
+  }
+
+  if(!itemTag) throw new Error("Scan item tag.");
+
+  const { error } = await sb.from("wh_outbound_scans").insert([{
+    pallet_id: pallet.id,
+    item_tag: itemTag,
+    truck_no: truckNo
+  }]);
+  if(error) throw error;
+
+  WH.outItemTag.value = "";
+  msg(WH.outMsg, `Scanned ${itemTag} ✅`, true);
+}
+
+async function whOutboundClosePallet(){
+  const palletCode = safe(WH.outPalletCode.value).toUpperCase();
+  if(!palletCode) throw new Error("Select a pallet.");
+
+  const pallet = await whLoadPalletByCode(palletCode);
+
+  const complete = await whPalletCompleteness(pallet);
+  if(!complete) throw new Error("Pallet incomplete (missing outbound scans).");
+
+  await sb.from("wh_pallets")
+    .update({ is_open:false, closed_at:new Date().toISOString(), status:"OUTBOUND" })
+    .eq("id", pallet.id);
+
+  msg(WH.outMsg, `Closed pallet ${palletCode} ✅`, true);
+}
+
+async function whTruckMarkLoaded(){
+  if(!whActiveOrder) throw new Error("Load an order first.");
+  const truckNo = parseInt(WH.truckSel.value, 10);
+
+  const { data: palletIdsRes, error } = await sb
+    .from("wh_outbound_scans")
+    .select("pallet_id")
+    .eq("truck_no", truckNo)
+    .limit(5000);
+
+  if(error) throw error;
+
+  const palletIds = Array.from(new Set((palletIdsRes||[]).map(x=>x.pallet_id))).filter(Boolean);
+  if(!palletIds.length) throw new Error("No pallets scanned for this truck yet.");
+
+  const { data: pallets, error: pErr } = await sb.from("wh_pallets").select("*").in("id", palletIds);
+  if(pErr) throw pErr;
+
+  for(const p of (pallets||[])){
+    const ok = await whPalletCompleteness(p);
+    if(!ok) throw new Error(`Truck ${truckNo} blocked: ${p.pallet_code} incomplete.`);
+  }
+
+  await sb.from("wh_truck_loads").upsert([{
+    order_no: whActiveOrder,
+    truck_no: truckNo,
+    status: "LOADED",
+    loaded_at: new Date().toISOString()
+  }], { onConflict:"order_no,truck_no" });
+
+  msg(WH.outMsg, `Truck ${truckNo} marked LOADED ✅`, true);
+}
+
+/** ---------- LOOKUP ---------- **/
+
+async function whLookupOrder(orderNo){
+  orderNo = safe(orderNo).toUpperCase();
+  if(!orderNo) return msg(WH.lkMsg, "Order # required.");
+
+  WH.lkResults.innerHTML = "";
+  WH.lkMsg.textContent = "Loading…";
+
+  const { data: pallets, error } = await sb.from("wh_pallets")
+    .select("id, pallet_code, status, is_open, is_shrinkwrap, created_at, closed_at")
+    .eq("order_no", orderNo)
+    .order("created_at", { ascending:true });
+
+  if(error) return msg(WH.lkMsg, error.message);
+
+  const cards = [];
+
+  for(const p of (pallets || [])){
+    const loc = await whLatestPalletLocation(p.pallet_code);
+    const locText = loc ? `${loc.aisle_name} • Rail ${loc.rail} • Level ${loc.level}` : "No bay saved";
+
+    const complete = await whPalletCompleteness(p).catch(()=>false);
+    const borderColor = complete ? "rgba(56,210,122,.45)" : "rgba(255,89,100,.45)";
+
+   cards.push(`
+<div class="item" style="border-color:${borderColor};">
+  <div class="itemTop">
+    <div>
+      <div class="tag">
+        ${p.pallet_code}
+        ${
+          complete
+          ? `<span class="pill"><span class="ok">●</span> Complete</span>`
+          : `<span class="pill"><span class="bad">●</span> Incomplete</span>`
+        }
+      </div>
+
+      <div class="meta">Location: <b>${locText}</b></div>
+
+      <div class="meta" style="margin-top:6px;">
+        Status: <b>${p.status}</b> • ${p.is_open ? "OPEN" : "CLOSED"} •
+        Shrinkwrap: ${p.is_shrinkwrap ? "YES" : "NO"}
+      </div>
+    </div>
+  </div>
+</div>
+`);
+
+  WH.lkResults.innerHTML = cards.length
+    ? cards.join("")
+    : `<div class="item"><div class="meta">No pallets found for this order.</div></div>`;
+
+  WH.lkMsg.textContent = "";
+}
 
     <!-- FLEET -->
     <div id="tab-fleet" class="tabpane" style="display:none;">
