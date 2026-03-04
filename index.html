@@ -31,9 +31,6 @@
       --warn:#ffcc66;
       --info:#7fb6ff;
       --pad:16px;
-      /* MODULE containers */
-.module{display:none}
-.module.active{display:block}
     }
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -47,13 +44,14 @@
         linear-gradient(180deg, #07090c 0%, #050607 100%);
       overflow-x:hidden;
     }
+
+    /* MODULE containers */
+    .module{display:none}
+    .module.active{display:block}
+
     .wrap{max-width:1200px;margin:0 auto;padding:24px}
-    .topbar{
-      display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px
-    }
-    .brand{
-      display:flex;align-items:center;gap:12px
-    }
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
+    .brand{display:flex;align-items:center;gap:12px}
     .logo{
       width:44px;height:44px;border-radius:14px;
       background:linear-gradient(145deg, rgba(246,213,122,.25), rgba(202,162,77,.10));
@@ -70,9 +68,7 @@
     h1{font-size:18px;margin:0}
     .sub{color:var(--muted);font-size:12px;margin-top:2px}
 
-    .tabs{
-      display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end
-    }
+    .tabs{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
     .tabbtn{
       appearance:none;border:1px solid var(--stroke);
       background:rgba(255,255,255,.04);
@@ -88,12 +84,7 @@
       border-color:rgba(246,213,122,.45);
     }
 
-    .grid{
-      display:grid;
-      grid-template-columns:1.25fr .9fr;
-      gap:16px;
-      align-items:start;
-    }
+    .grid{display:grid;grid-template-columns:1.25fr .9fr;gap:16px;align-items:start}
     @media (max-width: 980px){
       .grid{grid-template-columns:1fr}
       .tabs{justify-content:flex-start}
@@ -106,11 +97,7 @@
       box-shadow:var(--shadow);
       padding:var(--pad);
     }
-    .card h2{
-      margin:0 0 10px 0;
-      font-size:18px;
-      letter-spacing:.2px;
-    }
+    .card h2{margin:0 0 10px 0;font-size:18px;letter-spacing:.2px}
     .hint{color:var(--muted);font-size:13px;margin:0 0 14px 0}
     .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .field{display:flex;flex-direction:column;gap:6px;flex:1;min-width:220px}
@@ -160,10 +147,7 @@
     .status-bad{color:var(--bad)}
     .status-warn{color:var(--warn)}
     .status-info{color:var(--info)}
-    .list{
-      display:flex;flex-direction:column;gap:10px;
-      max-height:520px;overflow:auto;padding-right:4px
-    }
+    .list{display:flex;flex-direction:column;gap:10px;max-height:520px;overflow:auto;padding-right:4px}
     .item{
       border:1px solid rgba(255,255,255,.10);
       background:rgba(0,0,0,.20);
@@ -195,11 +179,7 @@
       min-height:320px;
     }
     video{width:100%;height:320px;object-fit:cover;display:block}
-    .camOverlay{
-      position:absolute;inset:0;
-      pointer-events:none;
-      display:flex;align-items:center;justify-content:center;
-    }
+    .camOverlay{position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center}
     .reticle{
       width:70%;
       max-width:520px;
@@ -229,6 +209,7 @@
       padding:10px 12px;
       font-size:13px;color:var(--muted);
       display:flex;gap:10px;align-items:center;justify-content:space-between;
+      flex-wrap:wrap;
     }
     .toast strong{color:var(--text);font-weight:600}
     .right{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
@@ -237,7 +218,7 @@
     .view{display:none}
     .view.active{display:block}
 
-    /* PIN overlay (keeps your “Enter PIN” style) */
+    /* PIN overlay */
     .pinOverlay{
       position:fixed; inset:0;
       background:rgba(0,0,0,.55);
@@ -257,10 +238,7 @@
       box-shadow:0 24px 80px rgba(0,0,0,.55);
       padding:18px;
     }
-    .pinHead{
-      display:flex; justify-content:space-between; align-items:flex-start; gap:12px;
-      margin-bottom:10px;
-    }
+    .pinHead{display:flex; justify-content:space-between; align-items:flex-start; gap:12px;margin-bottom:10px}
     .pinTitle{font-size:22px;font-weight:750;margin:0}
     .pinSub{margin-top:6px;color:var(--muted);font-size:13px}
     .pinTag{
@@ -271,9 +249,19 @@
       color:var(--muted);font-size:12px;
       white-space:nowrap;
     }
-    .pinActions{display:flex;gap:10px;align-items:center;margin-top:12px}
+    .pinActions{display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap}
     .pinErr{margin-top:10px;color:var(--bad);font-size:13px;display:none}
     .topRightPills{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
+    .mini{
+      font-size:11px;
+      color:var(--muted);
+      line-height:1.35;
+    }
+    .kpiRow{display:flex;gap:10px;flex-wrap:wrap}
+    .kpi{flex:1;min-width:180px;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.18);border-radius:16px;padding:12px}
+    .kpi .t{font-size:11px;color:var(--muted)}
+    .kpi .v{font-size:16px;font-weight:750;margin-top:4px}
   </style>
 </head>
 
@@ -323,320 +311,383 @@
     </div>
 
     <!-- MODULE TABS (TOP ROW) -->
-<div class="tabs" id="moduleTabs">
-  <button class="tabbtn active" data-module="warehouse">Warehouse</button>
-  <button class="tabbtn" data-module="fleet">Fleet</button>
-  <button class="tabbtn" data-module="logistics">Logistics</button>
-  <button class="tabbtn" data-module="billing">Billing</button>
-  <button class="tabbtn" data-module="ops">Ops Dashboard</button>
-</div>
+    <div class="tabs" id="moduleTabs">
+      <button class="tabbtn active" data-module="warehouse">Warehouse</button>
+      <button class="tabbtn" data-module="fleet">Fleet</button>
+      <button class="tabbtn" data-module="logistics">Logistics</button>
+      <button class="tabbtn" data-module="billing">Billing</button>
+      <button class="tabbtn" data-module="ops">Ops Dashboard</button>
+    </div>
 
-<!-- SUB TABS (2ND ROW) -->
-<div class="tabs" id="subTabs" style="margin-top:10px; justify-content:flex-start">
-  <button class="tabbtn active" data-view="inbound">Inbound</button>
-  <button class="tabbtn" data-view="outbound">Outbound</button>
-  <button class="tabbtn" data-view="lookup">Order Lookup</button>
-  <button class="tabbtn" data-view="camera">Camera</button>
-</div>
+    <!-- SUB TABS (2ND ROW) -->
+    <div class="tabs" id="subTabs" style="margin-top:10px; justify-content:flex-start">
+      <button class="tabbtn active" data-view="inbound">Inbound</button>
+      <button class="tabbtn" data-view="outbound">Outbound</button>
+      <button class="tabbtn" data-view="lookup">Order Lookup</button>
+      <button class="tabbtn" data-view="camera">Camera</button>
+    </div>
 
-    <!-- INBOUND VIEW -->
-    <section class="view active" id="view-inbound">
-      <div class="grid">
-        <div class="card">
-          <h2>Inbound: Start / Continue an Order</h2>
-          <p class="hint">Enter Order # → create pallet codes → scan items → assign pallet to a bay → close pallet.</p>
+    <!-- =========================
+         MODULE: WAREHOUSE
+         ========================= -->
+    <section class="module active" id="module-warehouse">
 
-          <div class="row">
-            <div class="field">
-              <label>Order #</label>
-              <input id="in_order" placeholder="ex: AEX-10392" />
-            </div>
-            <button class="btn gold" id="btnOpenOrder">Open Order</button>
-          </div>
+      <!-- INBOUND VIEW -->
+      <section class="view active" id="view-inbound">
+        <div class="grid">
+          <div class="card">
+            <h2>Inbound: Start / Continue an Order</h2>
+            <p class="hint">Enter Order # → create pallet codes → scan items (Zebra TC22 / HID / camera) → assign pallet to a bay → close pallet.</p>
 
-          <div class="sep"></div>
-
-          <div class="row">
-            <div class="field">
-              <label>Active Pallet Code</label>
-              <input id="in_pallet" class="mono" placeholder="Generated pallet code..." readonly />
-            </div>
-            <div class="right">
-              <button class="btn" id="btnNewPallet">+ New Pallet</button>
-              <button class="btn" id="btnOpenPallet">Open Pallet</button>
-              <button class="btn bad" id="btnClosePallet">Close Pallet</button>
-            </div>
-          </div>
-
-          <div class="row" style="margin-top:12px">
-            <div class="field" style="flex:1.6">
-              <label>Scan Item (barcode)</label>
-              <input id="in_item" class="mono" placeholder="Scan / type item barcode" />
-            </div>
-            <button class="btn gold" id="btnAddItem">Add Item</button>
-          </div>
-
-          <div class="sep"></div>
-
-          <h2 style="margin-top:0">Assign Pallet Location (Bay)</h2>
-          <p class="hint">Pick aisle → rail → level then Save Location for this pallet.</p>
-
-          <div class="row">
-            <div class="field">
-              <label>Aisle</label>
-              <select id="selAisle"></select>
-            </div>
-            <div class="field">
-              <label>Rail</label>
-              <select id="selRail"></select>
-            </div>
-            <div class="field">
-              <label>Level</label>
-              <select id="selLevel"></select>
-            </div>
-          </div>
-
-          <div class="field" style="margin-top:12px">
-            <label>Notes (optional)</label>
-            <textarea id="in_notes" placeholder="optional..."></textarea>
-          </div>
-
-          <div class="row" style="margin-top:12px">
-            <button class="btn gold" id="btnSaveLoc">Save Pallet Location</button>
-            <button class="btn" id="btnUndo">Back (Undo last)</button>
-            <span class="pill"><span id="pillStatus" class="status-info">●</span> <span id="pillText">Ready.</span></span>
-          </div>
-
-          <div class="toast" id="barcodeCard" style="display:none">
-            <div>
-              <strong>Pallet Label Ready</strong>
-              <div class="small">Print the barcode label for this pallet.</div>
-            </div>
-            <div class="right">
-              <button class="btn" id="btnPrintLabel">Print Label</button>
-              <button class="btn" id="btnHideLabel">Hide</button>
-            </div>
-          </div>
-
-          <div style="display:none">
-            <svg id="svgBarcode"></svg>
-          </div>
-        </div>
-
-        <div class="card">
-          <h2>Inbound: Order Summary</h2>
-          <p class="hint">Pallets + status. Click a pallet to load it.</p>
-          <div class="list" id="in_summary"></div>
-        </div>
-      </div>
-      <!-- MODULE: WAREHOUSE -->
-<section class="module active" id="module-warehouse">
-
-  <!-- INBOUND VIEW -->
-  <section class="view active" id="view-inbound">
-    ...
-  </section>
-
-  <!-- OUTBOUND VIEW -->
-  <section class="view" id="view-outbound">
-    ...
-  </section>
-
-  <!-- LOOKUP VIEW -->
-  <section class="view" id="view-lookup">
-    ...
-  </section>
-
-  <!-- CAMERA VIEW -->
-  <section class="view" id="view-camera">
-    ...
-  </section>
-
-</section>
-<!-- MODULE: FLEET -->
-<section class="module" id="module-fleet">
-  <div class="card">
-    <h2>Fleet</h2>
-    <p class="hint">This module is back in the layout. We can reconnect your Fleet data next.</p>
-  </div>
-</section>
-
-<!-- MODULE: LOGISTICS -->
-<section class="module" id="module-logistics">
-  <div class="card">
-    <h2>Logistics</h2>
-    <p class="hint">This module is back in the layout. We can reconnect your Logistics screens next.</p>
-  </div>
-</section>
-
-<!-- MODULE: BILLING -->
-<section class="module" id="module-billing">
-  <div class="card">
-    <h2>Billing</h2>
-    <p class="hint">This module is back in the layout. We can reconnect your Billing screens next.</p>
-  </div>
-</section>
-
-<!-- MODULE: OPS DASHBOARD -->
-<section class="module" id="module-ops">
-  <div class="card">
-    <h2>Ops Dashboard</h2>
-    <p class="hint">This module is back in the layout. We can rebuild KPIs + summaries here.</p>
-  </div>
-</section>
-
-    </section>
-
-    <!-- OUTBOUND VIEW -->
-    <section class="view" id="view-outbound">
-      <div class="grid">
-        <div class="card">
-          <h2>Outbound</h2>
-          <p class="hint">Scan a pallet or item to confirm pull + stage location.</p>
-
-          <div class="row">
-            <div class="field">
-              <label>Scan Pallet / Item</label>
-              <input id="out_scan" class="mono" placeholder="Scan pallet code or item barcode" />
-            </div>
-            <button class="btn gold" id="btnOutFind">Find</button>
-          </div>
-
-          <div class="row" style="margin-top:12px">
-            <div class="field">
-              <label>Stage / Door (optional)</label>
-              <input id="out_stage" placeholder="ex: Door 2 / Stage A" />
-            </div>
-            <button class="btn" id="btnOutMarkPulled">Mark Pulled</button>
-          </div>
-
-          <div class="sep"></div>
-
-          <div class="pill">
-            <span id="outStatusDot" class="status-info">●</span>
-            <span id="outStatusText">Waiting for scan.</span>
-          </div>
-
-          <div class="sep"></div>
-
-          <div id="outDetails" class="item" style="display:none;cursor:default">
-            <div class="top">
-              <div class="mono big" id="outCode"></div>
-              <span class="badge" id="outBadge"></span>
-            </div>
-            <div class="small" id="outMeta"></div>
-            <div class="sep"></div>
-            <div class="small" id="outItems"></div>
-          </div>
-        </div>
-
-        <div class="card">
-          <h2>Recently Pulled</h2>
-          <p class="hint">Last 25 outbound confirmations (local).</p>
-          <div class="list" id="outLog"></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- LOOKUP VIEW -->
-    <section class="view" id="view-lookup">
-      <div class="grid">
-        <div class="card">
-          <h2>Order Lookup</h2>
-          <p class="hint">Search orders, pallets, or items (local store).</p>
-
-          <div class="row">
-            <div class="field">
-              <label>Search</label>
-              <input id="lk_q" placeholder="AEX-10392 or PAL-xxxx or item barcode" />
-            </div>
-            <button class="btn gold" id="btnLookup">Search</button>
-          </div>
-
-          <div class="sep"></div>
-          <div class="pill">
-            <span id="lkDot" class="status-info">●</span>
-            <span id="lkText">Type something then Search.</span>
-          </div>
-        </div>
-
-        <div class="card">
-          <h2>Results</h2>
-          <p class="hint">Click any result to open it in Inbound.</p>
-          <div class="list" id="lk_results"></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- CAMERA VIEW -->
-    <section class="view" id="view-camera">
-      <div class="grid">
-        <div class="card">
-          <h2>Camera</h2>
-          <p class="hint">Uses BarcodeDetector if available. If camera can’t decode 3x, print an internal label.</p>
-
-          <div class="camBox">
-            <video id="camVideo" playsinline muted></video>
-            <div class="camOverlay"><div class="reticle"></div></div>
-
-            <div class="camFooter">
-              <div class="right">
-                <button class="btn gold" id="btnCamStart">Start</button>
-                <button class="btn bad" id="btnCamStop" disabled>Stop</button>
-                <select id="camSelect" style="min-width:240px;border-radius:999px"></select>
+            <div class="row">
+              <div class="field">
+                <label>Order #</label>
+                <input id="in_order" placeholder="ex: AEX-10392" />
               </div>
-              <div class="pill"><span id="camDot" class="status-warn">●</span> <span id="camText">Camera stopped.</span></div>
+              <button class="btn gold" id="btnOpenOrder">Open Order</button>
+            </div>
+
+            <div class="sep"></div>
+
+            <div class="row">
+              <div class="field">
+                <label>Delivery Segment (for partial deliveries)</label>
+                <select id="in_segment"></select>
+              </div>
+              <div class="right">
+                <button class="btn" id="btnNewSegment">+ New Segment</button>
+                <span class="pill"><span class="status-info">●</span> <span class="mono" id="segHint">Attach pallets to a segment</span></span>
+              </div>
+            </div>
+
+            <div class="sep"></div>
+
+            <div class="row">
+              <div class="field">
+                <label>Active Pallet Code</label>
+                <input id="in_pallet" class="mono" placeholder="Generated pallet code..." readonly />
+              </div>
+              <div class="right">
+                <button class="btn" id="btnNewPallet">+ New Pallet</button>
+                <button class="btn" id="btnOpenPallet">Open Pallet</button>
+                <button class="btn bad" id="btnClosePallet">Close Pallet</button>
+              </div>
+            </div>
+
+            <div class="row" style="margin-top:12px">
+              <div class="field" style="flex:1.6">
+                <label>Scan Item (box barcode) — TC22 / HID will type here when focused</label>
+                <input id="in_item" class="mono" placeholder="Scan / type item barcode" />
+              </div>
+              <button class="btn gold" id="btnAddItem">Add Item</button>
+            </div>
+
+            <div class="row" style="margin-top:10px">
+              <button class="btn" id="btnDamagedMode">Damaged Scan (Fail +1)</button>
+              <button class="btn" id="btnResetFail">Reset Fail</button>
+              <span class="pill">Fail Count: <span class="mono" id="failCount">0</span> / 4</span>
+              <span class="pill"><span id="damDot" class="status-info">●</span> <span id="damText">Normal scans.</span></span>
+            </div>
+
+            <div class="sep"></div>
+
+            <h2 style="margin-top:0">Assign Pallet Location (Bay)</h2>
+            <p class="hint">Pick aisle → rail → level then Save Location for this pallet.</p>
+
+            <div class="row">
+              <div class="field">
+                <label>Aisle</label>
+                <select id="selAisle"></select>
+              </div>
+              <div class="field">
+                <label>Rail</label>
+                <select id="selRail"></select>
+              </div>
+              <div class="field">
+                <label>Level</label>
+                <select id="selLevel"></select>
+              </div>
+            </div>
+
+            <div class="field" style="margin-top:12px">
+              <label>Notes (optional)</label>
+              <textarea id="in_notes" placeholder="optional..."></textarea>
+            </div>
+
+            <div class="row" style="margin-top:12px">
+              <button class="btn gold" id="btnSaveLoc">Save Pallet Location</button>
+              <button class="btn" id="btnUndo">Back (Undo last)</button>
+              <span class="pill"><span id="pillStatus" class="status-info">●</span> <span id="pillText">Ready.</span></span>
+            </div>
+
+            <div class="toast" id="barcodeCard" style="display:none">
+              <div>
+                <strong>Pallet Label Ready</strong>
+                <div class="small">Print the barcode label for this pallet.</div>
+              </div>
+              <div class="right">
+                <button class="btn" id="btnPrintLabel">Print Label</button>
+                <button class="btn" id="btnHideLabel">Hide</button>
+              </div>
+            </div>
+
+            <div class="toast" id="internalCard" style="display:none">
+              <div>
+                <strong>Internal Label Created</strong>
+                <div class="small">Box barcode unreadable. Use this internal code and label the item.</div>
+                <div class="small mono" id="internalCode">—</div>
+              </div>
+              <div class="right">
+                <button class="btn gold" id="btnPrintInternal">Print Internal Label</button>
+                <button class="btn" id="btnHideInternal">Hide</button>
+              </div>
+            </div>
+
+            <div style="display:none">
+              <svg id="svgBarcode"></svg>
             </div>
           </div>
 
-          <div class="toast">
-            <div>
-              <strong>Last Scan</strong>
-              <div class="small mono" id="lastScan">—</div>
-            </div>
-            <div class="right">
-              <button class="btn" id="btnSendToItem">Send to Item Box</button>
-              <button class="btn" id="btnSendToLookup">Send to Lookup</button>
-              <button class="btn" id="btnMakeInternalLabel">Print Internal Label</button>
-            </div>
+          <div class="card">
+            <h2>Inbound: Order Summary</h2>
+            <p class="hint">Pallets + status. Click a pallet to load it.</p>
+            <div class="list" id="in_summary"></div>
           </div>
         </div>
+      </section>
 
-        <div class="card">
-          <h2>Scanner Notes</h2>
-          <p class="hint">
-            Zebra: set to <span class="mono">USB HID Keyboard</span> mode and it will type into whichever box is focused.
-            Phone camera: allow camera permission and press Start.
-          </p>
+      <!-- OUTBOUND VIEW -->
+      <section class="view" id="view-outbound">
+        <div class="grid">
+          <div class="card">
+            <h2>Outbound</h2>
+            <p class="hint">
+              Choose truck → scan pallets/items. A pallet can’t be completed unless all items on it are scanned.
+              Attach proof photo + equipment count.
+            </p>
 
-          <div class="sep"></div>
-
-          <div class="item" style="cursor:default">
-            <div class="top">
-              <div class="big">Focus Target</div>
-              <span class="badge" id="focusBadge">Inbound Item</span>
+            <div class="row">
+              <div class="field">
+                <label>Truck</label>
+                <select id="out_truck"></select>
+              </div>
+              <div class="right" id="truckAdmin" style="display:none">
+                <button class="btn" id="btnTruckAdd">+ Add Truck</button>
+                <button class="btn bad" id="btnTruckDel">Delete Selected</button>
+              </div>
             </div>
-            <div class="small">Click any input field to change where scans go. Zebra will type automatically.</div>
+
+            <div class="row" style="margin-top:12px">
+              <div class="field">
+                <label>Scan Pallet / Item</label>
+                <input id="out_scan" class="mono" placeholder="Scan pallet code or item barcode" />
+              </div>
+              <button class="btn gold" id="btnOutFind">Find</button>
+              <button class="btn" id="btnOutMarkScanned">Mark Scanned</button>
+            </div>
+
+            <div class="row" style="margin-top:12px">
+              <div class="field">
+                <label>Stage / Door (optional)</label>
+                <input id="out_stage" placeholder="ex: Door 2 / Stage A" />
+              </div>
+              <div class="field">
+                <label>Equipment Count (on this truck)</label>
+                <input id="out_equip" inputmode="numeric" placeholder="ex: 14" />
+              </div>
+            </div>
+
+            <div class="row" style="margin-top:12px">
+              <div class="field">
+                <label>Proof Photo (loaded truck / staged items)</label>
+                <input id="out_photo" type="file" accept="image/*" />
+              </div>
+              <button class="btn gold" id="btnOutCompletePallet">Complete Pallet (Outbound)</button>
+            </div>
+
+            <div class="sep"></div>
+
+            <div class="pill">
+              <span id="outStatusDot" class="status-info">●</span>
+              <span id="outStatusText">Waiting for scan.</span>
+            </div>
+
+            <div class="sep"></div>
+
+            <div id="outDetails" class="item" style="display:none;cursor:default">
+              <div class="top">
+                <div class="mono big" id="outCode"></div>
+                <span class="badge" id="outBadge"></span>
+              </div>
+              <div class="small" id="outMeta"></div>
+              <div class="sep"></div>
+              <div class="small" id="outItems"></div>
+              <div class="small" style="margin-top:8px" id="outProgress"></div>
+            </div>
           </div>
 
-          <div class="sep"></div>
+          <div class="card">
+            <h2>Recently Outbound</h2>
+            <p class="hint">Last 25 outbound records (local).</p>
+            <div class="list" id="outLog"></div>
+          </div>
+        </div>
+      </section>
 
-          <div class="item" style="cursor:default">
-            <div class="top">
-              <div class="big">Troubleshooting</div>
-              <span class="badge">Quick Fix</span>
+      <!-- LOOKUP VIEW -->
+      <section class="view" id="view-lookup">
+        <div class="grid">
+          <div class="card">
+            <h2>Order Lookup</h2>
+            <p class="hint">Search orders, segments, pallets, or items (local store).</p>
+
+            <div class="row">
+              <div class="field">
+                <label>Search</label>
+                <input id="lk_q" placeholder="AEX-10392 or AEX-10392-S1 or PAL-xxxx or item barcode" />
+              </div>
+              <button class="btn gold" id="btnLookup">Search</button>
             </div>
-            <div class="small">
-              If Start does nothing:
-              <ul>
-                <li>Use Chrome</li>
-                <li>Lock icon → Site settings → Camera → Allow</li>
-                <li>Reload the page</li>
-                <li>Pick a different camera in the dropdown</li>
-              </ul>
+
+            <div class="sep"></div>
+            <div class="pill">
+              <span id="lkDot" class="status-info">●</span>
+              <span id="lkText">Type something then Search.</span>
             </div>
           </div>
 
+          <div class="card">
+            <h2>Results</h2>
+            <p class="hint">Click any result to open it in Inbound.</p>
+            <div class="list" id="lk_results"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CAMERA VIEW -->
+      <section class="view" id="view-camera">
+        <div class="grid">
+          <div class="card">
+            <h2>Camera</h2>
+            <p class="hint">
+              Works on TC22 (Chrome) + regular phones. If camera can’t decode and the label is damaged, use “Fail Scan”
+              in Inbound to generate an internal label after 4 fails.
+            </p>
+
+            <div class="camBox">
+              <video id="camVideo" playsinline muted></video>
+              <div class="camOverlay"><div class="reticle"></div></div>
+
+              <div class="camFooter">
+                <div class="right">
+                  <button class="btn gold" id="btnCamStart">Start</button>
+                  <button class="btn bad" id="btnCamStop" disabled>Stop</button>
+                  <select id="camSelect" style="min-width:240px;border-radius:999px"></select>
+                </div>
+                <div class="pill"><span id="camDot" class="status-warn">●</span> <span id="camText">Camera stopped.</span></div>
+              </div>
+            </div>
+
+            <div class="toast">
+              <div>
+                <strong>Last Scan</strong>
+                <div class="small mono" id="lastScan">—</div>
+              </div>
+              <div class="right">
+                <button class="btn" id="btnSendToItem">Send to Item Box</button>
+                <button class="btn" id="btnSendToLookup">Send to Lookup</button>
+                <button class="btn" id="btnMakeInternalLabel">Print Internal Label</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>Scanner Notes (TC22 / Zebra)</h2>
+            <p class="hint">
+              TC22 easiest setup: DataWedge → send as <span class="mono">Keystrokes</span> (or HID keyboard if docked).
+              The web app will capture it into whatever input is focused.
+            </p>
+
+            <div class="sep"></div>
+
+            <div class="item" style="cursor:default">
+              <div class="top">
+                <div class="big">Focus Target</div>
+                <span class="badge" id="focusBadge">Inbound Item</span>
+              </div>
+              <div class="small">Click any input field to change where scans go. Zebra will type automatically.</div>
+            </div>
+
+            <div class="sep"></div>
+
+            <div class="item" style="cursor:default">
+              <div class="top">
+                <div class="big">Troubleshooting</div>
+                <span class="badge">Quick Fix</span>
+              </div>
+              <div class="small">
+                If Start does nothing:
+                <ul>
+                  <li>Use Chrome</li>
+                  <li>Lock icon → Site settings → Camera → Allow</li>
+                  <li>Reload the page</li>
+                  <li>Pick a different camera in the dropdown</li>
+                </ul>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- =========================
+         MODULE: FLEET
+         ========================= -->
+    <section class="module" id="module-fleet">
+      <div class="card">
+        <h2>Fleet</h2>
+        <p class="hint">Kept in layout. (Your original Fleet screens can be reconnected here later.)</p>
+        <div class="sep"></div>
+        <div class="mini">
+          For now, truck management is available inside <b>Warehouse → Outbound</b> (Manager only).
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================
+         MODULE: LOGISTICS
+         ========================= -->
+    <section class="module" id="module-logistics">
+      <div class="card">
+        <h2>Logistics</h2>
+        <p class="hint">Kept in layout. We can rebuild KPIs + route notes + live tracking here next.</p>
+      </div>
+    </section>
+
+    <!-- =========================
+         MODULE: BILLING
+         ========================= -->
+    <section class="module" id="module-billing">
+      <div class="card">
+        <h2>Billing</h2>
+        <p class="hint">Kept in layout. We can reconnect your billing logic next.</p>
+      </div>
+    </section>
+
+    <!-- =========================
+         MODULE: OPS
+         ========================= -->
+    <section class="module" id="module-ops">
+      <div class="card">
+        <h2>Ops Dashboard</h2>
+        <p class="hint">Quick local KPIs (from this device’s store).</p>
+        <div class="sep"></div>
+        <div class="kpiRow">
+          <div class="kpi"><div class="t">Orders</div><div class="v" id="kpiOrders">0</div></div>
+          <div class="kpi"><div class="t">Pallets</div><div class="v" id="kpiPallets">0</div></div>
+          <div class="kpi"><div class="t">Items</div><div class="v" id="kpiItems">0</div></div>
+          <div class="kpi"><div class="t">Outbound Records</div><div class="v" id="kpiOut">0</div></div>
         </div>
       </div>
     </section>
@@ -655,10 +706,17 @@ if (SUPABASE_URL && SUPABASE_ANON_KEY) supa = supabase.createClient(SUPABASE_URL
 /* =========================
    1) LOCAL STORE
    ========================= */
-const LS_KEY = "Precision_ops_store_v1";
+const LS_KEY = "Precision_ops_store_v2";
 function loadStore(){
-  try { return JSON.parse(localStorage.getItem(LS_KEY)) || { orders:{}, outboundLog:[] }; }
-  catch { return { orders:{}, outboundLog:[] }; }
+  try {
+    return JSON.parse(localStorage.getItem(LS_KEY)) || {
+      orders:{},
+      outboundLog:[],
+      trucks:["TRK-01","TRK-02","TRK-03"]
+    };
+  } catch {
+    return { orders:{}, outboundLog:[], trucks:["TRK-01","TRK-02","TRK-03"] };
+  }
 }
 function saveStore(){ localStorage.setItem(LS_KEY, JSON.stringify(store)); }
 let store = loadStore();
@@ -691,26 +749,71 @@ function setLookupStatus(kind, text){
 }
 function rand4(){ return Math.floor(1000 + Math.random()*9000); }
 function makePalletCode(orderNo){ return `PAL-${orderNo.replace(/\s+/g,"").toUpperCase()}-${rand4()}`; }
+function makeSegmentId(orderNo, n){ return `${orderNo}-S${n}`; }
+function makeInternalItemCode(){
+  const t = Date.now().toString(36).toUpperCase();
+  return `INT-${t}-${rand4()}`;
+}
 
 function ensureOrder(orderNo){
   const k = orderNo.trim().toUpperCase();
   if (!k) return null;
   if (!store.orders[k]) {
-    store.orders[k] = { orderNo:k, createdAt: nowISO(), pallets:{} };
+    store.orders[k] = {
+      orderNo:k,
+      createdAt: nowISO(),
+      pallets:{},
+      segments: { } // segmentId -> { id, createdAt, pallets:[] }
+    };
+    // default segment
+    store.orders[k].segments[makeSegmentId(k,1)] = { id: makeSegmentId(k,1), createdAt: nowISO(), pallets:[] };
     saveStore();
+  } else {
+    // migrate older orders that might not have segments
+    if(!store.orders[k].segments){
+      store.orders[k].segments = {};
+      store.orders[k].segments[makeSegmentId(k,1)] = { id: makeSegmentId(k,1), createdAt: nowISO(), pallets:[] };
+      saveStore();
+    }
   }
   return store.orders[k];
 }
+
 function fmtLoc(loc){
   if(!loc) return "—";
   return `${loc.aisle || "?"} / ${loc.rail || "?"} / ${loc.level || "?"}`;
 }
 
+function normalizeItems(pallet){
+  // Backwards compatible: allow items as strings, upgrade to objects in-memory
+  if(!Array.isArray(pallet.items)) pallet.items = [];
+  if(pallet.items.length && typeof pallet.items[0] === "string"){
+    pallet.items = pallet.items.map(s => ({ code:String(s), kind:"box", scannedOutbound:false, createdAt: pallet.createdAt || nowISO() }));
+  } else {
+    pallet.items = pallet.items.map(it => {
+      if(typeof it === "string") return ({ code:String(it), kind:"box", scannedOutbound:false, createdAt: nowISO() });
+      return {
+        code: String(it.code||"").trim(),
+        kind: it.kind || "box",
+        scannedOutbound: !!it.scannedOutbound,
+        createdAt: it.createdAt || nowISO()
+      };
+    }).filter(it => it.code);
+  }
+  return pallet.items;
+}
+
+function isPalletOutboundComplete(pallet){
+  const items = normalizeItems(pallet);
+  if(items.length === 0) return false;
+  return items.every(it => !!it.scannedOutbound);
+}
+
 /* =========================
-   3) PIN LOCK (THIS IS WHAT YOU WERE MISSING)
+   3) PIN LOCK
    ========================= */
 const PIN_LS_KEY = "Precision_ops_pin_state_v1";
-const VALID_PINS = new Set(["9262"]); // add more pins like: ["9262","1111","2222"]
+const VALID_PINS = new Set(["9262"]);
 let isUnlocked = false;
 
 function setLockUI(unlocked){
@@ -723,6 +826,9 @@ function setLockUI(unlocked){
   $("pinText").textContent = unlocked ? "Unlocked" : "Locked";
 
   $("pinOverlay").classList.toggle("active", !unlocked);
+
+  // manager-only truck admin
+  $("truckAdmin").style.display = (unlocked && $("roleText").textContent === "MANAGER") ? "flex" : "none";
 }
 
 function unlockWithPin(){
@@ -736,14 +842,13 @@ function unlockWithPin(){
   isUnlocked = true;
   localStorage.setItem(PIN_LS_KEY, "unlocked");
   setLockUI(true);
-  // default view after unlock
   setView("inbound");
   setPill("info","Ready.");
 }
+
 function lockNow(){
   isUnlocked = false;
   localStorage.setItem(PIN_LS_KEY, "locked");
-  // stop camera if running
   try{ stopCamera(); }catch{}
   setLockUI(false);
 }
@@ -754,7 +859,7 @@ $("btnLock").addEventListener("click", lockNow);
 $("pinInput").addEventListener("keydown",(e)=>{ if(e.key==="Enter") unlockWithPin(); });
 
 /* =========================
-   4) VIEWS / TABS (FIXES “NOTHING APPEARS”)
+   4) VIEWS / TABS
    ========================= */
 function setModule(name){
   document.querySelectorAll(".module").forEach(m=>m.classList.remove("active"));
@@ -766,28 +871,26 @@ function setModule(name){
   const b = document.querySelector(`#moduleTabs .tabbtn[data-module="${name}"]`);
   if(b) b.classList.add("active");
 
-  // Only show sub-tabs when in Warehouse
   const sub = document.getElementById("subTabs");
   if(sub) sub.style.display = (name === "warehouse") ? "flex" : "none";
 
-  // Default view when returning to Warehouse
   if(name === "warehouse"){
     const anyActive = document.querySelector("#module-warehouse .view.active");
     if(!anyActive) setView("inbound");
+  } else {
+    // stop camera if leaving warehouse
+    try{ stopCamera(); }catch{}
   }
+  renderOpsKPIs();
 }
 
-// Module tab clicks
 document.querySelectorAll("#moduleTabs .tabbtn").forEach(btn=>{
   btn.addEventListener("click", ()=> setModule(btn.dataset.module));
 });
-
-// Sub-tab clicks (Warehouse views)
 document.querySelectorAll("#subTabs .tabbtn").forEach(btn=>{
   btn.addEventListener("click", ()=> setView(btn.dataset.view));
 });
 
-// Update setView so it only affects Warehouse views (safe)
 function setView(name){
   document.querySelectorAll("#module-warehouse .view").forEach(v=>v.classList.remove("active"));
   document.querySelectorAll("#subTabs .tabbtn").forEach(b=>b.classList.remove("active"));
@@ -798,12 +901,32 @@ function setView(name){
   const b = document.querySelector(`#subTabs .tabbtn[data-view="${name}"]`);
   if(b) b.classList.add("active");
 }
+
 /* =========================
    5) INBOUND STATE
    ========================= */
 let activeOrderNo = "";
 let activePalletCode = "";
 let undoStack = [];
+
+// Damaged scanning logic
+let failCounter = 0;
+let lastInternalGenerated = "";
+
+function setDamStatus(kind, text){
+  $("damDot").className = "";
+  $("damDot").textContent = "●";
+  $("damDot").classList.add(kind==="ok" ? "status-ok" : kind==="bad"? "status-bad" : kind==="warn"? "status-warn" : "status-info");
+  $("damText").textContent = text;
+}
+function setFailCount(n){
+  failCounter = Math.max(0, Math.min(99, n|0));
+  $("failCount").textContent = String(failCounter);
+  if(failCounter === 0) setDamStatus("info","Normal scans.");
+  if(failCounter > 0 && failCounter < 4) setDamStatus("warn","Damaged scan attempts.");
+  if(failCounter >= 4) setDamStatus("bad","4 fails — generate internal label.");
+}
+
 function pushUndo(action){
   undoStack.push(action);
   if (undoStack.length > 30) undoStack.shift();
@@ -814,6 +937,7 @@ function undo(){
   a();
   saveStore();
   renderInboundSummary();
+  renderOpsKPIs();
   setPill("ok","Undid last action.");
 }
 
@@ -824,8 +948,41 @@ function openOrder(){
   activeOrderNo = order.orderNo;
   $("in_order").value = activeOrderNo;
   setPill("ok",`Order ${activeOrderNo} opened.`);
+  fillSegments();
   renderInboundSummary();
+  renderOpsKPIs();
 }
+
+function newSegment(){
+  if(!activeOrderNo){ setPill("bad","Open an Order first."); return; }
+  const order = store.orders[activeOrderNo];
+  const existing = Object.keys(order.segments||{}).length;
+  const id = makeSegmentId(activeOrderNo, existing + 1);
+  order.segments[id] = { id, createdAt: nowISO(), pallets:[] };
+  saveStore();
+  fillSegments(id);
+  renderInboundSummary();
+  renderOpsKPIs();
+  setPill("ok",`New segment created: ${id}`);
+}
+
+function fillSegments(selectId){
+  const sel = $("in_segment");
+  sel.innerHTML = "";
+  const order = activeOrderNo ? store.orders[activeOrderNo] : null;
+  if(!order){ return; }
+  const segs = Object.keys(order.segments||{}).sort();
+  segs.forEach(id=>{
+    const o = document.createElement("option");
+    o.value = id;
+    o.textContent = id;
+    sel.appendChild(o);
+  });
+  if(selectId && segs.includes(selectId)) sel.value = selectId;
+  $("segHint").textContent = sel.value || "—";
+  sel.addEventListener("change", ()=>{ $("segHint").textContent = sel.value || "—"; });
+}
+
 function newPallet(){
   if(!activeOrderNo){ setPill("bad","Open an Order first."); return; }
   const order = store.orders[activeOrderNo];
@@ -837,16 +994,35 @@ function newPallet(){
     closedAt: null,
     items: [],
     location: null,
-    notes: ""
+    notes: "",
+    segmentId: $("in_segment").value || makeSegmentId(activeOrderNo,1),
+    outboundCompletedAt: null
   };
+
+  // attach to segment
+  const segId = order.pallets[code].segmentId;
+  if(!order.segments[segId]) order.segments[segId] = { id: segId, createdAt: nowISO(), pallets:[] };
+  order.segments[segId].pallets = order.segments[segId].pallets || [];
+  order.segments[segId].pallets.push(code);
+
   activePalletCode = code;
   $("in_pallet").value = code;
-  pushUndo(()=>{ delete order.pallets[code]; if(activePalletCode===code){activePalletCode=""; $("in_pallet").value="";} });
+
+  pushUndo(()=>{
+    // remove from segment list
+    const seg = order.segments[segId];
+    if(seg && Array.isArray(seg.pallets)) seg.pallets = seg.pallets.filter(x=>x!==code);
+    delete order.pallets[code];
+    if(activePalletCode===code){activePalletCode=""; $("in_pallet").value="";}
+  });
+
   saveStore();
   renderInboundSummary();
+  renderOpsKPIs();
   makeBarcodeLabel(code);
   setPill("ok",`New pallet created: ${code}`);
 }
+
 function openPallet(){
   const code = $("in_pallet").value.trim().toUpperCase();
   if(!activeOrderNo){ setPill("bad","Open an Order first."); return; }
@@ -855,33 +1031,58 @@ function openPallet(){
   if(!order.pallets[code]){ setPill("bad","Pallet not found in this order."); return; }
   activePalletCode = code;
   $("in_pallet").value = code;
+
+  // set segment selector
+  const segId = order.pallets[code].segmentId || makeSegmentId(activeOrderNo,1);
+  fillSegments(segId);
+
   makeBarcodeLabel(code);
   setPill("ok",`Loaded pallet ${code}`);
   renderInboundSummary();
+  renderOpsKPIs();
 }
+
 function closePallet(){
   if(!activeOrderNo || !activePalletCode){ setPill("bad","Open an order + pallet first."); return; }
   const pal = store.orders[activeOrderNo].pallets[activePalletCode];
-  const prev = { ...pal };
+  const prev = JSON.parse(JSON.stringify(pal));
   pal.status = "closed";
   pal.closedAt = nowISO();
   pushUndo(()=>{ Object.assign(pal, prev); });
   saveStore();
   renderInboundSummary();
+  renderOpsKPIs();
   setPill("ok",`Pallet closed: ${activePalletCode}`);
 }
+
 function addItem(){
-  const code = $("in_item").value.trim();
+  const raw = $("in_item").value.trim();
   if(!activeOrderNo || !activePalletCode){ setPill("bad","Open an order + pallet first."); return; }
-  if(!code){ setPill("bad","Scan or type an item barcode."); return; }
+
   const pal = store.orders[activeOrderNo].pallets[activePalletCode];
-  pal.items.push(code);
+  normalizeItems(pal);
+
+  // If they hit 4 fails, we generate an internal item code and use that instead (tracking damaged box)
+  let code = raw;
+  let kind = "box";
+
+  if(!code){
+    setPill("bad","Scan or type an item barcode.");
+    return;
+  }
+
+  // If the “scan” is coming from damaged flow, they can paste anything / or leave the bad scan,
+  // but we will still add real barcode unless they generated internal.
+  pal.items.push({ code:String(code), kind, scannedOutbound:false, createdAt: nowISO() });
+
   $("in_item").value = "";
   pushUndo(()=>{ pal.items.pop(); });
   saveStore();
   renderInboundSummary();
+  renderOpsKPIs();
   setPill("ok",`Item added to ${activePalletCode}`);
 }
+
 function saveLocation(){
   if(!activeOrderNo || !activePalletCode){ setPill("bad","Open an order + pallet first."); return; }
   const pal = store.orders[activeOrderNo].pallets[activePalletCode];
@@ -892,7 +1093,44 @@ function saveLocation(){
   pushUndo(()=>{ pal.location = prevLoc; pal.notes = prevNotes; });
   saveStore();
   renderInboundSummary();
+  renderOpsKPIs();
   setPill("ok",`Location saved: ${fmtLoc(pal.location)}`);
+}
+
+/* === Damaged scan flow (4 fails -> internal label) === */
+function damagedFailPlusOne(){
+  if(!activeOrderNo || !activePalletCode){
+    setPill("warn","Open an order + pallet first (so the internal label can be tracked).");
+    return;
+  }
+  setFailCount(failCounter + 1);
+
+  if(failCounter >= 4){
+    // generate internal label and show print panel
+    lastInternalGenerated = makeInternalItemCode();
+    $("internalCode").textContent = lastInternalGenerated;
+    $("internalCard").style.display = "flex";
+    setPill("warn","Internal label generated. Print it, place it on the box, then scan/use that code.");
+  } else {
+    setPill("warn",`Damaged scan attempt recorded (${failCounter}/4).`);
+  }
+}
+
+function resetFail(){
+  setFailCount(0);
+  lastInternalGenerated = "";
+  $("internalCard").style.display = "none";
+  $("internalCode").textContent = "—";
+  setPill("info","Fail count reset.");
+}
+
+function printGeneratedInternal(){
+  if(!lastInternalGenerated){
+    setPill("warn","No internal code generated yet.");
+    return;
+  }
+  makeBarcodeLabel(lastInternalGenerated);
+  printLabel(lastInternalGenerated, "Internal Item Label");
 }
 
 /* =========================
@@ -906,30 +1144,45 @@ function renderInboundSummary(){
     box.innerHTML = `<div class="item" style="cursor:default"><div class="big">No order open.</div><div class="small">Open an order to see pallets.</div></div>`;
     return;
   }
+
   const codes = Object.keys(order.pallets).sort((a,b)=>{
     const pa = order.pallets[a], pb = order.pallets[b];
     return (pb.createdAt||"").localeCompare(pa.createdAt||"");
   });
+
   if(codes.length===0){
     box.innerHTML = `<div class="item" style="cursor:default"><div class="big">No pallets yet.</div><div class="small">Click “+ New Pallet”.</div></div>`;
     return;
   }
+
   codes.forEach(code=>{
     const p = order.pallets[code];
+    const items = normalizeItems(p);
+    const outboundDone = !!p.outboundCompletedAt;
+    const seg = p.segmentId || makeSegmentId(order.orderNo,1);
+
     const el = document.createElement("div");
     el.className = "item";
     el.innerHTML = `
       <div class="top">
         <div class="mono big">${code}</div>
-        <span class="badge">${p.status.toUpperCase()}</span>
+        <span class="badge">${outboundDone ? "OUTBOUND" : (p.status||"").toUpperCase()}</span>
       </div>
-      <div class="small">Items: <span class="mono">${p.items.length}</span> • Location: <span class="mono">${fmtLoc(p.location)}</span></div>
+      <div class="small">
+        Segment: <span class="mono">${seg}</span> •
+        Items: <span class="mono">${items.length}</span> •
+        Loc: <span class="mono">${fmtLoc(p.location)}</span>
+      </div>
       <div class="small">Created: ${new Date(p.createdAt).toLocaleString()}</div>
     `;
     el.addEventListener("click", ()=>{
       activePalletCode = code;
       $("in_pallet").value = code;
       $("in_notes").value = p.notes || "";
+
+      // segment
+      fillSegments(p.segmentId || makeSegmentId(order.orderNo,1));
+
       if(p.location){
         $("selAisle").value = p.location.aisle || $("selAisle").value;
         syncRails();
@@ -944,7 +1197,7 @@ function renderInboundSummary(){
 }
 
 /* =========================
-   7) BAY DROPDOWNS
+   7) BAY DROPDOWNS (KEEP YOUR DATA)
    ========================= */
 const AISLES = ["BUGATTI","BENTLEY","ROLLS","FERRARI","LAMBO","MCLAREN","MAYBACH"];
 const RAILS_BY_AISLE = {
@@ -986,7 +1239,22 @@ function escapeHtml(s){
   }[m]));
 }
 
-function printLabel(text, title="Pallet Label"){
+function makeBarcodeLabel(text){
+  try{
+    JsBarcode("#svgBarcode", String(text), {
+      format: "CODE128",
+      displayValue: true,
+      fontSize: 16,
+      margin: 12,
+      height: 90
+    });
+    $("barcodeCard").style.display = "flex";
+  }catch(e){
+    console.warn("Barcode gen failed:", e);
+  }
+}
+
+function printLabel(text, title="Label"){
   const svg = $("svgBarcode").outerHTML;
   const w = window.open("", "_blank");
   if(!w) return;
@@ -1015,32 +1283,77 @@ function printLabel(text, title="Pallet Label"){
 }
 
 /* =========================
-   9) OUTBOUND
+   9) TRUCKS (MANAGER ONLY)
+   ========================= */
+function fillTrucks(){
+  const sel = $("out_truck");
+  sel.innerHTML = "";
+  (store.trucks || []).forEach(t=>{
+    const o = document.createElement("option");
+    o.value = t; o.textContent = t;
+    sel.appendChild(o);
+  });
+  if(sel.options.length === 0){
+    const o = document.createElement("option");
+    o.value = ""; o.textContent = "— No trucks —";
+    sel.appendChild(o);
+  }
+}
+function addTruck(){
+  const t = prompt("Enter truck number (example: TRK-12):");
+  if(!t) return;
+  const v = t.trim().toUpperCase();
+  if(!v) return;
+  store.trucks = store.trucks || [];
+  if(store.trucks.includes(v)) return alert("That truck already exists.");
+  store.trucks.push(v);
+  saveStore();
+  fillTrucks();
+}
+function deleteTruck(){
+  const sel = $("out_truck");
+  const v = (sel.value||"").trim();
+  if(!v) return;
+  if(!confirm(`Delete ${v}?`)) return;
+  store.trucks = (store.trucks || []).filter(x=>x !== v);
+  saveStore();
+  fillTrucks();
+}
+
+/* =========================
+   10) OUTBOUND (SCAN-TO-COMPLETE)
    ========================= */
 let lastOutboundFound = null;
+
 function findInStoreByCode(code){
-  code = (code||"").trim();
+  code = (code||"").trim().toUpperCase();
   if(!code) return null;
 
+  // pallet direct
   for(const oKey of Object.keys(store.orders)){
     const o = store.orders[oKey];
     if(o.pallets && o.pallets[code]) return { type:"pallet", orderNo:o.orderNo, pallet:o.pallets[code] };
   }
+
+  // item match (including internal)
   for(const oKey of Object.keys(store.orders)){
     const o = store.orders[oKey];
     for(const pCode of Object.keys(o.pallets || {})){
       const p = o.pallets[pCode];
-      if((p.items||[]).includes(code)) return { type:"item", orderNo:o.orderNo, pallet:p, item:code };
+      const items = normalizeItems(p);
+      const hit = items.find(it => String(it.code).toUpperCase() === code);
+      if(hit) return { type:"item", orderNo:o.orderNo, pallet:p, item:hit };
     }
   }
   return null;
 }
+
 function renderOutboundLog(){
   const box = $("outLog");
   box.innerHTML = "";
   const log = store.outboundLog || [];
   if(log.length===0){
-    box.innerHTML = `<div class="item" style="cursor:default"><div class="big">No outbound yet.</div><div class="small">Mark pulled to populate this list.</div></div>`;
+    box.innerHTML = `<div class="item" style="cursor:default"><div class="big">No outbound yet.</div><div class="small">Complete pallets to populate this list.</div></div>`;
     return;
   }
   log.slice(0,25).forEach(entry=>{
@@ -1048,14 +1361,18 @@ function renderOutboundLog(){
     el.className="item";
     el.innerHTML = `
       <div class="top">
-        <div class="mono big">${entry.code}</div>
-        <span class="badge">${entry.stage || "—"}</span>
+        <div class="mono big">${entry.palletCode || entry.code}</div>
+        <span class="badge">${entry.truck || "—"}</span>
       </div>
-      <div class="small">Order: <span class="mono">${entry.orderNo}</span> • ${new Date(entry.at).toLocaleString()}</div>
+      <div class="small">
+        Order: <span class="mono">${entry.orderNo}</span> • Stage: <span class="mono">${entry.stage || "—"}</span>
+      </div>
+      <div class="small">${new Date(entry.at).toLocaleString()} • Equip: <span class="mono">${entry.equipmentCount || "—"}</span></div>
     `;
     box.appendChild(el);
   });
 }
+
 function outboundFind(){
   const code = $("out_scan").value.trim().toUpperCase();
   if(!code){ setOutStatus("bad","Scan something first."); return; }
@@ -1067,30 +1384,124 @@ function outboundFind(){
     return;
   }
   lastOutboundFound = found;
+
+  const p = found.pallet;
+  const items = normalizeItems(p);
+  const scanned = items.filter(it=>it.scannedOutbound).length;
+
   $("outDetails").style.display="block";
   $("outCode").textContent = code;
   $("outBadge").textContent = found.type === "pallet" ? "PALLET" : "ITEM";
-  const p = found.pallet;
   $("outMeta").innerHTML = `
     Order: <span class="mono">${found.orderNo}</span> • Pallet: <span class="mono">${p.palletCode}</span><br/>
-    Status: <span class="mono">${p.status}</span> • Location: <span class="mono">${fmtLoc(p.location)}</span>
+    Status: <span class="mono">${p.status}</span> • Location: <span class="mono">${fmtLoc(p.location)}</span> • Segment: <span class="mono">${p.segmentId || makeSegmentId(found.orderNo,1)}</span>
   `;
-  $("outItems").innerHTML = `Items on pallet: <span class="mono">${(p.items||[]).length}</span>`;
-  setOutStatus("ok","Found. You can mark pulled.");
+
+  $("outItems").innerHTML = `Items on pallet: <span class="mono">${items.length}</span>`;
+  $("outProgress").innerHTML = `Outbound scan progress: <span class="mono">${scanned}/${items.length}</span>`;
+
+  setOutStatus("ok","Found. Mark scanned, then complete pallet when 100%.");
 }
-function outboundMarkPulled(){
+
+function outboundMarkScanned(){
   if(!lastOutboundFound){ setOutStatus("bad","Find a pallet/item first."); return; }
+  const scanCode = $("out_scan").value.trim().toUpperCase();
+  if(!scanCode){ setOutStatus("bad","Scan something first."); return; }
+
+  const p = lastOutboundFound.pallet;
+  const items = normalizeItems(p);
+
+  if(lastOutboundFound.type === "pallet"){
+    // Marking pallet scan alone does NOT complete it.
+    setOutStatus("warn","Pallet scanned. Now scan every item on that pallet to complete outbound.");
+    outboundFind();
+    return;
+  }
+
+  const idx = items.findIndex(it => String(it.code).toUpperCase() === scanCode);
+  if(idx < 0){
+    setOutStatus("bad","That item isn’t on this pallet.");
+    return;
+  }
+
+  if(items[idx].scannedOutbound){
+    setOutStatus("warn","Already scanned outbound.");
+    outboundFind();
+    return;
+  }
+
+  items[idx].scannedOutbound = true;
+  saveStore();
+  outboundFind();
+  setOutStatus("ok","Item marked outbound-scanned.");
+  renderOpsKPIs();
+}
+
+async function fileToDataUrl(file, maxBytes=700000){
+  // localStorage-safe-ish: keep it small
+  if(!file) return "";
+  if(file.size > maxBytes){
+    alert("That photo is too large for local storage. Take a smaller photo or crop it first.");
+    return "";
+  }
+  return new Promise((resolve,reject)=>{
+    const r = new FileReader();
+    r.onload = ()=> resolve(String(r.result||""));
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
+
+async function outboundCompletePallet(){
+  if(!lastOutboundFound){ setOutStatus("bad","Find a pallet/item first."); return; }
+
+  const p = lastOutboundFound.pallet;
+  const items = normalizeItems(p);
+
+  if(!isPalletOutboundComplete(p)){
+    const scanned = items.filter(it=>it.scannedOutbound).length;
+    setOutStatus("bad",`Cannot complete. Scan every item first (${scanned}/${items.length}).`);
+    return;
+  }
+
+  // finalize outbound
+  const truck = ($("out_truck").value || "").trim();
+  if(!truck){
+    setOutStatus("bad","Choose a truck first.");
+    return;
+  }
+
   const stage = $("out_stage").value.trim();
-  const code = $("out_scan").value.trim().toUpperCase();
+  const equipmentCount = ($("out_equip").value || "").trim();
+  const file = ($("out_photo").files && $("out_photo").files[0]) ? $("out_photo").files[0] : null;
+  const photoDataUrl = await fileToDataUrl(file);
+
+  p.outboundCompletedAt = nowISO();
+  p.outboundTruck = truck;
+  p.outboundStage = stage;
+  p.outboundEquipmentCount = equipmentCount;
+  p.outboundPhoto = photoDataUrl; // local only
+
   store.outboundLog = store.outboundLog || [];
-  store.outboundLog.unshift({ at: nowISO(), code, orderNo: lastOutboundFound.orderNo, palletCode: lastOutboundFound.pallet.palletCode, stage });
+  store.outboundLog.unshift({
+    at: nowISO(),
+    orderNo: lastOutboundFound.orderNo,
+    palletCode: p.palletCode,
+    truck,
+    stage,
+    equipmentCount,
+    hasPhoto: !!photoDataUrl
+  });
+
   saveStore();
   renderOutboundLog();
-  setOutStatus("ok","Outbound logged.");
+  renderInboundSummary();
+  renderOpsKPIs();
+  setOutStatus("ok","Pallet completed outbound.");
 }
 
 /* =========================
-   10) LOOKUP
+   11) LOOKUP
    ========================= */
 function lookup(){
   const q = $("lk_q").value.trim().toUpperCase();
@@ -1099,14 +1510,24 @@ function lookup(){
   if(!q){ setLookupStatus("warn","Type a search value."); return; }
 
   const hits = [];
+
+  // order
   if(store.orders[q]) hits.push({ kind:"order", orderNo:q });
 
   for(const ok of Object.keys(store.orders)){
     const o = store.orders[ok];
+
+    // segment match
+    if(o.segments && o.segments[q]) hits.push({ kind:"segment", orderNo:o.orderNo, segmentId:q });
+
     for(const pc of Object.keys(o.pallets||{})){
       const p = o.pallets[pc];
+      const items = normalizeItems(p);
+
       if(pc.includes(q)) hits.push({ kind:"pallet", orderNo:o.orderNo, palletCode:pc });
-      if((p.items||[]).some(it=>String(it).toUpperCase().includes(q))) hits.push({ kind:"item", orderNo:o.orderNo, palletCode:pc, item:q });
+
+      const itemHit = items.find(it => String(it.code).toUpperCase().includes(q));
+      if(itemHit) hits.push({ kind:"item", orderNo:o.orderNo, palletCode:pc, itemCode:itemHit.code });
     }
   }
 
@@ -1115,7 +1536,7 @@ function lookup(){
 
   if(unique.length===0){
     setLookupStatus("bad","No matches found.");
-    box.innerHTML = `<div class="item" style="cursor:default"><div class="big">No results.</div><div class="small">Try order #, pallet code, or item barcode.</div></div>`;
+    box.innerHTML = `<div class="item" style="cursor:default"><div class="big">No results.</div><div class="small">Try order #, segment, pallet code, or item barcode.</div></div>`;
     return;
   }
 
@@ -1123,6 +1544,7 @@ function lookup(){
   unique.slice(0,80).forEach(h=>{
     const el = document.createElement("div");
     el.className="item";
+
     if(h.kind==="order"){
       el.innerHTML = `
         <div class="top">
@@ -1134,28 +1556,52 @@ function lookup(){
       el.addEventListener("click", ()=>{
         $("in_order").value = h.orderNo;
         openOrder();
+        setModule("warehouse");
         setView("inbound");
       });
-    } else if(h.kind==="pallet"){
+    }
+    else if(h.kind==="segment"){
+      const seg = store.orders[h.orderNo].segments[h.segmentId];
+      const n = (seg && seg.pallets) ? seg.pallets.length : 0;
+      el.innerHTML = `
+        <div class="top">
+          <div class="mono big">${h.segmentId}</div>
+          <span class="badge">SEGMENT</span>
+        </div>
+        <div class="small">Order: <span class="mono">${h.orderNo}</span> • Pallets: <span class="mono">${n}</span></div>
+      `;
+      el.addEventListener("click", ()=>{
+        $("in_order").value = h.orderNo;
+        openOrder();
+        $("in_segment").value = h.segmentId;
+        setModule("warehouse");
+        setView("inbound");
+        setPill("ok",`Segment selected: ${h.segmentId}`);
+      });
+    }
+    else if(h.kind==="pallet"){
       const p = store.orders[h.orderNo].pallets[h.palletCode];
+      const items = normalizeItems(p);
       el.innerHTML = `
         <div class="top">
           <div class="mono big">${h.palletCode}</div>
           <span class="badge">PALLET</span>
         </div>
-        <div class="small">Order: <span class="mono">${h.orderNo}</span> • Items: <span class="mono">${(p.items||[]).length}</span> • Loc: <span class="mono">${fmtLoc(p.location)}</span></div>
+        <div class="small">Order: <span class="mono">${h.orderNo}</span> • Items: <span class="mono">${items.length}</span> • Loc: <span class="mono">${fmtLoc(p.location)}</span></div>
       `;
       el.addEventListener("click", ()=>{
         $("in_order").value = h.orderNo;
         openOrder();
         $("in_pallet").value = h.palletCode;
         openPallet();
+        setModule("warehouse");
         setView("inbound");
       });
-    } else {
+    }
+    else {
       el.innerHTML = `
         <div class="top">
-          <div class="mono big">${h.item}</div>
+          <div class="mono big">${h.itemCode}</div>
           <span class="badge">ITEM</span>
         </div>
         <div class="small">Order: <span class="mono">${h.orderNo}</span> • Pallet: <span class="mono">${h.palletCode}</span></div>
@@ -1165,15 +1611,17 @@ function lookup(){
         openOrder();
         $("in_pallet").value = h.palletCode;
         openPallet();
+        setModule("warehouse");
         setView("inbound");
       });
     }
+
     box.appendChild(el);
   });
 }
 
 /* =========================
-   11) CAMERA SCANNER (WORKING)
+   12) CAMERA SCANNER
    ========================= */
 let camStream = null;
 let scanTimer = null;
@@ -1232,14 +1680,14 @@ async function startCamera(){
     return;
   }
 
-  // ensure we have a focus target
   if(!focusedTarget) focusedTarget = $("in_item");
-
   await listCameras();
 
   const deviceId = $("camSelect").value || null;
+
+  // On TC22 and most phones, "environment" camera is what we want.
   const constraints = {
-    video: deviceId ? { deviceId: { exact: deviceId } } : { facingMode: "environment" },
+    video: deviceId ? { deviceId: { exact: deviceId } } : { facingMode: { ideal:"environment" } },
     audio: false
   };
 
@@ -1290,14 +1738,7 @@ function stopCamera(){
   setCamStatus("warn","Camera stopped.");
 }
 
-function handleScan(value){
-  if(!value) return;
-  const v = String(value).trim();
-  if(!v) return;
-
-  if(v === lastScanValue) return;
-  setLastScan(v);
-
+function beep(){
   try{
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     const o = ctx.createOscillator();
@@ -1308,6 +1749,16 @@ function handleScan(value){
     o.start();
     setTimeout(()=>{ o.stop(); ctx.close(); }, 80);
   }catch{}
+}
+
+function handleScan(value){
+  if(!value) return;
+  const v = String(value).trim();
+  if(!v) return;
+  if(v === lastScanValue) return;
+
+  setLastScan(v);
+  beep();
 
   if(focusedTarget){
     focusedTarget.value = v;
@@ -1346,7 +1797,7 @@ function startZXing(){
   });
 }
 
-function printInternalLabel(){
+function printInternalLabelFromLastScan(){
   const v = lastScanValue || $("in_item").value.trim();
   if(!v){ setCamStatus("warn","No scan value to print."); return; }
   makeBarcodeLabel(v);
@@ -1354,9 +1805,32 @@ function printInternalLabel(){
 }
 
 /* =========================
-   12) WIRES
+   13) OPS KPIs
+   ========================= */
+function renderOpsKPIs(){
+  const orders = Object.keys(store.orders||{}).length;
+  let pallets = 0;
+  let items = 0;
+  for(const ok of Object.keys(store.orders||{})){
+    const o = store.orders[ok];
+    const pcs = Object.keys(o.pallets||{});
+    pallets += pcs.length;
+    pcs.forEach(pc=>{
+      const p = o.pallets[pc];
+      items += normalizeItems(p).length;
+    });
+  }
+  $("kpiOrders").textContent = String(orders);
+  $("kpiPallets").textContent = String(pallets);
+  $("kpiItems").textContent = String(items);
+  $("kpiOut").textContent = String((store.outboundLog||[]).length);
+}
+
+/* =========================
+   14) WIRES
    ========================= */
 $("btnOpenOrder").addEventListener("click", openOrder);
+$("btnNewSegment").addEventListener("click", newSegment);
 $("btnNewPallet").addEventListener("click", newPallet);
 $("btnOpenPallet").addEventListener("click", openPallet);
 $("btnClosePallet").addEventListener("click", closePallet);
@@ -1364,15 +1838,26 @@ $("btnAddItem").addEventListener("click", addItem);
 $("btnSaveLoc").addEventListener("click", saveLocation);
 $("btnUndo").addEventListener("click", undo);
 
+$("btnDamagedMode").addEventListener("click", damagedFailPlusOne);
+$("btnResetFail").addEventListener("click", resetFail);
+
 $("btnHideLabel").addEventListener("click", ()=> $("barcodeCard").style.display="none");
 $("btnPrintLabel").addEventListener("click", ()=>{
   const code = $("in_pallet").value.trim();
   if(!code) return;
+  makeBarcodeLabel(code);
   printLabel(code, "Pallet Label");
 });
 
+$("btnHideInternal").addEventListener("click", ()=> $("internalCard").style.display="none");
+$("btnPrintInternal").addEventListener("click", printGeneratedInternal);
+
 $("btnOutFind").addEventListener("click", outboundFind);
-$("btnOutMarkPulled").addEventListener("click", outboundMarkPulled);
+$("btnOutMarkScanned").addEventListener("click", outboundMarkScanned);
+$("btnOutCompletePallet").addEventListener("click", outboundCompletePallet);
+
+$("btnTruckAdd").addEventListener("click", addTruck);
+$("btnTruckDel").addEventListener("click", deleteTruck);
 
 $("btnLookup").addEventListener("click", lookup);
 
@@ -1397,7 +1882,7 @@ $("btnSendToLookup").addEventListener("click", ()=>{
   $("lk_q").focus();
   $("lk_q").value = lastScanValue;
 });
-$("btnMakeInternalLabel").addEventListener("click", printInternalLabel);
+$("btnMakeInternalLabel").addEventListener("click", printInternalLabelFromLastScan);
 
 document.addEventListener("keydown",(e)=>{
   if(e.key==="Enter"){
@@ -1410,16 +1895,20 @@ document.addEventListener("keydown",(e)=>{
 });
 
 /* =========================
-   13) INIT
+   15) INIT
    ========================= */
 (async function init(){
   initBaySelects();
+  fillTrucks();
   renderInboundSummary();
   renderOutboundLog();
+  renderOpsKPIs();
+
   setPill("info","Ready.");
   setLookupStatus("info","Type something then Search.");
   setOutStatus("info","Waiting for scan.");
   setLastScan("");
+  setFailCount(0);
 
   // restore lock state
   const st = localStorage.getItem(PIN_LS_KEY) || "locked";
@@ -1427,19 +1916,20 @@ document.addEventListener("keydown",(e)=>{
   setLockUI(isUnlocked);
 
   // Default focus target
-  focusedTarget = $("in_item");
+  focusedTarget = document.getElementById("in_item");
+  setFocusBadgeFromEl(focusedTarget);
 
-  // Don’t auto-request camera permission while locked (keeps it clean)
+  // avoid auto camera permission
   if(isUnlocked && navigator.mediaDevices?.enumerateDevices){
     try{
       await navigator.mediaDevices.getUserMedia({video:true, audio:false});
-      // stop immediately; just to get device labels
       stopCamera();
     }catch{}
     await listCameras();
   }
+
   setModule("warehouse");
-setView("inbound");
+  setView("inbound");
 })();
 </script>
 </body>
