@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Precision Ops — Warehouse + Fleet + Logistics</title>
 
-  <!-- Supabase (optional, only used if you paste your URL + anon key below) -->
+  <!-- Supabase (optional) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- Barcode generator (pallet labels / internal labels) -->
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 
-  <!-- ZXing fallback scanner (used if BarcodeDetector isn’t available) -->
+  <!-- ZXing fallback scanner -->
   <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js"></script>
 
   <style>
@@ -66,6 +66,7 @@
     }
     h1{font-size:18px;margin:0}
     .sub{color:var(--muted);font-size:12px;margin-top:2px}
+
     .tabs{
       display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end
     }
@@ -232,26 +233,97 @@
     /* hidden view containers */
     .view{display:none}
     .view.active{display:block}
+
+    /* PIN overlay (keeps your “Enter PIN” style) */
+    .pinOverlay{
+      position:fixed; inset:0;
+      background:rgba(0,0,0,.55);
+      backdrop-filter: blur(6px);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      z-index:9999;
+    }
+    .pinOverlay.active{display:flex;}
+    .pinModal{
+      width:min(560px, 92vw);
+      border-radius:22px;
+      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.05));
+      border:1px solid rgba(255,255,255,.14);
+      box-shadow:0 24px 80px rgba(0,0,0,.55);
+      padding:18px;
+    }
+    .pinHead{
+      display:flex; justify-content:space-between; align-items:flex-start; gap:12px;
+      margin-bottom:10px;
+    }
+    .pinTitle{font-size:22px;font-weight:750;margin:0}
+    .pinSub{margin-top:6px;color:var(--muted);font-size:13px}
+    .pinTag{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:8px 12px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.22);
+      color:var(--muted);font-size:12px;
+      white-space:nowrap;
+    }
+    .pinActions{display:flex;gap:10px;align-items:center;margin-top:12px}
+    .pinErr{margin-top:10px;color:var(--bad);font-size:13px;display:none}
+    .topRightPills{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   </style>
 </head>
 
 <body>
-  <div class="wrap">
+
+  <!-- PIN Overlay -->
+  <div class="pinOverlay active" id="pinOverlay">
+    <div class="pinModal">
+      <div class="pinHead">
+        <div>
+          <div class="pinTitle">Enter PIN</div>
+          <div class="pinSub">Access required to view or edit anything.</div>
+        </div>
+        <div class="pinTag"><span class="status-warn">●</span> Precision</div>
+      </div>
+
+      <div class="field" style="min-width:unset">
+        <label>PIN</label>
+        <input id="pinInput" class="mono" inputmode="numeric" placeholder="0000" />
+      </div>
+
+      <div class="pinActions">
+        <button class="btn gold" id="btnUnlock">Unlock</button>
+        <button class="btn" id="btnPinClear">Clear</button>
+        <span class="pill" style="margin-left:auto"><span id="pinDot" class="status-warn">●</span> <span id="pinText">Locked</span></span>
+      </div>
+
+      <div class="pinErr" id="pinErr">Wrong PIN.</div>
+    </div>
+  </div>
+
+  <div class="wrap" id="appRoot">
     <div class="topbar">
       <div class="brand">
         <div class="logo" aria-hidden="true"></div>
         <div>
-          <h1>Precision Ops</h1>
-          <div class="sub">Inbound • Outbound • Order Lookup • Camera Scanner • Pallet Labels</div>
+          <h1>Precision</h1>
+          <div class="sub">Warehouse + Fleet + Logistics • Inbound/Outbound • photo proof • audit trails</div>
         </div>
       </div>
 
-      <div class="tabs">
-        <button class="tabbtn active" data-view="inbound">Inbound</button>
-        <button class="tabbtn" data-view="outbound">Outbound</button>
-        <button class="tabbtn" data-view="lookup">Order Lookup</button>
-        <button class="tabbtn" data-view="camera">Camera</button>
+      <div class="topRightPills">
+        <span class="pill"><span id="lockDot" class="status-warn">●</span> <span id="lockText">Locked</span></span>
+        <span class="pill">Role: <span class="mono" id="roleText">MANAGER</span> • Mode: <span class="mono" id="modeText">MANAGER</span></span>
+        <button class="btn" id="btnLock">Lock</button>
       </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tabbtn active" data-view="inbound">Inbound</button>
+      <button class="tabbtn" data-view="outbound">Outbound</button>
+      <button class="tabbtn" data-view="lookup">Order Lookup</button>
+      <button class="tabbtn" data-view="camera">Camera</button>
     </div>
 
     <!-- INBOUND VIEW -->
@@ -402,12 +474,12 @@
       <div class="grid">
         <div class="card">
           <h2>Order Lookup</h2>
-          <p class="hint">Search orders, pallets, or items (local store). If you enable Supabase, you can swap the search functions to query your tables.</p>
+          <p class="hint">Search orders, pallets, or items (local store).</p>
 
           <div class="row">
             <div class="field">
               <label>Search</label>
-              <input id="lk_q" placeholder="AEX-10392 or PALLET-xxxx or item barcode" />
+              <input id="lk_q" placeholder="AEX-10392 or PAL-xxxx or item barcode" />
             </div>
             <button class="btn gold" id="btnLookup">Search</button>
           </div>
@@ -464,8 +536,8 @@
         <div class="card">
           <h2>Scanner Notes</h2>
           <p class="hint">
-            If you’re using a Zebra scanner: set it to <span class="mono">USB HID Keyboard</span> mode and it will type into whichever box is focused.
-            For phone camera scanning: give browser camera permission and use Start.
+            Zebra: set to <span class="mono">USB HID Keyboard</span> mode and it will type into whichever box is focused.
+            Phone camera: allow camera permission and press Start.
           </p>
 
           <div class="sep"></div>
@@ -489,7 +561,7 @@
               If Start does nothing:
               <ul>
                 <li>Use Chrome</li>
-                <li>Click the lock icon → Site settings → Camera → Allow</li>
+                <li>Lock icon → Site settings → Camera → Allow</li>
                 <li>Reload the page</li>
                 <li>Pick a different camera in the dropdown</li>
               </ul>
@@ -506,30 +578,14 @@
 /* =========================
    0) SUPABASE (OPTIONAL)
    ========================= */
-const SUPABASE_URL = "https://ojdfaguhteddwaxyobnl.supabase.co";     // <- paste yours if you want db
-const SUPABASE_ANON_KEY = "sb_publishable_S4Z3E2phukZklKtBuRPLjA_RB4Faij2"; // <- paste yours if you want db
+const SUPABASE_URL = "https://ojdfaguhteddwaxyobnl.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_S4Z3E2phukZklKtBuRPLjA_RB4Faij2";
 let supa = null;
-if (SUPABASE_URL && SUPABASE_ANON_KEY) {
-  supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-}
+if (SUPABASE_URL && SUPABASE_ANON_KEY) supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* =========================
-   1) LOCAL STORE (WORKS NOW)
-   =========================
-   Data shape:
-   store.orders[orderNo] = {
-     orderNo,
-     createdAt,
-     pallets: {
-       [palletCode]: {
-         palletCode, status("open"|"closed"), createdAt, closedAt,
-         items: [barcode...],
-         location: {aisle,rail,level},
-         notes
-       }
-     }
-   }
-*/
+   1) LOCAL STORE
+   ========================= */
 const LS_KEY = "Precision_ops_store_v1";
 function loadStore(){
   try { return JSON.parse(localStorage.getItem(LS_KEY)) || { orders:{}, outboundLog:[] }; }
@@ -543,43 +599,30 @@ let store = loadStore();
    ========================= */
 const $ = (id)=>document.getElementById(id);
 const nowISO = ()=> new Date().toISOString();
+
 function setPill(kind, text){
   const dot = $("pillStatus");
   const t = $("pillText");
   dot.className = "";
   dot.textContent = "●";
-  dot.classList.add(
-    kind==="ok" ? "status-ok" :
-    kind==="bad"? "status-bad" :
-    kind==="warn"? "status-warn" : "status-info"
-  );
+  dot.classList.add(kind==="ok" ? "status-ok" : kind==="bad"? "status-bad" : kind==="warn"? "status-warn" : "status-info");
   t.textContent = text;
 }
 function setOutStatus(kind, text){
   $("outStatusDot").className = "";
   $("outStatusDot").textContent = "●";
-  $("outStatusDot").classList.add(
-    kind==="ok" ? "status-ok" :
-    kind==="bad"? "status-bad" :
-    kind==="warn"? "status-warn" : "status-info"
-  );
+  $("outStatusDot").classList.add(kind==="ok" ? "status-ok" : kind==="bad"? "status-bad" : kind==="warn"? "status-warn" : "status-info");
   $("outStatusText").textContent = text;
 }
 function setLookupStatus(kind, text){
   $("lkDot").className = "";
   $("lkDot").textContent = "●";
-  $("lkDot").classList.add(
-    kind==="ok" ? "status-ok" :
-    kind==="bad"? "status-bad" :
-    kind==="warn"? "status-warn" : "status-info"
-  );
+  $("lkDot").classList.add(kind==="ok" ? "status-ok" : kind==="bad"? "status-bad" : kind==="warn"? "status-warn" : "status-info");
   $("lkText").textContent = text;
 }
 function rand4(){ return Math.floor(1000 + Math.random()*9000); }
-function makePalletCode(orderNo){
-  // Feel free to rename format:
-  return `PAL-${orderNo.replace(/\s+/g,"").toUpperCase()}-${rand4()}`;
-}
+function makePalletCode(orderNo){ return `PAL-${orderNo.replace(/\s+/g,"").toUpperCase()}-${rand4()}`; }
+
 function ensureOrder(orderNo){
   const k = orderNo.trim().toUpperCase();
   if (!k) return null;
@@ -595,9 +638,61 @@ function fmtLoc(loc){
 }
 
 /* =========================
-   3) VIEWS / TABS (FIXES YOUR “NOTHING APPEARS” PROBLEM)
+   3) PIN LOCK (THIS IS WHAT YOU WERE MISSING)
+   ========================= */
+const PIN_LS_KEY = "Precision_ops_pin_state_v1";
+const VALID_PINS = new Set(["9262"]); // add more pins like: ["9262","1111","2222"]
+let isUnlocked = false;
+
+function setLockUI(unlocked){
+  $("lockDot").className = unlocked ? "status-ok" : "status-warn";
+  $("lockDot").textContent = "●";
+  $("lockText").textContent = unlocked ? "Unlocked" : "Locked";
+
+  $("pinDot").className = unlocked ? "status-ok" : "status-warn";
+  $("pinDot").textContent = "●";
+  $("pinText").textContent = unlocked ? "Unlocked" : "Locked";
+
+  $("pinOverlay").classList.toggle("active", !unlocked);
+}
+
+function unlockWithPin(){
+  const v = ($("pinInput").value || "").trim();
+  if(!VALID_PINS.has(v)){
+    $("pinErr").style.display = "block";
+    $("pinInput").focus();
+    return;
+  }
+  $("pinErr").style.display = "none";
+  isUnlocked = true;
+  localStorage.setItem(PIN_LS_KEY, "unlocked");
+  setLockUI(true);
+  // default view after unlock
+  setView("inbound");
+  setPill("info","Ready.");
+}
+function lockNow(){
+  isUnlocked = false;
+  localStorage.setItem(PIN_LS_KEY, "locked");
+  // stop camera if running
+  try{ stopCamera(); }catch{}
+  setLockUI(false);
+}
+
+$("btnUnlock").addEventListener("click", unlockWithPin);
+$("btnPinClear").addEventListener("click", ()=>{ $("pinInput").value=""; $("pinErr").style.display="none"; $("pinInput").focus(); });
+$("btnLock").addEventListener("click", lockNow);
+$("pinInput").addEventListener("keydown",(e)=>{ if(e.key==="Enter") unlockWithPin(); });
+
+/* =========================
+   4) VIEWS / TABS (FIXES “NOTHING APPEARS”)
    ========================= */
 function setView(name){
+  if(!isUnlocked){
+    // don’t let tabs switch while locked
+    setLockUI(false);
+    return;
+  }
   document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
   document.querySelectorAll(".tabbtn").forEach(b=>b.classList.remove("active"));
   const v = document.getElementById(`view-${name}`);
@@ -610,12 +705,11 @@ document.querySelectorAll(".tabbtn").forEach(btn=>{
 });
 
 /* =========================
-   4) INBOUND STATE
+   5) INBOUND STATE
    ========================= */
 let activeOrderNo = "";
 let activePalletCode = "";
 let undoStack = [];
-
 function pushUndo(action){
   undoStack.push(action);
   if (undoStack.length > 30) undoStack.shift();
@@ -653,10 +747,8 @@ function newPallet(){
   };
   activePalletCode = code;
   $("in_pallet").value = code;
-
   pushUndo(()=>{ delete order.pallets[code]; if(activePalletCode===code){activePalletCode=""; $("in_pallet").value="";} });
   saveStore();
-
   renderInboundSummary();
   makeBarcodeLabel(code);
   setPill("ok",`New pallet created: ${code}`);
@@ -679,7 +771,6 @@ function closePallet(){
   const prev = { ...pal };
   pal.status = "closed";
   pal.closedAt = nowISO();
-
   pushUndo(()=>{ Object.assign(pal, prev); });
   saveStore();
   renderInboundSummary();
@@ -692,7 +783,6 @@ function addItem(){
   const pal = store.orders[activeOrderNo].pallets[activePalletCode];
   pal.items.push(code);
   $("in_item").value = "";
-
   pushUndo(()=>{ pal.items.pop(); });
   saveStore();
   renderInboundSummary();
@@ -703,14 +793,8 @@ function saveLocation(){
   const pal = store.orders[activeOrderNo].pallets[activePalletCode];
   const prevLoc = pal.location ? {...pal.location} : null;
   const prevNotes = pal.notes || "";
-
-  pal.location = {
-    aisle: $("selAisle").value,
-    rail: $("selRail").value,
-    level: $("selLevel").value
-  };
+  pal.location = { aisle: $("selAisle").value, rail: $("selRail").value, level: $("selLevel").value };
   pal.notes = $("in_notes").value || "";
-
   pushUndo(()=>{ pal.location = prevLoc; pal.notes = prevNotes; });
   saveStore();
   renderInboundSummary();
@@ -718,28 +802,24 @@ function saveLocation(){
 }
 
 /* =========================
-   5) INBOUND RENDER
+   6) INBOUND RENDER
    ========================= */
 function renderInboundSummary(){
   const box = $("in_summary");
   box.innerHTML = "";
-
   const order = activeOrderNo ? store.orders[activeOrderNo] : null;
   if(!order){
     box.innerHTML = `<div class="item" style="cursor:default"><div class="big">No order open.</div><div class="small">Open an order to see pallets.</div></div>`;
     return;
   }
-
   const codes = Object.keys(order.pallets).sort((a,b)=>{
     const pa = order.pallets[a], pb = order.pallets[b];
     return (pb.createdAt||"").localeCompare(pa.createdAt||"");
   });
-
   if(codes.length===0){
     box.innerHTML = `<div class="item" style="cursor:default"><div class="big">No pallets yet.</div><div class="small">Click “+ New Pallet”.</div></div>`;
     return;
   }
-
   codes.forEach(code=>{
     const p = order.pallets[code];
     const el = document.createElement("div");
@@ -756,7 +836,6 @@ function renderInboundSummary(){
       activePalletCode = code;
       $("in_pallet").value = code;
       $("in_notes").value = p.notes || "";
-      // set dropdowns if location exists
       if(p.location){
         $("selAisle").value = p.location.aisle || $("selAisle").value;
         syncRails();
@@ -771,11 +850,9 @@ function renderInboundSummary(){
 }
 
 /* =========================
-   6) BAY DROPDOWNS (EDIT THESE TO MATCH YOUR WAREHOUSE)
+   7) BAY DROPDOWNS
    ========================= */
-const AISLES = [
-  "BUGATTI","BENTLEY","ROLLS","FERRARI","LAMBO","MCLAREN","MAYBACH"
-];
+const AISLES = ["BUGATTI","BENTLEY","ROLLS","FERRARI","LAMBO","MCLAREN","MAYBACH"];
 const RAILS_BY_AISLE = {
   "BUGATTI":["A","B","C","D"],
   "BENTLEY":["A","B","C","D"],
@@ -807,16 +884,11 @@ function initBaySelects(){
 }
 
 /* =========================
-   7) BARCODE LABEL GENERATION (FIXES “GENERATES BARCODE AND STUFF”)
+   8) BARCODE LABEL GENERATION
    ========================= */
 function makeBarcodeLabel(text){
   try{
-    JsBarcode("#svgBarcode", text, {
-      format: "CODE128",
-      displayValue: true,
-      fontSize: 14,
-      margin: 10
-    });
+    JsBarcode("#svgBarcode", text, { format:"CODE128", displayValue:true, fontSize:14, margin:10 });
     $("barcodeCard").style.display = "flex";
   }catch(e){
     console.error(e);
@@ -824,7 +896,6 @@ function makeBarcodeLabel(text){
   }
 }
 function printLabel(text, title="Pallet Label"){
-  // build a simple print window with the SVG rendered
   const svg = $("svgBarcode").outerHTML;
   const w = window.open("", "_blank");
   w.document.write(`
@@ -848,32 +919,24 @@ function printLabel(text, title="Pallet Label"){
 }
 
 /* =========================
-   8) OUTBOUND (BASIC)
+   9) OUTBOUND
    ========================= */
 let lastOutboundFound = null;
 function findInStoreByCode(code){
   code = (code||"").trim();
   if(!code) return null;
 
-  // Try pallet direct
   for(const oKey of Object.keys(store.orders)){
     const o = store.orders[oKey];
-    if(o.pallets && o.pallets[code]){
-      return { type:"pallet", orderNo:o.orderNo, pallet:o.pallets[code] };
-    }
+    if(o.pallets && o.pallets[code]) return { type:"pallet", orderNo:o.orderNo, pallet:o.pallets[code] };
   }
-
-  // Try item inside a pallet
   for(const oKey of Object.keys(store.orders)){
     const o = store.orders[oKey];
     for(const pCode of Object.keys(o.pallets || {})){
       const p = o.pallets[pCode];
-      if((p.items||[]).includes(code)){
-        return { type:"item", orderNo:o.orderNo, pallet:p, item:code };
-      }
+      if((p.items||[]).includes(code)) return { type:"item", orderNo:o.orderNo, pallet:p, item:code };
     }
   }
-
   return null;
 }
 function renderOutboundLog(){
@@ -908,7 +971,6 @@ function outboundFind(){
     return;
   }
   lastOutboundFound = found;
-
   $("outDetails").style.display="block";
   $("outCode").textContent = code;
   $("outBadge").textContent = found.type === "pallet" ? "PALLET" : "ITEM";
@@ -925,20 +987,14 @@ function outboundMarkPulled(){
   const stage = $("out_stage").value.trim();
   const code = $("out_scan").value.trim().toUpperCase();
   store.outboundLog = store.outboundLog || [];
-  store.outboundLog.unshift({
-    at: nowISO(),
-    code,
-    orderNo: lastOutboundFound.orderNo,
-    palletCode: lastOutboundFound.pallet.palletCode,
-    stage
-  });
+  store.outboundLog.unshift({ at: nowISO(), code, orderNo: lastOutboundFound.orderNo, palletCode: lastOutboundFound.pallet.palletCode, stage });
   saveStore();
   renderOutboundLog();
   setOutStatus("ok","Outbound logged.");
 }
 
 /* =========================
-   9) LOOKUP
+   10) LOOKUP
    ========================= */
 function lookup(){
   const q = $("lk_q").value.trim().toUpperCase();
@@ -947,31 +1003,19 @@ function lookup(){
   if(!q){ setLookupStatus("warn","Type a search value."); return; }
 
   const hits = [];
+  if(store.orders[q]) hits.push({ kind:"order", orderNo:q });
 
-  // Order match
-  if(store.orders[q]){
-    hits.push({ kind:"order", orderNo:q });
-  }
-
-  // Pallet / item matches
   for(const ok of Object.keys(store.orders)){
     const o = store.orders[ok];
     for(const pc of Object.keys(o.pallets||{})){
       const p = o.pallets[pc];
       if(pc.includes(q)) hits.push({ kind:"pallet", orderNo:o.orderNo, palletCode:pc });
-      if((p.items||[]).some(it=>String(it).toUpperCase().includes(q))){
-        hits.push({ kind:"item", orderNo:o.orderNo, palletCode:pc, item:q });
-      }
+      if((p.items||[]).some(it=>String(it).toUpperCase().includes(q))) hits.push({ kind:"item", orderNo:o.orderNo, palletCode:pc, item:q });
     }
   }
 
-  // Dedup simple
   const seen = new Set();
-  const unique = hits.filter(h=>{
-    const k = JSON.stringify(h);
-    if(seen.has(k)) return false;
-    seen.add(k); return true;
-  });
+  const unique = hits.filter(h=>{ const k = JSON.stringify(h); if(seen.has(k)) return false; seen.add(k); return true; });
 
   if(unique.length===0){
     setLookupStatus("bad","No matches found.");
@@ -1033,30 +1077,25 @@ function lookup(){
 }
 
 /* =========================
-   10) CAMERA SCANNER (FIXES YOUR “CAMERA ACCESSORY” PROBLEM)
+   11) CAMERA SCANNER (WORKING)
    ========================= */
 let camStream = null;
 let scanTimer = null;
 let lastScanValue = "";
 let zxingReader = null;
-let focusedTarget = $("in_item"); // default
+let focusedTarget = null;
 let detector = null;
 
 function setCamStatus(kind, text){
   $("camDot").className = "";
   $("camDot").textContent = "●";
-  $("camDot").classList.add(
-    kind==="ok" ? "status-ok" :
-    kind==="bad"? "status-bad" :
-    kind==="warn"? "status-warn" : "status-info"
-  );
+  $("camDot").classList.add(kind==="ok" ? "status-ok" : kind==="bad"? "status-bad" : kind==="warn"? "status-warn" : "status-info");
   $("camText").textContent = text;
 }
 function setLastScan(v){
   lastScanValue = v || "";
   $("lastScan").textContent = lastScanValue || "—";
 }
-
 function setFocusBadgeFromEl(el){
   let label = "Inbound Item";
   if(el === $("in_order")) label = "Inbound Order #";
@@ -1065,7 +1104,6 @@ function setFocusBadgeFromEl(el){
   if(el === $("lk_q")) label = "Lookup Search";
   $("focusBadge").textContent = label;
 }
-
 ["in_item","in_order","in_pallet","out_scan","lk_q"].forEach(id=>{
   const el = $(id);
   el.addEventListener("focus", ()=>{
@@ -1092,10 +1130,14 @@ async function listCameras(){
 }
 
 async function startCamera(){
+  if(!isUnlocked){ setCamStatus("warn","Unlock first."); return; }
   if(!navigator.mediaDevices?.getUserMedia){
     setCamStatus("bad","Camera not supported in this browser.");
     return;
   }
+
+  // ensure we have a focus target
+  if(!focusedTarget) focusedTarget = $("in_item");
 
   await listCameras();
 
@@ -1113,7 +1155,6 @@ async function startCamera(){
     $("btnCamStart").disabled = true;
     $("btnCamStop").disabled = false;
 
-    // choose scanner method
     if ("BarcodeDetector" in window) {
       try{
         detector = new BarcodeDetector({ formats: ["code_128","code_39","qr_code","ean_13","ean_8","upc_a","upc_e","itf"] });
@@ -1158,11 +1199,9 @@ function handleScan(value){
   const v = String(value).trim();
   if(!v) return;
 
-  // Prevent spam repeats
   if(v === lastScanValue) return;
   setLastScan(v);
 
-  // beep
   try{
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     const o = ctx.createOscillator();
@@ -1174,7 +1213,6 @@ function handleScan(value){
     setTimeout(()=>{ o.stop(); ctx.close(); }, 80);
   }catch{}
 
-  // auto-send to focused target
   if(focusedTarget){
     focusedTarget.value = v;
     focusedTarget.dispatchEvent(new Event("input", {bubbles:true}));
@@ -1193,9 +1231,7 @@ function startBarcodeDetectorLoop(){
       if(codes && codes.length){
         handleScan(codes[0].rawValue || codes[0].value);
       }
-    }catch(e){
-      // ignore loop errors
-    }
+    }catch(e){}
   }, 180);
 }
 
@@ -1214,7 +1250,6 @@ function startZXing(){
   });
 }
 
-/* Print internal label (barcode of last scan) */
 function printInternalLabel(){
   const v = lastScanValue || $("in_item").value.trim();
   if(!v){ setCamStatus("warn","No scan value to print."); return; }
@@ -1223,7 +1258,7 @@ function printInternalLabel(){
 }
 
 /* =========================
-   11) WIRE BUTTONS
+   12) WIRES
    ========================= */
 $("btnOpenOrder").addEventListener("click", openOrder);
 $("btnNewPallet").addEventListener("click", newPallet);
@@ -1248,7 +1283,6 @@ $("btnLookup").addEventListener("click", lookup);
 $("btnCamStart").addEventListener("click", startCamera);
 $("btnCamStop").addEventListener("click", stopCamera);
 $("camSelect").addEventListener("change", ()=>{
-  // if camera is running, restart with new device
   if(camStream){
     stopCamera();
     setTimeout(startCamera, 200);
@@ -1269,7 +1303,6 @@ $("btnSendToLookup").addEventListener("click", ()=>{
 });
 $("btnMakeInternalLabel").addEventListener("click", printInternalLabel);
 
-/* Keyboard shortcuts */
 document.addEventListener("keydown",(e)=>{
   if(e.key==="Enter"){
     const a = document.activeElement;
@@ -1281,7 +1314,7 @@ document.addEventListener("keydown",(e)=>{
 });
 
 /* =========================
-   12) INIT
+   13) INIT
    ========================= */
 (async function init(){
   initBaySelects();
@@ -1292,15 +1325,21 @@ document.addEventListener("keydown",(e)=>{
   setOutStatus("info","Waiting for scan.");
   setLastScan("");
 
-  // Preload camera list if allowed
-  if(navigator.mediaDevices?.enumerateDevices){
+  // restore lock state
+  const st = localStorage.getItem(PIN_LS_KEY) || "locked";
+  isUnlocked = (st === "unlocked");
+  setLockUI(isUnlocked);
+
+  // Default focus target
+  focusedTarget = $("in_item");
+
+  // Don’t auto-request camera permission while locked (keeps it clean)
+  if(isUnlocked && navigator.mediaDevices?.enumerateDevices){
     try{
       await navigator.mediaDevices.getUserMedia({video:true, audio:false});
-      // stop immediately (we just wanted permission so labels show)
+      // stop immediately; just to get device labels
       stopCamera();
-    }catch{
-      // no permission yet, that's fine
-    }
+    }catch{}
     await listCameras();
   }
 })();
