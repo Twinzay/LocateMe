@@ -426,49 +426,52 @@
  *   - wh_truck_loads(id PK, order_no, truck_no, status, loaded_at)
  * ================================ */
 
+// helper: safe DOM grab (prevents null crashes)
+function $id(id){ return document.getElementById(id); }
+
 const WH = {
   // inbound
-  inOrderNo: document.getElementById("inOrderNo"),
-  inStartOrderBtn: document.getElementById("inStartOrderBtn"),
-  inPalletCode: document.getElementById("inPalletCode"),
-  inNewPalletBtn: document.getElementById("inNewPalletBtn"),
-  inOpenPalletBtn: document.getElementById("inOpenPalletBtn"),
-  inClosePalletBtn: document.getElementById("inClosePalletBtn"),
-  inItemTag: document.getElementById("inItemTag"),
-  inAddItemBtn: document.getElementById("inAddItemBtn"),
-  inAisleSel: document.getElementById("inAisleSel"),
-  inRailSel: document.getElementById("inRailSel"),
-  inLevelSel: document.getElementById("inLevelSel"),
-  inNotes: document.getElementById("inNotes"),
-  inSaveLocationBtn: document.getElementById("inSaveLocationBtn"),
-  inBackBtn: document.getElementById("inBackBtn"),
-  inMsg: document.getElementById("inMsg"),
-  inOrderSummary: document.getElementById("inOrderSummary"),
+  inOrderNo: $id("inOrderNo"),
+  inStartOrderBtn: $id("inStartOrderBtn"),
+  inPalletCode: $id("inPalletCode"),
+  inNewPalletBtn: $id("inNewPalletBtn"),
+  inOpenPalletBtn: $id("inOpenPalletBtn"),
+  inClosePalletBtn: $id("inClosePalletBtn"),
+  inItemTag: $id("inItemTag"),
+  inAddItemBtn: $id("inAddItemBtn"),
+  inAisleSel: $id("inAisleSel"),
+  inRailSel: $id("inRailSel"),
+  inLevelSel: $id("inLevelSel"),
+  inNotes: $id("inNotes"),
+  inSaveLocationBtn: $id("inSaveLocationBtn"),
+  inBackBtn: $id("inBackBtn"),
+  inMsg: $id("inMsg"),
+  inOrderSummary: $id("inOrderSummary"),
 
   // outbound
-  outOrderNo: document.getElementById("outOrderNo"),
-  outLoadOrderBtn: document.getElementById("outLoadOrderBtn"),
-  truckSel: document.getElementById("truckSel"),
-  truckMarkLoadedBtn: document.getElementById("truckMarkLoadedBtn"),
-  outPalletCode: document.getElementById("outPalletCode"),
-  outAssignPalletBtn: document.getElementById("outAssignPalletBtn"),
-  outShrinkwrap: document.getElementById("outShrinkwrap"),
-  outItemTag: document.getElementById("outItemTag"),
-  outScanItemBtn: document.getElementById("outScanItemBtn"),
-  outClosePalletBtn: document.getElementById("outClosePalletBtn"),
-  outMsg: document.getElementById("outMsg"),
-  truckStatus: document.getElementById("truckStatus"),
-  outPalletList: document.getElementById("outPalletList"),
+  outOrderNo: $id("outOrderNo"),
+  outLoadOrderBtn: $id("outLoadOrderBtn"),
+  truckSel: $id("truckSel"),
+  truckMarkLoadedBtn: $id("truckMarkLoadedBtn"),
+  outPalletCode: $id("outPalletCode"),
+  outAssignPalletBtn: $id("outAssignPalletBtn"),
+  outShrinkwrap: $id("outShrinkwrap"),
+  outItemTag: $id("outItemTag"),
+  outScanItemBtn: $id("outScanItemBtn"),
+  outClosePalletBtn: $id("outClosePalletBtn"),
+  outMsg: $id("outMsg"),
+  truckStatus: $id("truckStatus"),
+  outPalletList: $id("outPalletList"),
 
   // lookup
-  lkOrderNo: document.getElementById("lkOrderNo"),
-  lkSearchBtn: document.getElementById("lkSearchBtn"),
-  lkMsg: document.getElementById("lkMsg"),
-  lkResults: document.getElementById("lkResults"),
+  lkOrderNo: $id("lkOrderNo"),
+  lkSearchBtn: $id("lkSearchBtn"),
+  lkMsg: $id("lkMsg"),
+  lkResults: $id("lkResults"),
 
   // mini map copies
-  mapHost2: document.getElementById("mapHost2"),
-  mapPick2: document.getElementById("mapPick2"),
+  mapHost2: $id("mapHost2"),
+  mapPick2: $id("mapPick2"),
 };
 
 let whActiveOrder = null;
@@ -481,6 +484,7 @@ function whEscAttr(s){
 }
 
 function whPushHistory(){
+  if(!WH.inAisleSel || !WH.inRailSel || !WH.inLevelSel) return;
   whSelectionHistory.push({
     aisle: WH.inAisleSel.value,
     rail: WH.inRailSel.value,
@@ -489,6 +493,7 @@ function whPushHistory(){
   if(whSelectionHistory.length > 25) whSelectionHistory.shift();
 }
 function whPopHistory(){
+  if(!WH.inAisleSel || !WH.inRailSel || !WH.inLevelSel) return;
   const prev = whSelectionHistory.pop();
   if(!prev) return;
   WH.inAisleSel.value = prev.aisle;
@@ -535,7 +540,7 @@ async function whCreatePallet(orderNo){
   if(error) throw error;
 
   whActivePallet = data;
-  WH.inPalletCode.value = data.pallet_code;
+  if(WH.inPalletCode) WH.inPalletCode.value = data.pallet_code;
   return data;
 }
 
@@ -551,7 +556,7 @@ async function whLoadPalletByCode(palletCode){
   if(!data) throw new Error("Pallet not found.");
 
   whActivePallet = data;
-  WH.inPalletCode.value = data.pallet_code;
+  if(WH.inPalletCode) WH.inPalletCode.value = data.pallet_code;
   return data;
 }
 
@@ -586,8 +591,11 @@ async function whInboundAddItem(itemTag){
 }
 
 async function whSavePalletLocation(){
+  if(!WH.inMsg) return;
   if(!ensureEdit("warehouse", WH.inMsg, "No permission to edit warehouse.")) return;
   if(!whActivePallet?.pallet_code) return msg(WH.inMsg, "Create/load a pallet first.");
+
+  if(!WH.inAisleSel || !WH.inRailSel || !WH.inLevelSel) return msg(WH.inMsg, "Bay selectors missing in UI.");
 
   const aisle = safe(WH.inAisleSel.value);
   const rail  = parseInt(WH.inRailSel.value, 10);
@@ -603,13 +611,13 @@ async function whSavePalletLocation(){
     rail,
     level,
     status: "INBOUND",
-    notes: safe(WH.inNotes.value) || null
+    notes: safe(WH.inNotes?.value) || null
   }]);
 
   if(error) return msg(WH.inMsg, error.message);
 
   msg(WH.inMsg, "Pallet location saved ✅", true);
-  WH.inNotes.value = "";
+  if(WH.inNotes) WH.inNotes.value = "";
   await whRenderInboundSummary();
 }
 
@@ -626,7 +634,7 @@ async function whLatestPalletLocation(palletCode){
 }
 
 async function whRenderInboundSummary(){
-  if(!whActiveOrder) return;
+  if(!whActiveOrder || !WH.inOrderSummary) return;
 
   const { data, error } = await sb.from("wh_pallets")
     .select("id, pallet_code, status, is_open, is_shrinkwrap, created_at, closed_at")
@@ -670,9 +678,9 @@ async function whRenderInboundSummary(){
 window.__whLoadPallet = async (code)=>{
   try{
     await whLoadPalletByCode(code);
-    msg(WH.inMsg, `Loaded pallet ${code} ✅`, true);
+    if(WH.inMsg) msg(WH.inMsg, `Loaded pallet ${code} ✅`, true);
   }catch(e){
-    msg(WH.inMsg, e.message || "Load failed.");
+    if(WH.inMsg) msg(WH.inMsg, e.message || "Load failed.");
   }
 };
 
@@ -2014,9 +2022,16 @@ function setRolePill(){
   ui.rolePill.innerHTML = `<span class="info">●</span> Role: ${r} • Mode: ${m}`;
 }
 
-// ✅ dropdown fill helper
-function fillNumericSelect(sel, max){
+// ✅ dropdown fill helper (SAFE)
+function fillNumericSelect(sel, max, placeholder=""){
+  if(!sel) return;
   sel.innerHTML = "";
+  if(placeholder){
+    const ph = document.createElement("option");
+    ph.value = "";
+    ph.textContent = placeholder;
+    sel.appendChild(ph);
+  }
   for(let i=1;i<=max;i++){
     const opt=document.createElement("option");
     opt.value=i;
@@ -3824,78 +3839,30 @@ async function initApp(){
 }
 
 /** ================================
- *  Events
+ *  Events (SAFE)
  * ================================ */
+function on(el, evt, fn){
+  if(!el) return;
+  el.addEventListener(evt, fn);
+}
+
 // pin
-ui.pinBtn.addEventListener("click", ()=> unlockMaster(ui.pin.value));
-ui.pinClear.addEventListener("click", ()=> { ui.pin.value=""; ui.pinMsg.textContent=""; });
-ui.pin.addEventListener("keydown", (e)=>{ if(e.key==="Enter") unlockMaster(ui.pin.value); });
+on(ui.pinBtn, "click", ()=> unlockMaster(ui.pin.value));
+on(ui.pinClear, "click", ()=> { ui.pin.value=""; ui.pinMsg.textContent=""; });
+on(ui.pin, "keydown", (e)=>{ if(e.key==="Enter") unlockMaster(ui.pin.value); });
 
 // lock
-ui.lockBtn.addEventListener("click", lockAll);
+on(ui.lockBtn, "click", lockAll);
 
 // warehouse
-ui.saveBtn.addEventListener("click", saveTag);
-ui.backBtn.addEventListener("click", popHistory);
-ui.purgeBtn.addEventListener("click", purgeOutbound);
-ui.searchBtn.addEventListener("click", ()=> renderTagResults(ui.searchInput.value));
-ui.searchInput.addEventListener("keydown", (e)=>{ if(e.key==="Enter") renderTagResults(ui.searchInput.value); });
-ui.recentBtn.addEventListener("click", renderRecent);
-ui.addAislesBtn.addEventListener("click", createMissingAisles);
-ui.centerSelectBtn.addEventListener("click", syncMapToDropdown);
-
-// fleet
-ui.drvSaveBtn.addEventListener("click", saveDriver);
-ui.modeApplyBtn.addEventListener("click", applyMode);
-ui.tripSaveBtn.addEventListener("click", saveTrip);
-ui.vehRefreshBtn.addEventListener("click", loadVehicles);
-ui.vehCreateBtn.addEventListener("click", createVehicle);
-ui.mtAddBtn.addEventListener("click", createRepairTicket);
-
-// reporting + exports + jobs
-ui.drvReportBtn.addEventListener("click", runTripReport);
-ui.drvReportCsvBtn.addEventListener("click", ()=> exportCSVFile(`driver_report_${Date.now()}.csv`, __reportTripsCache));
-ui.jobReportBtn.addEventListener("click", runJobMileageReport);
-ui.jobReportCsvBtn.addEventListener("click", ()=>{
-  // quick export from DOM list is messy; re-run and export from computed output by running again:
-  alert("Tip: Click “Run Job Report” first, then use Trips → CSV if you want raw rows. If you want a dedicated job-export table, tell me and I’ll add it.");
-});
-ui.jobSaveBtn.addEventListener("click", saveJob);
-ui.jobRefreshBtn.addEventListener("click", loadJobs);
-
-ui.expTripsCsvBtn.addEventListener("click", exportTripsCSV);
-ui.expTripsPdfBtn.addEventListener("click", exportTripsPDF);
-ui.expDmgCsvBtn.addEventListener("click", exportDamagesCSV);
-ui.expWhCsvBtn.addEventListener("click", exportWarehouseHistoryCSV);
-
-// logistics
-ui.shSaveBtn?.addEventListener("click", saveShipment);
-ui.shRefreshBtn?.addEventListener("click", refreshShipments);
-ui.shSearchBtn?.addEventListener("click", searchShipments);
-ui.shSearch?.addEventListener("keydown", (e)=>{ if(e.key==="Enter") searchShipments(); });
-ui.shTodayBtn?.addEventListener("click", shipmentsRecentlyUpdated);
-
-// dashboard notes
-ui.notesSaveBtn.addEventListener("click", saveManagerNotes);
-ui.notesLoadBtn.addEventListener("click", loadManagerNotes);
-// billing tab
-ui.billLogBtn?.addEventListener("click", billingLogMovement);
-ui.billClearBtn?.addEventListener("click", billingClearForm);
-ui.billLinesRunBtn?.addEventListener("click", billingRunDailyLines);
-ui.billPendingBtn?.addEventListener("click", refreshBillingPending);
-
-// billing (dashboard)
-ui.mbeDailyRunBtn?.addEventListener("click", runDailyLines);
-ui.mbePendingBtn?.addEventListener("click", refreshPendingApprovals);
-
-
-// boot (always locked)
-(function boot(){
-  ui.overlay.style.display = "flex";
-  ui.lockBtn.style.display = "none";
-  setConn(false);
-  setRolePill();
-})();
+on(ui.saveBtn, "click", saveTag);
+on(ui.backBtn, "click", popHistory);
+on(ui.purgeBtn, "click", purgeOutbound);
+on(ui.searchBtn, "click", ()=> renderTagResults(ui.searchInput.value));
+on(ui.searchInput, "keydown", (e)=>{ if(e.key==="Enter") renderTagResults(ui.searchInput.value); });
+on(ui.recentBtn, "click", renderRecent);
+on(ui.addAislesBtn, "click", createMissingAisles);
+on(ui.centerSelectBtn, "click", syncMapToDropdown);
 </script>
 </body>
 </html> 
