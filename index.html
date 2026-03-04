@@ -416,547 +416,6 @@
     </div>
   </div>
 </div>
-/** ================================
- *  Warehouse v2: Inbound / Outbound
- *  Tables expected:
- *   - wh_orders(order_no PK, status, created_at)
- *   - wh_pallets(id PK, order_no FK, pallet_code UNIQUE, status, is_open, is_shrinkwrap, created_at, closed_at)
- *   - wh_pallet_items(id PK, pallet_id FK, item_tag, created_at)
- *   - wh_outbound_scans(id PK, pallet_id FK, item_tag NULL ok, scanned_at, truck_no)
- *   - wh_truck_loads(id PK, order_no, truck_no, status, loaded_at)
- * ================================ */
-
-// helper: safe DOM grab (prevents null crashes)
-function $id(id){ return document.getElementById(id); }
-
-const WH = {
-  // inbound
-  inOrderNo: $id("inOrderNo"),
-  inStartOrderBtn: $id("inStartOrderBtn"),
-  inPalletCode: $id("inPalletCode"),
-  inNewPalletBtn: $id("inNewPalletBtn"),
-  inOpenPalletBtn: $id("inOpenPalletBtn"),
-  inClosePalletBtn: $id("inClosePalletBtn"),
-  inItemTag: $id("inItemTag"),
-  inAddItemBtn: $id("inAddItemBtn"),
-  inAisleSel: $id("inAisleSel"),
-  inRailSel: $id("inRailSel"),
-  inLevelSel: $id("inLevelSel"),
-  inNotes: $id("inNotes"),
-  inSaveLocationBtn: $id("inSaveLocationBtn"),
-  inBackBtn: $id("inBackBtn"),
-  inMsg: $id("inMsg"),
-  inOrderSummary: $id("inOrderSummary"),
-
-  // outbound
-  outOrderNo: $id("outOrderNo"),
-  outLoadOrderBtn: $id("outLoadOrderBtn"),
-  truckSel: $id("truckSel"),
-  truckMarkLoadedBtn: $id("truckMarkLoadedBtn"),
-  outPalletCode: $id("outPalletCode"),
-  outAssignPalletBtn: $id("outAssignPalletBtn"),
-  outShrinkwrap: $id("outShrinkwrap"),
-  outItemTag: $id("outItemTag"),
-  outScanItemBtn: $id("outScanItemBtn"),
-  outClosePalletBtn: $id("outClosePalletBtn"),
-  outMsg: $id("outMsg"),
-  truckStatus: $id("truckStatus"),
-  outPalletList: $id("outPalletList"),
-
-  // lookup
-  lkOrderNo: $id("lkOrderNo"),
-  lkSearchBtn: $id("lkSearchBtn"),
-  lkMsg: $id("lkMsg"),
-  lkResults: $id("lkResults"),
-
-  // mini map copies
-  mapHost2: $id("mapHost2"),
-  mapPick2: $id("mapPick2"),
-};
-
-let whActiveOrder = null;
-let whActivePallet = null; // {id, pallet_code, order_no, status, is_open, is_shrinkwrap}
-let whSelectionHistory = []; // for inbound location undo
-
-// Escape for putting strings inside onclick='...'
-function whEscAttr(s){
-  return String(s ?? "").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
-}
-
-function whPushHistory(){
-  if(!WH.inAisleSel || !WH.inRailSel || !WH.inLevelSel) return;
-  whSelectionHistory.push({
-    aisle: WH.inAisleSel.value,
-    rail: WH.inRailSel.value,
-    level: WH.inLevelSel.value
-  });
-  if(whSelectionHistory.length > 25) whSelectionHistory.shift();
-}
-function whPopHistory(){
-  if(!WH.inAisleSel || !WH.inRailSel || !WH.inLevelSel) return;
-  const prev = whSelectionHistory.pop();
-  if(!prev) return;
-  WH.inAisleSel.value = prev.aisle;
-  WH.inRailSel.value = prev.rail;
-  WH.inLevelSel.value = prev.level;
-}
-
-function whPalletCode(orderNo, seq){
-  const n = String(seq).padStart(3,"0");
-  return `${orderNo}-P${n}`;
-}
-
-async function whEnsureOrder(orderNo){
-  orderNo = safe(orderNo).toUpperCase();
-  if(!orderNo) throw new Error("Order # required.");
-
-  const { error } = await sb
-    .from("wh_orders")
-    .upsert([{ order_no: orderNo, status:"OPEN" }], { onConflict:"order_no" });
-
-  if(error) throw error;
-  whActiveOrder = orderNo;
-  return orderNo;
-}
-
-async function whGetNextPalletSeq(orderNo){
-  const { data, error } = await sb.from("wh_pallets").select("id").eq("order_no", orderNo);
-  if(error) throw error;
-  return (data?.length || 0) + 1;
-}
-
-async function whCreatePallet(orderNo){
-  const seq = await whGetNextPalletSeq(orderNo);
-  const code = whPalletCode(orderNo, seq);
-
-  const { data, error } = await sb.from("wh_pallets").insert([{
-    order_no: orderNo,
-    pallet_code: code,
-    status: "INBOUND",
-    is_open: true,
-    is_shrinkwrap: false
-  }]).select("*").single();
-
-  if(error) throw error;
-
-  whActivePallet = data;
-  if(WH.inPalletCode) WH.inPalletCode.value = data.pallet_code;
-  return data;
-}
-
-async function whLoadPalletByCode(palletCode){
-  palletCode = safe(palletCode).toUpperCase();
-  const { data, error } = await sb
-    .from("wh_pallets")
-    .select("*")
-    .eq("pallet_code", palletCode)
-    .maybeSingle();
-
-  if(error) throw error;
-  if(!data) throw new Error("Pallet not found.");
-
-  whActivePallet = data;
-  if(WH.inPalletCode) WH.inPalletCode.value = data.pallet_code;
-  return data;
-}
-
-async function whSetPalletOpen(isOpen){
-  if(!whActivePallet?.id) throw new Error("No active pallet.");
-
-  const { data, error } = await sb.from("wh_pallets")
-    .update({
-      is_open: !!isOpen,
-      closed_at: isOpen ? null : new Date().toISOString()
-    })
-    .eq("id", whActivePallet.id)
-    .select("*")
-    .single();
-
-  if(error) throw error;
-  whActivePallet = data;
-}
-
-async function whInboundAddItem(itemTag){
-  if(!whActivePallet?.id) throw new Error("Create/load a pallet first.");
-  if(!whActivePallet.is_open) throw new Error("Pallet is closed. Open it first.");
-
-  itemTag = safe(itemTag);
-  if(!itemTag) throw new Error("Item tag required.");
-
-  const { error } = await sb
-    .from("wh_pallet_items")
-    .insert([{ pallet_id: whActivePallet.id, item_tag: itemTag }]);
-
-  if(error) throw error;
-}
-
-async function whSavePalletLocation(){
-  if(!WH.inMsg) return;
-  if(!ensureEdit("warehouse", WH.inMsg, "No permission to edit warehouse.")) return;
-  if(!whActivePallet?.pallet_code) return msg(WH.inMsg, "Create/load a pallet first.");
-
-  if(!WH.inAisleSel || !WH.inRailSel || !WH.inLevelSel) return msg(WH.inMsg, "Bay selectors missing in UI.");
-
-  const aisle = safe(WH.inAisleSel.value);
-  const rail  = parseInt(WH.inRailSel.value, 10);
-  const level = parseInt(WH.inLevelSel.value, 10);
-
-  if(!aisle) return msg(WH.inMsg, "Pick an aisle.");
-  if(!(rail>=1 && rail<=RAIL_MAX)) return msg(WH.inMsg, "Rail out of range.");
-  if(!(level>=1 && level<=LEVEL_MAX)) return msg(WH.inMsg, "Level out of range.");
-
-  const { error } = await sb.from("pallet_tags").insert([{
-    tag_id: whActivePallet.pallet_code,
-    aisle_name: aisle,
-    rail,
-    level,
-    status: "INBOUND",
-    notes: safe(WH.inNotes?.value) || null
-  }]);
-
-  if(error) return msg(WH.inMsg, error.message);
-
-  msg(WH.inMsg, "Pallet location saved ✅", true);
-  if(WH.inNotes) WH.inNotes.value = "";
-  await whRenderInboundSummary();
-}
-
-async function whLatestPalletLocation(palletCode){
-  const { data, error } = await sb
-    .from("pallet_tags")
-    .select("aisle_name, rail, level, updated_at, created_at")
-    .eq("tag_id", palletCode)
-    .order("created_at", { ascending:false })
-    .limit(1);
-
-  if(error) return null;
-  return data?.[0] || null;
-}
-
-async function whRenderInboundSummary(){
-  if(!whActiveOrder || !WH.inOrderSummary) return;
-
-  const { data, error } = await sb.from("wh_pallets")
-    .select("id, pallet_code, status, is_open, is_shrinkwrap, created_at, closed_at")
-    .eq("order_no", whActiveOrder)
-    .order("created_at", { ascending:true });
-
-  if(error) return;
-
-  const rows = data || [];
-  const cards = [];
-
-  for(const p of rows){
-    const loc = await whLatestPalletLocation(p.pallet_code);
-    const locText = loc ? `${loc.aisle_name} • Rail ${loc.rail} • Level ${loc.level}` : "No bay saved";
-    const codeEsc = whEscAttr(p.pallet_code);
-
-    cards.push(`
-      <div class="item">
-        <div class="itemTop">
-          <div>
-            <div class="tag">${p.pallet_code}</div>
-            <div class="meta">
-              Status: <b>${p.status}</b> •
-              ${p.is_open ? `<span class="ok"><b>OPEN</b></span>` : `<span class="warn"><b>CLOSED</b></span>`}
-            </div>
-            <div class="meta" style="margin-top:6px;">Location: <b>${locText}</b></div>
-          </div>
-          <div class="actions">
-            <button class="btn" onclick="window.__whLoadPallet('${codeEsc}')">Load</button>
-          </div>
-        </div>
-      </div>
-    `);
-  }
-
-  WH.inOrderSummary.innerHTML = cards.length
-    ? cards.join("")
-    : `<div class="item"><div class="meta">No pallets yet.</div></div>`;
-}
-
-window.__whLoadPallet = async (code)=>{
-  try{
-    await whLoadPalletByCode(code);
-    if(WH.inMsg) msg(WH.inMsg, `Loaded pallet ${code} ✅`, true);
-  }catch(e){
-    if(WH.inMsg) msg(WH.inMsg, e.message || "Load failed.");
-  }
-};
-
-/** ---------- OUTBOUND ---------- **/
-
-async function whOutboundLoadOrder(orderNo){
-  orderNo = await whEnsureOrder(orderNo);
-
-  const { data, error } = await sb
-    .from("wh_pallets")
-    .select("*")
-    .eq("order_no", orderNo)
-    .order("created_at", { ascending:true });
-
-  if(error) throw error;
-
-  await whRenderOutbound(orderNo, data || []);
-}
-
-async function whPalletCompleteness(pallet){
-  if(pallet.is_shrinkwrap){
-    const { data } = await sb
-      .from("wh_outbound_scans")
-      .select("id")
-      .eq("pallet_id", pallet.id)
-      .limit(1);
-
-    return (data?.length > 0);
-  }
-
-  const [itemsRes, scansRes] = await Promise.all([
-    sb.from("wh_pallet_items").select("item_tag").eq("pallet_id", pallet.id).limit(5000),
-    sb.from("wh_outbound_scans").select("item_tag").eq("pallet_id", pallet.id).limit(5000),
-  ]);
-
-  const items = (itemsRes.data || []).map(x=>safe(x.item_tag));
-  const scans = new Set((scansRes.data || []).map(x=>safe(x.item_tag)));
-
-  if(!items.length) return false;
-  for(const it of items){
-    if(!scans.has(it)) return false;
-  }
-  return true;
-}
-
-async function whRenderOutbound(orderNo, pallets){
-  const { data: loads } = await sb
-    .from("wh_truck_loads")
-    .select("*")
-    .eq("order_no", orderNo)
-    .order("truck_no", { ascending:true });
-
-  const loadMap = new Map((loads||[]).map(x=>[String(x.truck_no), x]));
-
-  WH.truckStatus.innerHTML = Array.from({length:9}).map((_,i)=>{
-    const t = String(i+1);
-    const st = loadMap.get(t)?.status || "OPEN";
-    const cls = (st==="LOADED") ? "ok" : "warn";
-    return `<div class="item"><div class="itemTop"><div><div class="tag">Truck ${t}</div><div class="meta">Status: <b class="${cls}">${st}</b></div></div></div></div>`;
-  }).join("");
-
-  const outCards = [];
-
-  for(const p of pallets){
-    const loc = await whLatestPalletLocation(p.pallet_code);
-    const locText = loc ? `${loc.aisle_name} • Rail ${loc.rail} • Level ${loc.level}` : "No bay saved";
-
-    const complete = await whPalletCompleteness(p).catch(()=>false);
-    const border = complete ? "rgba(56,210,122,.45)" : "rgba(255,89,100,.45)";
-    const badge = complete
-      ? `<span class="pill"><span class="ok">●</span> Complete</span>`
-      : `<span class="pill"><span class="bad">●</span> Incomplete</span>`;
-
-    const codeEsc = whEscAttr(p.pallet_code);
-
-    outCards.push(`
-      <div class="item" style="border-color:${border};">
-        <div class="itemTop">
-          <div>
-            <div class="tag">${p.pallet_code} ${badge}</div>
-            <div class="meta">Location: <b>${locText}</b></div>
-            <div class="meta" style="margin-top:6px;">
-              Shrinkwrap: <b>${p.is_shrinkwrap ? "YES" : "NO"}</b> •
-              Pallet: ${p.is_open ? "OPEN" : "CLOSED"}
-            </div>
-          </div>
-          <div class="actions">
-            <button class="btn" onclick="window.__whOutPick('${codeEsc}')">Use</button>
-          </div>
-        </div>
-      </div>
-    `);
-  }
-
-  WH.outPalletList.innerHTML = outCards.length
-    ? outCards.join("")
-    : `<div class="item"><div class="meta">No pallets for this order.</div></div>`;
-}
-
-window.__whOutPick = async (code)=>{
-  try{
-    const p = await whLoadPalletByCode(code);
-    WH.outPalletCode.value = p.pallet_code;
-    WH.outShrinkwrap.value = p.is_shrinkwrap ? "YES" : "NO";
-    msg(WH.outMsg, `Selected ${p.pallet_code} ✅`, true);
-  }catch(e){
-    msg(WH.outMsg, e.message || "Pick failed.");
-  }
-};
-
-async function whOutboundAssignPalletToTruck(){
-  if(!whActiveOrder) throw new Error("Load an order first.");
-
-  const truckNo = parseInt(WH.truckSel.value, 10);
-  const palletCode = safe(WH.outPalletCode.value).toUpperCase();
-  if(!palletCode) throw new Error("Pallet code required.");
-
-  const pallet = await whLoadPalletByCode(palletCode);
-
-  const isShrink = (WH.outShrinkwrap.value === "YES");
-  await sb.from("wh_pallets")
-    .update({ is_shrinkwrap: isShrink, status:"OUTBOUND" })
-    .eq("id", pallet.id);
-
-  await sb.from("wh_truck_loads").upsert([{
-    order_no: whActiveOrder,
-    truck_no: truckNo,
-    status: "OPEN"
-  }], { onConflict:"order_no,truck_no" });
-
-  msg(WH.outMsg, `Assigned ${palletCode} → Truck ${truckNo} ✅`, true);
-}
-
-async function whOutboundScanItem(){
-  if(!whActiveOrder) throw new Error("Load an order first.");
-
-  const truckNo = parseInt(WH.truckSel.value, 10);
-  const palletCode = safe(WH.outPalletCode.value).toUpperCase();
-  if(!palletCode) throw new Error("Select a pallet.");
-
-  const pallet = await whLoadPalletByCode(palletCode);
-  const isShrink = (WH.outShrinkwrap.value === "YES");
-
-  let itemTag = safe(WH.outItemTag.value);
-
-  if(isShrink){
-    if(!itemTag) itemTag = "SHRINKWRAP";
-    const { error } = await sb.from("wh_outbound_scans").insert([{
-      pallet_id: pallet.id,
-      item_tag: itemTag,
-      truck_no: truckNo
-    }]);
-    if(error) throw error;
-
-    WH.outItemTag.value = "";
-    msg(WH.outMsg, `Shrinkwrap cleared for ${palletCode} ✅`, true);
-    return;
-  }
-
-  if(!itemTag) throw new Error("Scan item tag.");
-
-  const { error } = await sb.from("wh_outbound_scans").insert([{
-    pallet_id: pallet.id,
-    item_tag: itemTag,
-    truck_no: truckNo
-  }]);
-  if(error) throw error;
-
-  WH.outItemTag.value = "";
-  msg(WH.outMsg, `Scanned ${itemTag} ✅`, true);
-}
-
-async function whOutboundClosePallet(){
-  const palletCode = safe(WH.outPalletCode.value).toUpperCase();
-  if(!palletCode) throw new Error("Select a pallet.");
-
-  const pallet = await whLoadPalletByCode(palletCode);
-
-  const complete = await whPalletCompleteness(pallet);
-  if(!complete) throw new Error("Pallet incomplete (missing outbound scans).");
-
-  await sb.from("wh_pallets")
-    .update({ is_open:false, closed_at:new Date().toISOString(), status:"OUTBOUND" })
-    .eq("id", pallet.id);
-
-  msg(WH.outMsg, `Closed pallet ${palletCode} ✅`, true);
-}
-
-async function whTruckMarkLoaded(){
-  if(!whActiveOrder) throw new Error("Load an order first.");
-  const truckNo = parseInt(WH.truckSel.value, 10);
-
-  const { data: palletIdsRes, error } = await sb
-    .from("wh_outbound_scans")
-    .select("pallet_id")
-    .eq("truck_no", truckNo)
-    .limit(5000);
-
-  if(error) throw error;
-
-  const palletIds = Array.from(new Set((palletIdsRes||[]).map(x=>x.pallet_id))).filter(Boolean);
-  if(!palletIds.length) throw new Error("No pallets scanned for this truck yet.");
-
-  const { data: pallets, error: pErr } = await sb.from("wh_pallets").select("*").in("id", palletIds);
-  if(pErr) throw pErr;
-
-  for(const p of (pallets||[])){
-    const ok = await whPalletCompleteness(p);
-    if(!ok) throw new Error(`Truck ${truckNo} blocked: ${p.pallet_code} incomplete.`);
-  }
-
-  await sb.from("wh_truck_loads").upsert([{
-    order_no: whActiveOrder,
-    truck_no: truckNo,
-    status: "LOADED",
-    loaded_at: new Date().toISOString()
-  }], { onConflict:"order_no,truck_no" });
-
-  msg(WH.outMsg, `Truck ${truckNo} marked LOADED ✅`, true);
-}
-
-/** ---------- LOOKUP ---------- **/
-
-async function whLookupOrder(orderNo){
-  orderNo = safe(orderNo).toUpperCase();
-  if(!orderNo) return msg(WH.lkMsg, "Order # required.");
-
-  WH.lkResults.innerHTML = "";
-  WH.lkMsg.textContent = "Loading…";
-
-  const { data: pallets, error } = await sb.from("wh_pallets")
-    .select("id, pallet_code, status, is_open, is_shrinkwrap, created_at, closed_at")
-    .eq("order_no", orderNo)
-    .order("created_at", { ascending:true });
-
-  if(error) return msg(WH.lkMsg, error.message);
-
-  const cards = [];
-
-  for(const p of (pallets || [])){
-    const loc = await whLatestPalletLocation(p.pallet_code);
-    const locText = loc ? `${loc.aisle_name} • Rail ${loc.rail} • Level ${loc.level}` : "No bay saved";
-
-    const complete = await whPalletCompleteness(p).catch(()=>false);
-    const borderColor = complete ? "rgba(56,210,122,.45)" : "rgba(255,89,100,.45)";
-
-   cards.push(`
-<div class="item" style="border-color:${borderColor};">
-  <div class="itemTop">
-    <div>
-      <div class="tag">
-        ${p.pallet_code}
-        ${
-          complete
-          ? `<span class="pill"><span class="ok">●</span> Complete</span>`
-          : `<span class="pill"><span class="bad">●</span> Incomplete</span>`
-        }
-      </div>
-
-      <div class="meta">Location: <b>${locText}</b></div>
-
-      <div class="meta" style="margin-top:6px;">
-        Status: <b>${p.status}</b> • ${p.is_open ? "OPEN" : "CLOSED"} •
-        Shrinkwrap: ${p.is_shrinkwrap ? "YES" : "NO"}
-      </div>
-    </div>
-  </div>
-</div>
-`);
-
-  WH.lkResults.innerHTML = cards.length
-    ? cards.join("")
-    : `<div class="item"><div class="meta">No pallets found for this order.</div></div>`;
-
-  WH.lkMsg.textContent = "";
-}
 
     <!-- FLEET -->
     <div id="tab-fleet" class="tabpane" style="display:none;">
@@ -1525,6 +984,548 @@ async function whLookupOrder(orderNo){
  * ================================ */
 const SUPABASE_URL  = "https://ojdfaguhteddwaxyobnl.supabase.co";
 const SUPABASE_ANON = "sb_publishable_S4Z3E2phukZklKtBuRPLjA_RB4Faij2";
+
+/** ================================
+ *  Warehouse v2: Inbound / Outbound
+ *  Tables expected:
+ *   - wh_orders(order_no PK, status, created_at)
+ *   - wh_pallets(id PK, order_no FK, pallet_code UNIQUE, status, is_open, is_shrinkwrap, created_at, closed_at)
+ *   - wh_pallet_items(id PK, pallet_id FK, item_tag, created_at)
+ *   - wh_outbound_scans(id PK, pallet_id FK, item_tag NULL ok, scanned_at, truck_no)
+ *   - wh_truck_loads(id PK, order_no, truck_no, status, loaded_at)
+ * ================================ */
+
+// helper: safe DOM grab (prevents null crashes)
+function $id(id){ return document.getElementById(id); }
+
+const WH = {
+  // inbound
+  inOrderNo: $id("inOrderNo"),
+  inStartOrderBtn: $id("inStartOrderBtn"),
+  inPalletCode: $id("inPalletCode"),
+  inNewPalletBtn: $id("inNewPalletBtn"),
+  inOpenPalletBtn: $id("inOpenPalletBtn"),
+  inClosePalletBtn: $id("inClosePalletBtn"),
+  inItemTag: $id("inItemTag"),
+  inAddItemBtn: $id("inAddItemBtn"),
+  inAisleSel: $id("inAisleSel"),
+  inRailSel: $id("inRailSel"),
+  inLevelSel: $id("inLevelSel"),
+  inNotes: $id("inNotes"),
+  inSaveLocationBtn: $id("inSaveLocationBtn"),
+  inBackBtn: $id("inBackBtn"),
+  inMsg: $id("inMsg"),
+  inOrderSummary: $id("inOrderSummary"),
+
+  // outbound
+  outOrderNo: $id("outOrderNo"),
+  outLoadOrderBtn: $id("outLoadOrderBtn"),
+  truckSel: $id("truckSel"),
+  truckMarkLoadedBtn: $id("truckMarkLoadedBtn"),
+  outPalletCode: $id("outPalletCode"),
+  outAssignPalletBtn: $id("outAssignPalletBtn"),
+  outShrinkwrap: $id("outShrinkwrap"),
+  outItemTag: $id("outItemTag"),
+  outScanItemBtn: $id("outScanItemBtn"),
+  outClosePalletBtn: $id("outClosePalletBtn"),
+  outMsg: $id("outMsg"),
+  truckStatus: $id("truckStatus"),
+  outPalletList: $id("outPalletList"),
+
+  // lookup
+  lkOrderNo: $id("lkOrderNo"),
+  lkSearchBtn: $id("lkSearchBtn"),
+  lkMsg: $id("lkMsg"),
+  lkResults: $id("lkResults"),
+
+  // mini map copies
+  mapHost2: $id("mapHost2"),
+  mapPick2: $id("mapPick2"),
+};
+
+let whActiveOrder = null;
+let whActivePallet = null; // {id, pallet_code, order_no, status, is_open, is_shrinkwrap}
+let whSelectionHistory = []; // for inbound location undo
+
+// Escape for putting strings inside onclick='...'
+function whEscAttr(s){
+  return String(s ?? "").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+}
+
+function whPushHistory(){
+  if(!WH.inAisleSel || !WH.inRailSel || !WH.inLevelSel) return;
+  whSelectionHistory.push({
+    aisle: WH.inAisleSel.value,
+    rail: WH.inRailSel.value,
+    level: WH.inLevelSel.value
+  });
+  if(whSelectionHistory.length > 25) whSelectionHistory.shift();
+}
+function whPopHistory(){
+  if(!WH.inAisleSel || !WH.inRailSel || !WH.inLevelSel) return;
+  const prev = whSelectionHistory.pop();
+  if(!prev) return;
+  WH.inAisleSel.value = prev.aisle;
+  WH.inRailSel.value = prev.rail;
+  WH.inLevelSel.value = prev.level;
+}
+
+function whPalletCode(orderNo, seq){
+  const n = String(seq).padStart(3,"0");
+  return `${orderNo}-P${n}`;
+}
+
+async function whEnsureOrder(orderNo){
+  orderNo = safe(orderNo).toUpperCase();
+  if(!orderNo) throw new Error("Order # required.");
+
+  const { error } = await sb
+    .from("wh_orders")
+    .upsert([{ order_no: orderNo, status:"OPEN" }], { onConflict:"order_no" });
+
+  if(error) throw error;
+  whActiveOrder = orderNo;
+  return orderNo;
+}
+
+async function whGetNextPalletSeq(orderNo){
+  const { data, error } = await sb.from("wh_pallets").select("id").eq("order_no", orderNo);
+  if(error) throw error;
+  return (data?.length || 0) + 1;
+}
+
+async function whCreatePallet(orderNo){
+  const seq = await whGetNextPalletSeq(orderNo);
+  const code = whPalletCode(orderNo, seq);
+
+  const { data, error } = await sb.from("wh_pallets").insert([{
+    order_no: orderNo,
+    pallet_code: code,
+    status: "INBOUND",
+    is_open: true,
+    is_shrinkwrap: false
+  }]).select("*").single();
+
+  if(error) throw error;
+
+  whActivePallet = data;
+  if(WH.inPalletCode) WH.inPalletCode.value = data.pallet_code;
+  return data;
+}
+
+async function whLoadPalletByCode(palletCode){
+  palletCode = safe(palletCode).toUpperCase();
+  const { data, error } = await sb
+    .from("wh_pallets")
+    .select("*")
+    .eq("pallet_code", palletCode)
+    .maybeSingle();
+
+  if(error) throw error;
+  if(!data) throw new Error("Pallet not found.");
+
+  whActivePallet = data;
+  if(WH.inPalletCode) WH.inPalletCode.value = data.pallet_code;
+  return data;
+}
+
+async function whSetPalletOpen(isOpen){
+  if(!whActivePallet?.id) throw new Error("No active pallet.");
+
+  const { data, error } = await sb.from("wh_pallets")
+    .update({
+      is_open: !!isOpen,
+      closed_at: isOpen ? null : new Date().toISOString()
+    })
+    .eq("id", whActivePallet.id)
+    .select("*")
+    .single();
+
+  if(error) throw error;
+  whActivePallet = data;
+}
+
+async function whInboundAddItem(itemTag){
+  if(!whActivePallet?.id) throw new Error("Create/load a pallet first.");
+  if(!whActivePallet.is_open) throw new Error("Pallet is closed. Open it first.");
+
+  itemTag = safe(itemTag);
+  if(!itemTag) throw new Error("Item tag required.");
+
+  const { error } = await sb
+    .from("wh_pallet_items")
+    .insert([{ pallet_id: whActivePallet.id, item_tag: itemTag }]);
+
+  if(error) throw error;
+}
+
+async function whSavePalletLocation(){
+  if(!WH.inMsg) return;
+  if(!ensureEdit("warehouse", WH.inMsg, "No permission to edit warehouse.")) return;
+  if(!whActivePallet?.pallet_code) return msg(WH.inMsg, "Create/load a pallet first.");
+
+  if(!WH.inAisleSel || !WH.inRailSel || !WH.inLevelSel) return msg(WH.inMsg, "Bay selectors missing in UI.");
+
+  const aisle = safe(WH.inAisleSel.value);
+  const rail  = parseInt(WH.inRailSel.value, 10);
+  const level = parseInt(WH.inLevelSel.value, 10);
+
+  if(!aisle) return msg(WH.inMsg, "Pick an aisle.");
+  if(!(rail>=1 && rail<=RAIL_MAX)) return msg(WH.inMsg, "Rail out of range.");
+  if(!(level>=1 && level<=LEVEL_MAX)) return msg(WH.inMsg, "Level out of range.");
+
+  const { error } = await sb.from("pallet_tags").insert([{
+    tag_id: whActivePallet.pallet_code,
+    aisle_name: aisle,
+    rail,
+    level,
+    status: "INBOUND",
+    notes: safe(WH.inNotes?.value) || null
+  }]);
+
+  if(error) return msg(WH.inMsg, error.message);
+
+  msg(WH.inMsg, "Pallet location saved ✅", true);
+  if(WH.inNotes) WH.inNotes.value = "";
+  await whRenderInboundSummary();
+}
+
+async function whLatestPalletLocation(palletCode){
+  const { data, error } = await sb
+    .from("pallet_tags")
+    .select("aisle_name, rail, level, updated_at, created_at")
+    .eq("tag_id", palletCode)
+    .order("created_at", { ascending:false })
+    .limit(1);
+
+  if(error) return null;
+  return data?.[0] || null;
+}
+
+async function whRenderInboundSummary(){
+  if(!whActiveOrder || !WH.inOrderSummary) return;
+
+  const { data, error } = await sb.from("wh_pallets")
+    .select("id, pallet_code, status, is_open, is_shrinkwrap, created_at, closed_at")
+    .eq("order_no", whActiveOrder)
+    .order("created_at", { ascending:true });
+
+  if(error) return;
+
+  const rows = data || [];
+  const cards = [];
+
+  for(const p of rows){
+    const loc = await whLatestPalletLocation(p.pallet_code);
+    const locText = loc ? `${loc.aisle_name} • Rail ${loc.rail} • Level ${loc.level}` : "No bay saved";
+    const codeEsc = whEscAttr(p.pallet_code);
+
+    cards.push(`
+      <div class="item">
+        <div class="itemTop">
+          <div>
+            <div class="tag">${p.pallet_code}</div>
+            <div class="meta">
+              Status: <b>${p.status}</b> •
+              ${p.is_open ? `<span class="ok"><b>OPEN</b></span>` : `<span class="warn"><b>CLOSED</b></span>`}
+            </div>
+            <div class="meta" style="margin-top:6px;">Location: <b>${locText}</b></div>
+          </div>
+          <div class="actions">
+            <button class="btn" onclick="window.__whLoadPallet('${codeEsc}')">Load</button>
+          </div>
+        </div>
+      </div>
+    `);
+  }
+
+  WH.inOrderSummary.innerHTML = cards.length
+    ? cards.join("")
+    : `<div class="item"><div class="meta">No pallets yet.</div></div>`;
+}
+
+window.__whLoadPallet = async (code)=>{
+  try{
+    await whLoadPalletByCode(code);
+    if(WH.inMsg) msg(WH.inMsg, `Loaded pallet ${code} ✅`, true);
+  }catch(e){
+    if(WH.inMsg) msg(WH.inMsg, e.message || "Load failed.");
+  }
+};
+
+/** ---------- OUTBOUND ---------- **/
+
+async function whOutboundLoadOrder(orderNo){
+  orderNo = await whEnsureOrder(orderNo);
+
+  const { data, error } = await sb
+    .from("wh_pallets")
+    .select("*")
+    .eq("order_no", orderNo)
+    .order("created_at", { ascending:true });
+
+  if(error) throw error;
+
+  await whRenderOutbound(orderNo, data || []);
+}
+
+async function whPalletCompleteness(pallet){
+  if(pallet.is_shrinkwrap){
+    const { data } = await sb
+      .from("wh_outbound_scans")
+      .select("id")
+      .eq("pallet_id", pallet.id)
+      .limit(1);
+
+    return (data?.length > 0);
+  }
+
+  const [itemsRes, scansRes] = await Promise.all([
+    sb.from("wh_pallet_items").select("item_tag").eq("pallet_id", pallet.id).limit(5000),
+    sb.from("wh_outbound_scans").select("item_tag").eq("pallet_id", pallet.id).limit(5000),
+  ]);
+
+  const items = (itemsRes.data || []).map(x=>safe(x.item_tag));
+  const scans = new Set((scansRes.data || []).map(x=>safe(x.item_tag)));
+
+  if(!items.length) return false;
+  for(const it of items){
+    if(!scans.has(it)) return false;
+  }
+  return true;
+}
+
+async function whRenderOutbound(orderNo, pallets){
+  const { data: loads } = await sb
+    .from("wh_truck_loads")
+    .select("*")
+    .eq("order_no", orderNo)
+    .order("truck_no", { ascending:true });
+
+  const loadMap = new Map((loads||[]).map(x=>[String(x.truck_no), x]));
+
+  WH.truckStatus.innerHTML = Array.from({length:9}).map((_,i)=>{
+    const t = String(i+1);
+    const st = loadMap.get(t)?.status || "OPEN";
+    const cls = (st==="LOADED") ? "ok" : "warn";
+    return `<div class="item"><div class="itemTop"><div><div class="tag">Truck ${t}</div><div class="meta">Status: <b class="${cls}">${st}</b></div></div></div></div>`;
+  }).join("");
+
+  const outCards = [];
+
+  for(const p of pallets){
+    const loc = await whLatestPalletLocation(p.pallet_code);
+    const locText = loc ? `${loc.aisle_name} • Rail ${loc.rail} • Level ${loc.level}` : "No bay saved";
+
+    const complete = await whPalletCompleteness(p).catch(()=>false);
+    const border = complete ? "rgba(56,210,122,.45)" : "rgba(255,89,100,.45)";
+    const badge = complete
+      ? `<span class="pill"><span class="ok">●</span> Complete</span>`
+      : `<span class="pill"><span class="bad">●</span> Incomplete</span>`;
+
+    const codeEsc = whEscAttr(p.pallet_code);
+
+    outCards.push(`
+      <div class="item" style="border-color:${border};">
+        <div class="itemTop">
+          <div>
+            <div class="tag">${p.pallet_code} ${badge}</div>
+            <div class="meta">Location: <b>${locText}</b></div>
+            <div class="meta" style="margin-top:6px;">
+              Shrinkwrap: <b>${p.is_shrinkwrap ? "YES" : "NO"}</b> •
+              Pallet: ${p.is_open ? "OPEN" : "CLOSED"}
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn" onclick="window.__whOutPick('${codeEsc}')">Use</button>
+          </div>
+        </div>
+      </div>
+    `);
+  }
+
+  WH.outPalletList.innerHTML = outCards.length
+    ? outCards.join("")
+    : `<div class="item"><div class="meta">No pallets for this order.</div></div>`;
+}
+
+window.__whOutPick = async (code)=>{
+  try{
+    const p = await whLoadPalletByCode(code);
+    WH.outPalletCode.value = p.pallet_code;
+    WH.outShrinkwrap.value = p.is_shrinkwrap ? "YES" : "NO";
+    msg(WH.outMsg, `Selected ${p.pallet_code} ✅`, true);
+  }catch(e){
+    msg(WH.outMsg, e.message || "Pick failed.");
+  }
+};
+
+async function whOutboundAssignPalletToTruck(){
+  if(!whActiveOrder) throw new Error("Load an order first.");
+
+  const truckNo = parseInt(WH.truckSel.value, 10);
+  const palletCode = safe(WH.outPalletCode.value).toUpperCase();
+  if(!palletCode) throw new Error("Pallet code required.");
+
+  const pallet = await whLoadPalletByCode(palletCode);
+
+  const isShrink = (WH.outShrinkwrap.value === "YES");
+  await sb.from("wh_pallets")
+    .update({ is_shrinkwrap: isShrink, status:"OUTBOUND" })
+    .eq("id", pallet.id);
+
+  await sb.from("wh_truck_loads").upsert([{
+    order_no: whActiveOrder,
+    truck_no: truckNo,
+    status: "OPEN"
+  }], { onConflict:"order_no,truck_no" });
+
+  msg(WH.outMsg, `Assigned ${palletCode} → Truck ${truckNo} ✅`, true);
+}
+
+async function whOutboundScanItem(){
+  if(!whActiveOrder) throw new Error("Load an order first.");
+
+  const truckNo = parseInt(WH.truckSel.value, 10);
+  const palletCode = safe(WH.outPalletCode.value).toUpperCase();
+  if(!palletCode) throw new Error("Select a pallet.");
+
+  const pallet = await whLoadPalletByCode(palletCode);
+  const isShrink = (WH.outShrinkwrap.value === "YES");
+
+  let itemTag = safe(WH.outItemTag.value);
+
+  if(isShrink){
+    if(!itemTag) itemTag = "SHRINKWRAP";
+    const { error } = await sb.from("wh_outbound_scans").insert([{
+      pallet_id: pallet.id,
+      item_tag: itemTag,
+      truck_no: truckNo
+    }]);
+    if(error) throw error;
+
+    WH.outItemTag.value = "";
+    msg(WH.outMsg, `Shrinkwrap cleared for ${palletCode} ✅`, true);
+    return;
+  }
+
+  if(!itemTag) throw new Error("Scan item tag.");
+
+  const { error } = await sb.from("wh_outbound_scans").insert([{
+    pallet_id: pallet.id,
+    item_tag: itemTag,
+    truck_no: truckNo
+  }]);
+  if(error) throw error;
+
+  WH.outItemTag.value = "";
+  msg(WH.outMsg, `Scanned ${itemTag} ✅`, true);
+}
+
+async function whOutboundClosePallet(){
+  const palletCode = safe(WH.outPalletCode.value).toUpperCase();
+  if(!palletCode) throw new Error("Select a pallet.");
+
+  const pallet = await whLoadPalletByCode(palletCode);
+
+  const complete = await whPalletCompleteness(pallet);
+  if(!complete) throw new Error("Pallet incomplete (missing outbound scans).");
+
+  await sb.from("wh_pallets")
+    .update({ is_open:false, closed_at:new Date().toISOString(), status:"OUTBOUND" })
+    .eq("id", pallet.id);
+
+  msg(WH.outMsg, `Closed pallet ${palletCode} ✅`, true);
+}
+
+async function whTruckMarkLoaded(){
+  if(!whActiveOrder) throw new Error("Load an order first.");
+  const truckNo = parseInt(WH.truckSel.value, 10);
+
+  const { data: palletIdsRes, error } = await sb
+    .from("wh_outbound_scans")
+    .select("pallet_id")
+    .eq("truck_no", truckNo)
+    .limit(5000);
+
+  if(error) throw error;
+
+  const palletIds = Array.from(new Set((palletIdsRes||[]).map(x=>x.pallet_id))).filter(Boolean);
+  if(!palletIds.length) throw new Error("No pallets scanned for this truck yet.");
+
+  const { data: pallets, error: pErr } = await sb.from("wh_pallets").select("*").in("id", palletIds);
+  if(pErr) throw pErr;
+
+  for(const p of (pallets||[])){
+    const ok = await whPalletCompleteness(p);
+    if(!ok) throw new Error(`Truck ${truckNo} blocked: ${p.pallet_code} incomplete.`);
+  }
+
+  await sb.from("wh_truck_loads").upsert([{
+    order_no: whActiveOrder,
+    truck_no: truckNo,
+    status: "LOADED",
+    loaded_at: new Date().toISOString()
+  }], { onConflict:"order_no,truck_no" });
+
+  msg(WH.outMsg, `Truck ${truckNo} marked LOADED ✅`, true);
+}
+
+/** ---------- LOOKUP ---------- **/
+async function whLookupOrder(orderNo){
+  orderNo = safe(orderNo).toUpperCase();
+  if(!orderNo) return msg(WH.lkMsg, "Order # required.");
+
+  WH.lkResults.innerHTML = "";
+  WH.lkMsg.textContent = "Loading…";
+
+  const { data: pallets, error } = await sb.from("wh_pallets")
+    .select("id, pallet_code, status, is_open, is_shrinkwrap, created_at, closed_at")
+    .eq("order_no", orderNo)
+    .order("created_at", { ascending:true });
+
+  if(error) return msg(WH.lkMsg, error.message);
+
+  const cards = [];
+
+  for(const p of (pallets || [])){
+    const loc = await whLatestPalletLocation(p.pallet_code);
+    const locText = loc ? `${loc.aisle_name} • Rail ${loc.rail} • Level ${loc.level}` : "No bay saved";
+
+    const complete = await whPalletCompleteness(p).catch(()=>false);
+    const borderColor = complete ? "rgba(56,210,122,.45)" : "rgba(255,89,100,.45)";
+
+    cards.push(`
+      <div class="item" style="border-color:${borderColor};">
+        <div class="itemTop">
+          <div>
+            <div class="tag">
+              ${p.pallet_code}
+              ${
+                complete
+                ? `<span class="pill"><span class="ok">●</span> Complete</span>`
+                : `<span class="pill"><span class="bad">●</span> Incomplete</span>`
+              }
+            </div>
+
+            <div class="meta">Location: <b>${locText}</b></div>
+
+            <div class="meta" style="margin-top:6px;">
+              Status: <b>${p.status}</b> • ${p.is_open ? "OPEN" : "CLOSED"} •
+              Shrinkwrap: ${p.is_shrinkwrap ? "YES" : "NO"}
+            </div>
+          </div>
+        </div>
+      </div>
+    `);
+  } // ✅ THIS brace was missing in your version
+
+  WH.lkResults.innerHTML = cards.length
+    ? cards.join("")
+    : `<div class="item"><div class="meta">No pallets found for this order.</div></div>`;
+
+  WH.lkMsg.textContent = "";
+}
 
 // Storage buckets (must exist in Supabase Storage)
 const BUCKET_WAREHOUSE = "warehouse-photos";
@@ -2199,8 +2200,6 @@ function camStop(){
   camDetector = null;
   camSet("Idle");
 }
-const el = document.getElementById("SOME_ID");
-if (el) el.addEventListener("click", handler);
 ui.camClose.addEventListener("click", ()=>{ camStop(); ui.camModal.style.display="none"; });
 ui.camStart.addEventListener("click", camStart);
 ui.camStop.addEventListener("click", camStop);
