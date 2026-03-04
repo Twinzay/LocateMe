@@ -886,35 +886,37 @@ function initBaySelects(){
 /* =========================
    8) BARCODE LABEL GENERATION
    ========================= */
-function makeBarcodeLabel(text){
-  try{
-    JsBarcode("#svgBarcode", text, { format:"CODE128", displayValue:true, fontSize:14, margin:10 });
-    $("barcodeCard").style.display = "flex";
-  }catch(e){
-    console.error(e);
-    $("barcodeCard").style.display = "none";
-  }
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, m => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[m]));
 }
+
 function printLabel(text, title="Pallet Label"){
   const svg = $("svgBarcode").outerHTML;
   const w = window.open("", "_blank");
-  w.document.write(`
-    <html><head><title>${title}</title>
-    <style>
-      body{font-family:system-ui;margin:24px}
-      .wrap{display:flex;flex-direction:column;gap:12px;align-items:flex-start}
-      .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
-      .big{font-size:16px;font-weight:700}
-      svg{max-width:520px}
-    </style>
-    </head><body>
-      <div class="wrap">
-        <div class="big mono">${text}</div>
-        ${svg}
-      </div>
-      <script>window.onload=()=>{window.print(); setTimeout(()=>window.close(), 250);}</script>
-    </body></html>
-  `);
+  if(!w) return;
+
+  const html =
+    '<!doctype html><html><head><meta charset="utf-8"/>' +
+    '<title>' + escapeHtml(title) + '</title>' +
+    '<style>' +
+      'body{font-family:system-ui;margin:24px}' +
+      '.wrap{display:flex;flex-direction:column;gap:12px;align-items:flex-start}' +
+      '.mono{font-family:ui-monospace,Menlo,Consolas,monospace}' +
+      '.big{font-size:16px;font-weight:700}' +
+      'svg{max-width:520px}' +
+    '</style>' +
+    '</head><body>' +
+      '<div class="wrap">' +
+        '<div class="big mono">' + escapeHtml(text) + '</div>' +
+        svg +
+      '</div>' +
+      '<script>window.onload=function(){window.print(); setTimeout(function(){window.close();}, 250);};<\/script>' +
+    '</body></html>';
+
+  w.document.open();
+  w.document.write(html);
   w.document.close();
 }
 
