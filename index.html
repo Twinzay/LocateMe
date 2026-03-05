@@ -418,630 +418,363 @@
     </div>
 
    <!-- FLEET -->
-    <div id="tab-fleet" class="tabpane" style="display:none;">    <div id="tab-fleet" class="tabpane" style="display:none;">
-      <div class="grid3">
-        <div class="card">
-          <h3 class="h">Driver Profile</h3>
-          <div class="small">Save once, then reuse from dropdown.</div>
+<div id="tab-fleet" class="tabpane" style="display:none;">
 
-// Escape for putting strings inside onclick='...'
-function whEscAttr(s){
-  return String(s ?? "").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
-}
-          <label>My Saved Profiles (this device)</label>
-          <select id="myProfiles"></select>
+  <div class="grid3">
+    <!-- Driver Profile -->
+    <div class="card">
+      <h3 class="h">Driver Profile</h3>
+      <div class="small">Save once, then reuse from dropdown.</div>
 
-function whPushHistory(){
-  if(!WH.inAisleSel || !WH.inRailSel || !WH.inLevelSel) return;
-  whSelectionHistory.push({
-    aisle: WH.inAisleSel.value,
-    rail: WH.inRailSel.value,
-    level: WH.inLevelSel.value
-  });
-  if(whSelectionHistory.length > 25) whSelectionHistory.shift();
-}
-function whPopHistory(){
-  if(!WH.inAisleSel || !WH.inRailSel || !WH.inLevelSel) return;
-  const prev = whSelectionHistory.pop();
-  if(!prev) return;
-  WH.inAisleSel.value = prev.aisle;
-  WH.inRailSel.value = prev.rail;
-  WH.inLevelSel.value = prev.level;
-}
-          <div class="divider"></div>
+      <label>My Saved Profiles (this device)</label>
+      <select id="flProfileSel">
+        <option value="">—</option>
+      </select>
 
-function whPalletCode(orderNo, seq){
-  const n = String(seq).padStart(3,"0");
-  return `${orderNo}-P${n}`;
-}
-          <label>Driver Name</label>
-          <input id="drvName" placeholder="Full name" />
+      <label>Driver Name</label>
+      <input id="flDriverName" placeholder="Full name" />
 
-async function whEnsureOrder(orderNo){
-  orderNo = safe(orderNo).toUpperCase();
-  if(!orderNo) throw new Error("Order # required.");
+      <div class="split2">
+        <div>
           <label>Middle Name (optional)</label>
-          <input id="drvMid" placeholder="Optional" />
+          <input id="flMiddleName" placeholder="Optional" />
+        </div>
+        <div>
+          <label>Date of Birth</label>
+          <input id="flDOB" placeholder="mm/dd/yyyy" />
+        </div>
+      </div>
 
-  const { error } = await sb
-    .from("wh_orders")
-    .upsert([{ order_no: orderNo, status:"OPEN" }], { onConflict:"order_no" });
-          <div class="row">
-            <div style="flex:1; min-width:200px;">
-              <label>Date of Birth</label>
-              <input id="drvDob" type="date" />
-            </div>
-            <div style="flex:1; min-width:240px;">
-              <label>License #</label>
-              <input id="drvLic" placeholder="Driver license number" />
-            </div>
-          </div>
-
-  if(error) throw error;
-  whActiveOrder = orderNo;
-  return orderNo;
-}
+      <div class="split2">
+        <div>
+          <label>License #</label>
+          <input id="flLicenseNo" placeholder="Driver license number" />
+        </div>
+        <div>
           <label>License Status</label>
-          <select id="licStatus">
-            <option value="ACTIVE">Active</option>
-            <option value="SUSPENDED">Suspended</option>
-            <option value="PERMIT">Permit</option>
-            <option value="NO_LICENSE">No license</option>
+          <select id="flLicenseStatus">
+            <option value="Active">Active</option>
+            <option value="Suspended">Suspended</option>
+            <option value="Expired">Expired</option>
           </select>
-
-async function whGetNextPalletSeq(orderNo){
-  const { data, error } = await sb.from("wh_pallets").select("id").eq("order_no", orderNo);
-  if(error) throw error;
-  return (data?.length || 0) + 1;
-}
-          <div class="actions">
-            <button class="btn" id="drvSaveBtn">Save Driver Profile</button>
-          </div>
-
-async function whCreatePallet(orderNo){
-  const seq = await whGetNextPalletSeq(orderNo);
-  const code = whPalletCode(orderNo, seq);
-          <div id="drvMsg" class="small" style="margin-top:10px;"></div>
-
-  const { data, error } = await sb.from("wh_pallets").insert([{
-    order_no: orderNo,
-    pallet_code: code,
-    status: "INBOUND",
-    is_open: true,
-    is_shrinkwrap: false
-  }]).select("*").single();
-          <div class="divider"></div>
-
-  if(error) throw error;
-          <h3 class="h" style="margin-top:0;">Mode</h3>
-          <div class="small">Driver role forces Driver mode. Manager/Admin can switch view mode.</div>
-          <label>Mode</label>
-          <select id="modeSel">
-            <option value="MANAGER">Manager</option>
-            <option value="DRIVER">Driver</option>
-          </select>
-          <div class="actions">
-            <button class="btn" id="modeApplyBtn">Apply Mode</button>
-          </div>
-          <div id="modeMsg" class="small" style="margin-top:10px;"></div>
-        </div>
-
-  whActivePallet = data;
-  if(WH.inPalletCode) WH.inPalletCode.value = data.pallet_code;
-  return data;
-}
-        <div class="card">
-          <h3 class="h">Driver Trip Log</h3>
-          <div class="small">Mileage out/in + cab photos before/after + notes + checkbox.</div>
-
-async function whLoadPalletByCode(palletCode){
-  palletCode = safe(palletCode).toUpperCase();
-  const { data, error } = await sb
-    .from("wh_pallets")
-    .select("*")
-    .eq("pallet_code", palletCode)
-    .maybeSingle();
-          <label>Select Vehicle</label>
-          <select id="vehSel"></select>
-
-  if(error) throw error;
-  if(!data) throw new Error("Pallet not found.");
-          <label>Job (optional)</label>
-          <select id="jobSel"></select>
-
-  whActivePallet = data;
-  if(WH.inPalletCode) WH.inPalletCode.value = data.pallet_code;
-  return data;
-}
-          <div class="row">
-            <div style="flex:1; min-width:220px;">
-              <label>Mileage Before</label>
-              <input id="mileOut" type="number" inputmode="numeric" placeholder="e.g. 124883" />
-            </div>
-            <div style="flex:1; min-width:220px;">
-              <label>Mileage After</label>
-              <input id="mileIn" type="number" inputmode="numeric" placeholder="e.g. 125011" />
-            </div>
-          </div>
-
-async function whSetPalletOpen(isOpen){
-  if(!whActivePallet?.id) throw new Error("No active pallet.");
-          <label>Inside Cab Photo BEFORE</label>
-          <input id="cabBefore" type="file" accept="image/*" />
-
-  const { data, error } = await sb.from("wh_pallets")
-    .update({
-      is_open: !!isOpen,
-      closed_at: isOpen ? null : new Date().toISOString()
-    })
-    .eq("id", whActivePallet.id)
-    .select("*")
-    .single();
-          <label>Inside Cab Photo AFTER</label>
-          <input id="cabAfter" type="file" accept="image/*" />
-
-  if(error) throw error;
-  whActivePallet = data;
-}
-          <div class="divider"></div>
-
-async function whInboundAddItem(itemTag){
-  if(!whActivePallet?.id) throw new Error("Create/load a pallet first.");
-  if(!whActivePallet.is_open) throw new Error("Pallet is closed. Open it first.");
-          <h3 class="h" style="margin-top:0;">Damage Update (optional)</h3>
-          <label>Damage Type</label>
-          <select id="dmgType">
-            <option value="">No new damage</option>
-            <option value="SCRATCH">Scratch</option>
-            <option value="DENT">Dent</option>
-            <option value="BROKEN">Broken</option>
-            <option value="OTHER">Other</option>
-          </select>
-
-  itemTag = safe(itemTag);
-  if(!itemTag) throw new Error("Item tag required.");
-          <label>Click where the damage is</label>
-          <div class="damageGrid" id="dmgGrid">
-            <div class="dBtn" data-area="FRONT">Front</div>
-            <div class="dBtn" data-area="BACK">Back</div>
-            <div class="dBtn" data-area="DRIVER_SIDE">Driver side</div>
-            <div class="dBtn" data-area="PASSENGER_SIDE">Passenger side</div>
-            <div class="dBtn" data-area="MIRRORS">Mirrors</div>
-          </div>
-          <div class="small" id="dmgAreasText" style="margin-top:8px;">Selected: none</div>
-
-  const { error } = await sb
-    .from("wh_pallet_items")
-    .insert([{ pallet_id: whActivePallet.id, item_tag: itemTag }]);
-          <label>Damage Notes (optional)</label>
-          <textarea id="dmgNotes" placeholder="What happened / where exactly…"></textarea>
-
-  if(error) throw error;
-}
-          <label>Damage Photos (optional)</label>
-          <input id="dmgPhotos" type="file" accept="image/*" multiple />
-
-async function whSavePalletLocation(){
-  if(!WH.inMsg) return;
-  if(!ensureEdit("warehouse", WH.inMsg, "No permission to edit warehouse.")) return;
-  if(!whActivePallet?.pallet_code) return msg(WH.inMsg, "Create/load a pallet first.");
-          <div class="divider"></div>
-
-  if(!WH.inAisleSel || !WH.inRailSel || !WH.inLevelSel) return msg(WH.inMsg, "Bay selectors missing in UI.");
-          <label>Trip Notes</label>
-          <textarea id="tripNotes" placeholder="Route, stops, issues…"></textarea>
-
-  const aisle = safe(WH.inAisleSel.value);
-  const rail  = parseInt(WH.inRailSel.value, 10);
-  const level = parseInt(WH.inLevelSel.value, 10);
-          <div class="row" style="align-items:flex-start;">
-            <input id="ackBox" type="checkbox" style="width:auto; margin-top:14px;" />
-            <div class="small" style="margin-top:12px;">
-              <b>Accountability:</b> If damages are not stated BEFORE the ride, driver may be held accountable.
-            </div>
-          </div>
-
-  if(!aisle) return msg(WH.inMsg, "Pick an aisle.");
-  if(!(rail>=1 && rail<=RAIL_MAX)) return msg(WH.inMsg, "Rail out of range.");
-  if(!(level>=1 && level<=LEVEL_MAX)) return msg(WH.inMsg, "Level out of range.");
-          <div class="actions">
-            <button class="btn" id="tripSaveBtn">Submit Trip</button>
-          </div>
-
-  const { error } = await sb.from("pallet_tags").insert([{
-    tag_id: whActivePallet.pallet_code,
-    aisle_name: aisle,
-    rail,
-    level,
-    status: "INBOUND",
-    notes: safe(WH.inNotes?.value) || null
-  }]);
-          <div id="tripMsg" class="small" style="margin-top:10px;"></div>
-        </div>
-
-  if(error) return msg(WH.inMsg, error.message);
-        <div class="card">
-          <h3 class="h">Fleet Tools</h3>          <h3 class="h">Fleet Tools</h3>
-          <div class="small">Vehicles + quick tickets + exports.</div>
-
-  msg(WH.inMsg, "Pallet location saved ✅", true);
-  if(WH.inNotes) WH.inNotes.value = "";
-  await whRenderInboundSummary();
-}
-          <div class="actions">
-            <button class="btn" id="vehRefreshBtn">Refresh Vehicles</button>
-            <button class="btn" id="mtAddBtn">Create Repair Ticket</button>
-          </div>
-
-async function whLatestPalletLocation(palletCode){
-  const { data, error } = await sb
-    .from("pallet_tags")
-    .select("aisle_name, rail, level, updated_at, created_at")
-    .eq("tag_id", palletCode)
-    .order("created_at", { ascending:false })
-    .limit(1);
-          <div class="divider"></div>
-
-  if(error) return null;
-  return data?.[0] || null;
-}
-          <div class="small">Quick Add Vehicle (Manager/Admin only)</div>
-          <div class="row">
-            <div style="flex:1; min-width:220px;">
-              <label>Unit # / Name</label>
-              <input id="vehUnit" placeholder="e.g. Truck-3" />
-            </div>
-            <div style="flex:1; min-width:220px;">
-              <label>Plate</label>
-              <input id="vehPlate" placeholder="Plate (optional)" />
-            </div>
-          </div>
-          <div class="row">
-            <div style="flex:1; min-width:220px;">
-              <label>Make/Model</label>
-              <input id="vehModel" placeholder="e.g. Ford Transit 250" />
-            </div>
-            <div style="flex:1; min-width:220px;">
-              <label>Current Mileage</label>
-              <input id="vehMiles" type="number" inputmode="numeric" placeholder="e.g. 125000" />
-            </div>
-          </div>
-          <div class="actions">
-            <button class="btn" id="vehCreateBtn">Save Vehicle</button>
-          </div>
-          <div id="vehMsg" class="small" style="margin-top:10px;"></div>
-
-async function whRenderInboundSummary(){
-  if(!whActiveOrder || !WH.inOrderSummary) return;
-          <div class="divider"></div>
-
-  const { data, error } = await sb.from("wh_pallets")
-    .select("id, pallet_code, status, is_open, is_shrinkwrap, created_at, closed_at")
-    .eq("order_no", whActiveOrder)
-    .order("created_at", { ascending:true });
-          <h3 class="h" style="margin-top:0;">Exports (Manager/Admin)</h3>
-          <div class="actions">
-            <button class="btn" id="expTripsCsvBtn">Trips → CSV</button>
-            <button class="btn" id="expTripsPdfBtn">Trips → PDF</button>
-            <button class="btn" id="expDmgCsvBtn">Damages → CSV</button>
-            <button class="btn" id="expWhCsvBtn">Warehouse → CSV</button>
-          </div>
-          <div id="expMsg" class="small" style="margin-top:10px;"></div>
-
-  if(error) return;
-          <div class="divider"></div>
-
-  const rows = data || [];
-  const cards = [];
-          <h3 class="h" style="margin-top:0;">Recent Trips</h3>
-          <div id="tripList" class="list"></div>
-        </div>
-
-  for(const p of rows){
-    const loc = await whLatestPalletLocation(p.pallet_code);
-    const locText = loc ? `${loc.aisle_name} • Rail ${loc.rail} • Level ${loc.level}` : "No bay saved";
-    const codeEsc = whEscAttr(p.pallet_code);
-        <!-- Reporting + Jobs -->
-        <div class="card" style="grid-column: 1 / -1;" id="fleetReportsCard">        <div class="card" style="grid-column: 1 / -1;" id="fleetReportsCard">
-          <h3 class="h">Fleet Reporting + Job Tracking</h3>          <h3 class="h">Fleet Reporting + Job Tracking</h3>
-          <div class="small">Manager/Admin sees all drivers. Driver view only sees own trips.</div>
-
-    cards.push(`
-      <div class="item">
-        <div class="itemTop">
-          <div>
-            <div class="tag">${p.pallet_code}</div>
-            <div class="meta">
-              Status: <b>${p.status}</b> •
-              ${p.is_open ? `<span class="ok"><b>OPEN</b></span>` : `<span class="warn"><b>CLOSED</b></span>`}
-            </div>
-            <div class="meta" style="margin-top:6px;">Location: <b>${locText}</b></div>
-          </div>
-          <div class="actions">
-            <button class="btn" onclick="window.__whLoadPallet('${codeEsc}')">Load</button>
-          </div>
         </div>
       </div>
-    `);
-  }
-          <div class="divider"></div>
 
-  WH.inOrderSummary.innerHTML = cards.length
-    ? cards.join("")
-    : `<div class="item"><div class="meta">No pallets yet.</div></div>`;
-}
-          <div class="split2">
-            <div class="card" style="margin:0;" id="jobsCard">
-              <h3 class="h" style="margin-top:0;">Jobs</h3>
-
-window.__whLoadPallet = async (code)=>{
-  try{
-    await whLoadPalletByCode(code);
-    if(WH.inMsg) msg(WH.inMsg, `Loaded pallet ${code} ✅`, true);
-  }catch(e){
-    if(WH.inMsg) msg(WH.inMsg, e.message || "Load failed.");
-  }
-};
-              <input id="jobIdHidden" type="hidden" />
-
-/** ---------- OUTBOUND ---------- **/
-              <div class="row">
-                <div style="flex:1; min-width:220px;">
-                  <label>Job Name</label>
-                  <input id="jobName" placeholder="e.g. Uptown Install" />
-                </div>
-                <div style="flex:1; min-width:220px;">
-                  <label>Job Code (optional)</label>
-                  <input id="jobCode" placeholder="e.g. JOB-1027" />
-                </div>
-              </div>
-
-async function whOutboundLoadOrder(orderNo){
-  orderNo = await whEnsureOrder(orderNo);
-              <div class="row">
-                <div style="flex:1; min-width:220px;">
-                  <label>Status</label>
-                  <select id="jobStatus">
-                    <option value="OPEN">OPEN</option>
-                    <option value="PAUSED">PAUSED</option>
-                    <option value="CLOSED">CLOSED</option>
-                  </select>
-                </div>
-              </div>
-
-  const { data, error } = await sb
-    .from("wh_pallets")
-    .select("*")
-    .eq("order_no", orderNo)
-    .order("created_at", { ascending:true });
-              <label>Notes (optional)</label>
-              <textarea id="jobNotes" placeholder="Access notes, contact, scope…"></textarea>
-
-  if(error) throw error;
-              <div class="actions">
-                <button class="btn" id="jobSaveBtn">Save Job</button>
-                <button class="btn" id="jobRefreshBtn">Refresh Jobs</button>
-              </div>
-              <div id="jobMsg" class="small" style="margin-top:10px;"></div>
-
-  await whRenderOutbound(orderNo, data || []);
-}
-              <div class="divider"></div>
-
-async function whPalletCompleteness(pallet){
-  if(pallet.is_shrinkwrap){
-    const { data } = await sb
-      .from("wh_outbound_scans")
-      .select("id")
-      .eq("pallet_id", pallet.id)
-      .limit(1);
-              <h3 class="h" style="margin-top:0;">Mileage per Job (quick)</h3>
-              <div class="row">
-                <div style="flex:1; min-width:220px;">
-                  <label>From</label>
-                  <input id="jobFrom" type="date" />
-                </div>
-                <div style="flex:1; min-width:220px;">
-                  <label>To</label>
-                  <input id="jobTo" type="date" />
-                </div>
-              </div>
-              <div class="actions">
-                <button class="btn" id="jobReportBtn">Run Job Report</button>
-                <button class="btn" id="jobReportCsvBtn">Job Report → CSV</button>
-              </div>
-              <div id="jobReportMsg" class="small" style="margin-top:10px;"></div>
-              <div id="jobReportOut" class="list"></div>
-            </div>
-
-    return (data?.length > 0);
-  }
-            <div class="card" style="margin:0;">
-              <h3 class="h" style="margin-top:0;">Driver Reporting</h3>
-
-  const [itemsRes, scansRes] = await Promise.all([
-    sb.from("wh_pallet_items").select("item_tag").eq("pallet_id", pallet.id).limit(5000),
-    sb.from("wh_outbound_scans").select("item_tag").eq("pallet_id", pallet.id).limit(5000),
-  ]);
-              <div class="row">
-                <div style="flex:1; min-width:220px;">
-                  <label>From</label>
-                  <input id="drvFrom" type="date" />
-                </div>
-                <div style="flex:1; min-width:220px;">
-                  <label>To</label>
-                  <input id="drvTo" type="date" />
-                </div>
-                <div style="flex:1; min-width:260px;">
-                  <label>Driver</label>
-                  <select id="drvReportSel"></select>
-                </div>
-              </div>
-
-  const items = (itemsRes.data || []).map(x=>safe(x.item_tag));
-  const scans = new Set((scansRes.data || []).map(x=>safe(x.item_tag)));
-              <div class="actions">
-                <button class="btn" id="drvReportBtn">Run Driver Report</button>
-                <button class="btn" id="drvReportCsvBtn">Driver Report → CSV</button>
-              </div>
-
-  if(!items.length) return false;
-  for(const it of items){
-    if(!scans.has(it)) return false;
-  }
-  return true;
-}
-              <div id="drvReportMsg" class="small" style="margin-top:10px;"></div>
-              <div id="drvReportTotals" class="row" style="margin-top:10px; gap:8px;"></div>
-
-async function whRenderOutbound(orderNo, pallets){
-  const { data: loads } = await sb
-    .from("wh_truck_loads")
-    .select("*")
-    .eq("order_no", orderNo)
-    .order("truck_no", { ascending:true });
-              <div class="divider"></div>
-
-  const loadMap = new Map((loads||[]).map(x=>[String(x.truck_no), x]));
-              <h3 class="h" style="margin-top:0;">Drivers by License Status</h3>
-              <div id="driversGrouped" class="list"></div>
-
-  WH.truckStatus.innerHTML = Array.from({length:9}).map((_,i)=>{
-    const t = String(i+1);
-    const st = loadMap.get(t)?.status || "OPEN";
-    const cls = (st==="LOADED") ? "ok" : "warn";
-    return `<div class="item"><div class="itemTop"><div><div class="tag">Truck ${t}</div><div class="meta">Status: <b class="${cls}">${st}</b></div></div></div></div>`;
-  }).join("");
-              <div class="divider"></div>
-
-  const outCards = [];
-              <h3 class="h" style="margin-top:0;">Report Output</h3>
-              <div id="drvReportOut" class="list"></div>
-            </div>
-          </div>
-        </div>
+      <div class="actions">
+        <button class="btn" id="flSaveProfileBtn">Save Driver Profile</button>
       </div>
+
+      <div class="divider"></div>
+
+      <h3 class="h" style="margin-top:0;">Mode</h3>
+      <div class="small">Driver role forces Driver mode. Manager/Admin can switch view mode.</div>
+
+      <label>Mode</label>
+      <select id="flModeSel">
+        <option value="Manager">Manager</option>
+        <option value="Driver">Driver</option>
+      </select>
+
+      <div class="actions">
+        <button class="btn" id="flApplyModeBtn">Apply Mode</button>
+      </div>
+
+      <div id="flMsg" class="small" style="margin-top:10px;"></div>
     </div>
 
-  for(const p of pallets){
-    const loc = await whLatestPalletLocation(p.pallet_code);
-    const locText = loc ? `${loc.aisle_name} • Rail ${loc.rail} • Level ${loc.level}` : "No bay saved";
+    <!-- Driver Trip Log -->
+    <div class="card">
+      <h3 class="h">Driver Trip Log</h3>
+      <div class="small">Mileage out + back (photo proof optional) + notes + checklist.</div>
+
+      <label>Driver</label>
+      <select id="flTripDriverSel">
+        <option value="">Select driver…</option>
+      </select>
+
+      <label>Job (optional)</label>
+      <input id="flTripJob" placeholder="e.g. UPS Install / AEX-10392" />
+
+      <div class="split2">
+        <div>
+          <label>Mileage Before</label>
+          <input id="flMilesBefore" type="number" inputmode="numeric" placeholder="e.g. 124883" />
+        </div>
+        <div>
+          <label>Mileage After</label>
+          <input id="flMilesAfter" type="number" inputmode="numeric" placeholder="e.g. 125011" />
+        </div>
+      </div>
+
+      <div class="split2">
+        <div>
+          <label>Kickback Photo BEFORE</label>
+          <input id="flPhotoBefore" type="file" accept="image/*" />
+        </div>
+        <div>
+          <label>Kickback Photo AFTER</label>
+          <input id="flPhotoAfter" type="file" accept="image/*" />
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <h3 class="h" style="margin-top:0;">Damage Update (Optional)</h3>
+      <div class="small">Tap where the damage is and add notes.</div>
+
+      <label>Damage Type</label>
+      <select id="flDamageType">
+        <option value="">No new damage</option>
+        <option value="Scratch">Scratch</option>
+        <option value="Dent">Dent</option>
+        <option value="Crack">Crack</option>
+        <option value="Broken">Broken</option>
+        <option value="Other">Other</option>
+      </select>
+
+      <label>Where is the damage</label>
+      <div class="damageGrid" id="flDamageGrid">
+        <div class="dBtn" data-d="Front">Front</div>
+        <div class="dBtn" data-d="Back">Back</div>
+        <div class="dBtn" data-d="Driver side">Driver side</div>
+        <div class="dBtn" data-d="Passenger side">Passenger side</div>
+        <div class="dBtn" data-d="Mirrors">Mirrors</div>
+      </div>
+
+      <label>Damage Notes (optional)</label>
+      <textarea id="flDamageNotes" placeholder="What happened / where exactly…"></textarea>
+
+      <label>Damage Photo (optional)</label>
+      <input id="flDamagePhoto" type="file" accept="image/*" />
+
+      <label>Trip Notes</label>
+      <textarea id="flTripNotes" placeholder="Route, stops, issues…"></textarea>
+
+      <div class="actions">
+        <button class="btn" id="flSubmitTripBtn">Submit Trip</button>
+      </div>
+
+      <div id="flTripMsg" class="small" style="margin-top:10px;"></div>
+    </div>
+
+    <!-- Fleet Tools -->
+    <div class="card">
+      <h3 class="h">Fleet Tools</h3>
+      <div class="small">Vehicles + quick adds + exports.</div>
+
+      <div class="actions" style="margin-top:10px;">
+        <button class="btn" id="flRefreshVehiclesBtn">Refresh Vehicles</button>
+        <button class="btn" id="flCreateRepairBtn">Create Repair Ticket</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <h3 class="h" style="margin-top:0;">Quick Add Vehicle</h3>
+
+      <label>Unit # / Name</label>
+      <input id="flUnit" placeholder="e.g. Truck 3" />
+
+      <label>Plate</label>
+      <input id="flPlate" placeholder="(optional)" />
+
+      <label>Make/Model</label>
+      <input id="flModel" placeholder="e.g. Ford Transit 250" />
+
+      <label>Current Mileage</label>
+      <input id="flCurrentMiles" type="number" inputmode="numeric" placeholder="e.g. 125000" />
+
+      <div class="actions">
+        <button class="btn" id="flSaveVehicleBtn">Save Vehicle</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <h3 class="h" style="margin-top:0;">Exports (Manager/Admin)</h3>
+      <div class="actions">
+        <button class="btn" id="flExportTripsBtn">Trips → CSV</button>
+        <button class="btn" id="flExportDriversBtn">Drivers → CSV</button>
+        <button class="btn" id="flExportVehiclesBtn">Vehicles → CSV</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <h3 class="h" style="margin-top:0;">Recent Trips</h3>
+      <div id="flRecentTrips" class="list"></div>
+
+      <div id="flToolsMsg" class="small" style="margin-top:10px;"></div>
+    </div>
+  </div>
+
+  <div class="grid" style="margin-top:14px;">
+    <!-- Fleet Reporting + Job Tracking -->
+    <div class="card">
+      <h3 class="h">Fleet Reporting + Job Tracking</h3>
+      <div class="small">Manager/Admin can add jobs. Driver can only submit trips.</div>
+
+      <label>Job Name</label>
+      <input id="flJobName" placeholder="e.g. UPS Install" />
+
+      <label>Job Code (optional)</label>
+      <input id="flJobCode" placeholder="e.g. JOB-1027" />
+
+      <label>Status</label>
+      <select id="flJobStatus">
+        <option value="OPEN">OPEN</option>
+        <option value="CLOSED">CLOSED</option>
+      </select>
+
+      <label>Notes (optional)</label>
+      <textarea id="flJobNotes" placeholder="Access notes, contact, scope…"></textarea>
+
+      <div class="actions">
+        <button class="btn" id="flSaveJobBtn">Save Job</button>
+        <button class="btn" id="flRefreshJobsBtn">Refresh Jobs</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <h3 class="h" style="margin-top:0;">Mileage per Job (quick)</h3>
+      <div class="split2">
+        <div>
+          <label>From</label>
+          <input id="flJobFrom" placeholder="mm/dd/yyyy" />
+        </div>
+        <div>
+          <label>To</label>
+          <input id="flJobTo" placeholder="mm/dd/yyyy" />
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn" id="flRunJobReportBtn">Run Job Report</button>
+        <button class="btn" id="flJobCSVBtn">Job Report → CSV</button>
+      </div>
+
+      <div id="flJobMsg" class="small" style="margin-top:10px;"></div>
+      <div id="flJobOut" class="list"></div>
+    </div>
+
+    <!-- Driver Reporting -->
+    <div class="card">
+      <h3 class="h">Driver Reporting</h3>
+
+      <div class="split2">
+        <div>
+          <label>From</label>
+          <input id="flRepFrom" placeholder="mm/dd/yyyy" />
+        </div>
+        <div>
+          <label>To</label>
+          <input id="flRepTo" placeholder="mm/dd/yyyy" />
+        </div>
+      </div>
+
+      <label>Driver</label>
+      <select id="flRepDriverSel">
+        <option value="">All drivers…</option>
+      </select>
+
+      <div class="actions">
+        <button class="btn" id="flRunDriverReportBtn">Run Driver Report</button>
+        <button class="btn" id="flDriverCSVBtn">Driver Report → CSV</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <h3 class="h" style="margin-top:0;">Drivers by License Status</h3>
+      <div id="flLicenseOut" class="list"></div>
+
+      <div class="divider"></div>
+
+      <h3 class="h" style="margin-top:0;">Report Output</h3>
+      <div id="flReportOut" class="list"></div>
+
+      <div id="flRepMsg" class="small" style="margin-top:10px;"></div>
+    </div>
+  </div>
+
+</div>
+
     <!-- LOGISTICS -->
-    <div id="tab-logistics" class="tabpane" style="display:none;">
-      <div class="grid">
-        <div class="card">
-          <h3 class="h">Create / Update Shipment</h3>
-          <div class="small">Track pickups, deliveries, PO/BOL, carrier, proof photo.</div>
+<div id="tab-logistics" class="tabpane" style="display:none;">
+  <div class="grid">
 
-    const complete = await whPalletCompleteness(p).catch(()=>false);
-    const border = complete ? "rgba(56,210,122,.45)" : "rgba(255,89,100,.45)";
-    const badge = complete
-      ? `<span class="pill"><span class="ok">●</span> Complete</span>`
-      : `<span class="pill"><span class="bad">●</span> Incomplete</span>`;
-          <label>Shipment ID</label>
-          <input id="shId" placeholder="e.g. CLT-2026-001" />
+    <!-- Create / Update Shipment -->
+    <div class="card">
+      <h3 class="h">Create / Update Shipment</h3>
+      <div class="small">Track pickups, deliveries, PO/BOL, carrier, proof photo.</div>
 
-    const codeEsc = whEscAttr(p.pallet_code);
-          <div class="row">
-            <div style="flex:1; min-width:220px;">
-              <label>Status</label>
-              <select id="shStatus">
-                <option value="PLANNED">PLANNED</option>
-                <option value="PICKUP_SCHEDULED">PICKUP_SCHEDULED</option>
-                <option value="IN_TRANSIT">IN_TRANSIT</option>
-                <option value="DELIVERED">DELIVERED</option>
-                <option value="EXCEPTION">EXCEPTION</option>
-                <option value="CANCELLED">CANCELLED</option>
-              </select>
-            </div>
-            <div style="flex:1; min-width:220px;">
-              <label>Carrier / Driver</label>
-              <input id="shCarrier" placeholder="Carrier or driver name" />
-            </div>
-          </div>
+      <label>Shipment ID</label>
+      <input id="shId" placeholder="e.g. CLT-2026-001" />
 
-    outCards.push(`
-      <div class="item" style="border-color:${border};">
-        <div class="itemTop">
-          <div>
-            <div class="tag">${p.pallet_code} ${badge}</div>
-            <div class="meta">Location: <b>${locText}</b></div>
-            <div class="meta" style="margin-top:6px;">
-              Shrinkwrap: <b>${p.is_shrinkwrap ? "YES" : "NO"}</b> •
-              Pallet: ${p.is_open ? "OPEN" : "CLOSED"}
-          <div class="row">
-            <div style="flex:1; min-width:220px;">
-              <label>PO #</label>
-              <input id="shPO" placeholder="PO (optional)" />
-            </div>
-            <div style="flex:1; min-width:220px;">
-              <label>BOL #</label>
-              <input id="shBOL" placeholder="BOL (optional)" />
-            </div>
-          </div>
-
-          <label>Pickup Location</label>
-          <input id="shPickup" placeholder="Pickup address / site" />
-
-          <label>Delivery Location</label>
-          <input id="shDrop" placeholder="Delivery address / site" />
-
-          <label>Notes</label>
-          <textarea id="shNotes" placeholder="Load details, access instructions…"></textarea>
-
-          <label>Proof / Load Photo (optional)</label>
-          <input id="shPhoto" type="file" accept="image/*" />
-
-          <div class="actions">
-            <button class="btn" onclick="window.__whOutPick('${codeEsc}')">Use</button>
-            <button class="btn" id="shSaveBtn">Save Shipment</button>
-            <button class="btn" id="shRefreshBtn">Refresh Shipments</button>
-          </div>
-
-          <div id="shMsg" class="small" style="margin-top:10px;"></div>
+      <div class="row">
+        <div style="flex:1; min-width:220px;">
+          <label>Status</label>
+          <select id="shStatus">
+            <option value="PLANNED">PLANNED</option>
+            <option value="PICKUP_SCHEDULED">PICKUP_SCHEDULED</option>
+            <option value="IN_TRANSIT">IN_TRANSIT</option>
+            <option value="DELIVERED">DELIVERED</option>
+            <option value="EXCEPTION">EXCEPTION</option>
+            <option value="CANCELLED">CANCELLED</option>
+          </select>
+        </div>
+        <div style="flex:1; min-width:220px;">
+          <label>Carrier / Driver</label>
+          <input id="shCarrier" placeholder="Carrier or driver name" />
         </div>
       </div>
-    `);
-  }
 
-  WH.outPalletList.innerHTML = outCards.length
-    ? outCards.join("")
-    : `<div class="item"><div class="meta">No pallets for this order.</div></div>`;
-}
-        <div class="card">
-          <h3 class="h">Shipment Board</h3>
-          <div class="small">Search shipments fast and open details.</div>
-
-window.__whOutPick = async (code)=>{
-  try{
-    const p = await whLoadPalletByCode(code);
-    WH.outPalletCode.value = p.pallet_code;
-    WH.outShrinkwrap.value = p.is_shrinkwrap ? "YES" : "NO";
-    msg(WH.outMsg, `Selected ${p.pallet_code} ✅`, true);
-  }catch(e){
-    msg(WH.outMsg, e.message || "Pick failed.");
-  }
-};
-          <label>Search</label>
-          <input id="shSearch" placeholder="Shipment ID, PO, BOL, carrier…" />
-
-async function whOutboundAssignPalletToTruck(){
-  if(!whActiveOrder) throw new Error("Load an order first.");
-          <div class="actions">
-            <button class="btn" id="shSearchBtn">Search</button>
-            <button class="btn" id="shTodayBtn">Recently Updated</button>
-          </div>
-
-  const truckNo = parseInt(WH.truckSel.value, 10);
-  const palletCode = safe(WH.outPalletCode.value).toUpperCase();
-  if(!palletCode) throw new Error("Pallet code required.");
-          <div id="shList" class="list"></div>
+      <div class="row">
+        <div style="flex:1; min-width:220px;">
+          <label>PO #</label>
+          <input id="shPO" placeholder="PO (optional)" />
+        </div>
+        <div style="flex:1; min-width:220px;">
+          <label>BOL #</label>
+          <input id="shBOL" placeholder="BOL (optional)" />
         </div>
       </div>
+
+      <label>Pickup Location</label>
+      <input id="shPickup" placeholder="Pickup address / site" />
+
+      <label>Delivery Location</label>
+      <input id="shDrop" placeholder="Delivery address / site" />
+
+      <label>Notes</label>
+      <textarea id="shNotes" placeholder="Load details, access instructions…"></textarea>
+
+      <label>Proof / Load Photo (optional)</label>
+      <input id="shPhoto" type="file" accept="image/*" />
+
+      <div class="actions">
+        <button class="btn" id="shSaveBtn">Save Shipment</button>
+        <button class="btn" id="shRefreshBtn">Refresh Shipments</button>
+      </div>
+
+      <div id="shMsg" class="small" style="margin-top:10px;"></div>
     </div>
 
-  const pallet = await whLoadPalletByCode(palletCode);
-          }
+    <!-- Shipment Board -->
+    <div class="card">
+      <h3 class="h">Shipment Board</h3>
+      <div class="small">Search shipments fast and open details.</div>
+
+      <label>Search</label>
+      <input id="shSearch" placeholder="Shipment ID, PO, BOL, carrier…" />
+
+      <div class="actions">
+        <button class="btn" id="shSearchBtn">Search</button>
+        <button class="btn" id="shTodayBtn">Recently Updated</button>
+      </div>
+
+      <div id="shList" class="list"></div>
+    </div>
+
+  </div>
+</div>
+
     <!-- BILLING -->
     <div id="tab-billing" class="tabpane" style="display:none;">
       <div class="grid">
@@ -2181,6 +1914,104 @@ function notesLoad(){
 }
 ui.notesSaveBtn?.addEventListener("click", notesSave);
 ui.notesLoadBtn?.addEventListener("click", notesLoad);
+/** ---------- FLEET + LOGISTICS (UI-only safe wiring) ---------- */
+function wireFleetEvents(){
+  // damage selection toggles
+  const grid = document.getElementById("flDamageGrid");
+  if(grid){
+    grid.querySelectorAll(".dBtn").forEach(b=>{
+      b.addEventListener("click", ()=> b.classList.toggle("sel"));
+    });
+  }
+
+  // local-only profile save so dropdowns work immediately
+  const saveProfile = ()=>{
+    const name = safe(document.getElementById("flDriverName")?.value);
+    if(!name) return msg(document.getElementById("flMsg"), "Driver name required.");
+    const profile = {
+      name,
+      middle: safe(document.getElementById("flMiddleName")?.value),
+      dob: safe(document.getElementById("flDOB")?.value),
+      lic: safe(document.getElementById("flLicenseNo")?.value),
+      status: safe(document.getElementById("flLicenseStatus")?.value) || "Active",
+    };
+    const key = "Precision_fleet_profiles";
+    const list = JSON.parse(localStorage.getItem(key) || "[]");
+    // upsert by name
+    const idx = list.findIndex(x=>x.name.toLowerCase()===name.toLowerCase());
+    if(idx>=0) list[idx]=profile; else list.push(profile);
+    localStorage.setItem(key, JSON.stringify(list));
+    loadProfiles();
+    msg(document.getElementById("flMsg"), "Saved ✅", true);
+  };
+
+  const loadProfiles = ()=>{
+    const key = "Precision_fleet_profiles";
+    const list = JSON.parse(localStorage.getItem(key) || "[]");
+    const selA = document.getElementById("flProfileSel");
+    const selB = document.getElementById("flTripDriverSel");
+    const selC = document.getElementById("flRepDriverSel");
+    [selA, selB, selC].forEach(sel=>{
+      if(!sel) return;
+      const keep = sel.value;
+      sel.innerHTML = sel===selC ? `<option value="">All drivers…</option>` : `<option value="">${sel===selB ? "Select driver…" : "—"}</option>`;
+      list.forEach(p=>{
+        const o=document.createElement("option");
+        o.value=p.name; o.textContent=p.name;
+        sel.appendChild(o);
+      });
+      sel.value = keep;
+    });
+  };
+
+  document.getElementById("flSaveProfileBtn")?.addEventListener("click", saveProfile);
+
+  // apply mode just updates your existing pills
+  document.getElementById("flApplyModeBtn")?.addEventListener("click", ()=>{
+    const m = safe(document.getElementById("flModeSel")?.value) || "Manager";
+    mode = (m.toUpperCase()==="DRIVER") ? "DRIVER" : "MANAGER";
+    localStorage.setItem("Precision_mode", mode);
+    setRolePill();
+    msg(document.getElementById("flMsg"), `Mode set to ${mode} ✅`, true);
+  });
+
+  // safe placeholders (so it looks alive)
+  document.getElementById("flSubmitTripBtn")?.addEventListener("click", ()=>{
+    msg(document.getElementById("flTripMsg"), "Trip submit UI is live ✅ (wiring to Supabase next).", true);
+  });
+  document.getElementById("flSaveVehicleBtn")?.addEventListener("click", ()=>{
+    msg(document.getElementById("flToolsMsg"), "Vehicle save UI is live ✅ (wiring to Supabase next).", true);
+  });
+  document.getElementById("flSaveJobBtn")?.addEventListener("click", ()=>{
+    msg(document.getElementById("flJobMsg"), "Job save UI is live ✅ (wiring to Supabase next).", true);
+  });
+
+  // initial load
+  loadProfiles();
+}
+
+function wireLogisticsEvents(){
+  document.getElementById("shSaveBtn")?.addEventListener("click", ()=>{
+    msg(document.getElementById("shMsg"), "Shipment save UI is live ✅ (wiring to Supabase next).", true);
+  });
+
+  document.getElementById("shRefreshBtn")?.addEventListener("click", ()=>{
+    const out = document.getElementById("shList");
+    if(out) out.innerHTML = `<div class="item"><div class="meta">No data loaded (Supabase wiring not connected yet).</div></div>`;
+    msg(document.getElementById("shMsg"), "Refreshed ✅", true);
+  });
+
+  document.getElementById("shSearchBtn")?.addEventListener("click", ()=>{
+    const q = safe(document.getElementById("shSearch")?.value);
+    const out = document.getElementById("shList");
+    if(out) out.innerHTML = `<div class="item"><div class="meta">Search UI hit: <b>${q || "—"}</b> (wire next)</div></div>`;
+  });
+
+  document.getElementById("shTodayBtn")?.addEventListener("click", ()=>{
+    const out = document.getElementById("shList");
+    if(out) out.innerHTML = `<div class="item"><div class="meta">Recently Updated (UI only).</div></div>`;
+  });
+}
 
 /** ---------- INIT ---------- */
 function initWarehouseSelectors(){
@@ -2321,6 +2152,10 @@ function initApp(){
 
   // billing
   wireBillingEvents();
+  
+    // fleet + logistics (UI)
+  wireFleetEvents();
+  wireLogisticsEvents();
 
   // lookup map
   buildWarehouseMap(ui.mapHost2, ui.mapPick2, null, null);
