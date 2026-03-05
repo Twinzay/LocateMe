@@ -980,9 +980,15 @@ function setCamMsg(text, good=true){
 }
 
 /** ---- Create Scan Lock Toggle (next to your Lock button) ---- */
-(function mountScanLock(){
+/* ...all your code... */
+
+/** ---- Create Scan Lock Toggle (next to your Lock button) ---- */
+function mountScanLock(){
   const topRow = document.querySelector(".topbar .row");
   if(!topRow) return;
+
+  // prevent duplicates on re-init
+  if(document.getElementById("scanLockBtn")) return;
 
   const pill = document.createElement("button");
   pill.className = "btn";
@@ -991,22 +997,20 @@ function setCamMsg(text, good=true){
   pill.style.borderRadius = "999px";
   pill.style.padding = "10px 12px";
   topRow.insertBefore(pill, ui.lockBtn || null);
-  cam.lockPill = pill;
 
   pill.addEventListener("click", async ()=>{
     camLocked = !camLocked;
     pill.textContent = camLocked ? "Scan Lock: ON" : "Scan Lock: OFF";
     pill.style.borderColor = camLocked ? "rgba(56,210,122,.45)" : "rgba(255,255,255,.12)";
+
     if(camLocked){
-      // keep camera running for fast scanning
       await openScanner(camTarget, true);
     }else{
-      // if modal open, stop camera
       await stopScanner();
       if(cam.modal) cam.modal.style.display = "none";
     }
   });
-})();
+}
 
 /** ---- Utility: put scanned code into the correct input ---- */
 function applyScannedValue(code){
@@ -2442,6 +2446,9 @@ function wireBillingEvents(){
   ui.billPendingBtn?.addEventListener("click", refreshBillingPending);
 }
 function initApp(){
+
+  mountScanLock();
+  
   // default visible tab
   const last = localStorage.getItem("Precision_last_tab") || "warehouse";
   setTab(last);
