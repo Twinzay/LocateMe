@@ -272,7 +272,8 @@
             <div style="flex:1;min-width:240px;">
               <input id="inItemTag" placeholder="Scan / type item barcode" />
             </div>
-            <button class="btn" id="inAddItemBtn">Add Item</button>
+            <button class="btn" id="inScanCamBtn">Scan w/ Camera</button>
+<button class="btn" id="inAddItemBtn">Add Item</button>
           </div>
 
           <div class="divider"></div>
@@ -362,7 +363,8 @@
             <div style="flex:1;min-width:240px;">
               <input id="outItemTag" placeholder="Scan / type item barcode" />
             </div>
-            <button class="btn" id="outScanItemBtn">Scan Item</button>
+            <button class="btn" id="outScanCamBtn">Scan w/ Camera</button>
+<button class="btn" id="outScanItemBtn">Scan Item</button>
             <button class="btn" id="outClosePalletBtn">Close Pallet</button>
           </div>
 
@@ -938,6 +940,304 @@ const BILLING_DAILY_VIEW = "v_aex_invoice_lines_daily";
 /** ---------- SAFE DOM ---------- */
 const $id = (x)=>document.getElementById(x);
 const safe = (s)=> (s||"").toString().trim();
+
+/* =========================================================
+   CAMERA SCAN (Zebra TC22 compatible + browser fallback)
+   - Uses BarcodeDetector when available (fast, native)
+   - Fallback: ZXing via CDN (still works on TC22 Chrome)
+   - "Scan Lock" mode keeps camera open and auto-fills fields
+   ========================================================= */
+
+/** ---- Camera / Scan UI Refs ---- */
+const cam = {
+  modal: $id("camModal"),
+  video: $id("camVideo"),
+  start: $id("camStart"),
+  stop:  $id("camStop"),
+  close: $id("camClose"),
+  msg:   $id("camMsg"),
+
+  // NEW scan buttons you added
+  inBtn:  $id("inScanCamBtn"),
+  outBtn: $id("outScanCamBtn"),
+
+  // add a “Scan Lock” pill to topbar (created dynamically)
+  lockPill: null,
+};
+
+let camStream = null;
+let camTimer = null;
+let camLocked = false;              // stays open + auto-scans
+let camTarget = "inbound";          // inbound | outbound
+let camLastValue = "";              // de-dupe
+let camLastAt = 0;
+
+function setCamMsg(text, good=true){
+  if(!cam.msg) return;
+  cam.msg.innerHTML = good
+    ? `<span class="ok">●</span> ${text}`
+    : `<span class="bad">●</span> ${text}`;
+}
+
+/** ---- Create Scan Lock Toggle (next to your Lock button) ---- */
+(function mountScanLock(){
+  const topRow = document.querySelector(".topbar .row");
+  if(!topRow) return;
+
+  const pill = document.createElement("button");
+  pill.className = "btn";
+  pill.id = "scanLockBtn";
+  pill.textContent = "Scan Lock: OFF";
+  pill.style.borderRadius = "999px";
+  pill.style.padding = "10px 12px";
+  topRow.insertBefore(pill, ui.lockBtn || null);
+  cam.lockPill = pill;
+
+  pill.addEventListener("click", async ()=>{
+    camLocked = !camLocked;
+    pill.textContent = camLocked ? "Scan Lock: ON" : "Scan Lock: OFF";
+    pill.style.borderColor = camLocked ? "rgba(56,210,122,.45)" : "rgba(255,255,255,.12)";
+    if(camLocked){
+      // keep camera running for fast scanning
+      await openScanner(camTarget, true);
+    }else{
+      // if modal open, stop camera
+      await stopScanner();
+      if(cam.modal) cam.modal.style.display = "none";
+    }
+  });
+})();
+
+/** ---- Utility: put scanned code into the correct input ---- */
+function applyScannedValue(code){
+  code = safe(code);
+  if(!code) return;
+
+  // De-dupe: ignore repeats within 900ms
+  const now = Date.now();
+  if(code === camLastValue && (now - camLastAt) < 900) return;
+  camLastValue = code;
+  camLastAt = now;
+
+  if(camTarget === "outbound"){
+    if(ui.outItemTag){
+      ui.outItemTag.value = code;
+      ui.outItemTag.focus();
+      msg(ui.outMsg, `Scanned: ${code} ✅`, true);
+    }
+  }else{
+    if(ui.inItemTag){
+      ui.inItemTag.value = code;
+      ui.inItemTag.focus();
+      msg(ui.inMsg, `Scanned: ${code} ✅`, true);
+    }
+  }
+
+  // If Scan Lock is ON, keep scanning, but you can auto-submit if you want:
+  // - inbound: auto add item
+  // - outbound: auto scan item
+  // (only if the pallet/order context exists)
+  if(camLocked){
+    try{
+      if(camTarget === "outbound"){
+        // auto run outbound scan if user already loaded order + selected pallet
+        ui.outScanItemBtn?.click();
+      }else{
+        ui.inAddItemBtn?.click();
+      }
+    }catch(_){}
+  }else{
+    // not locked: close scanner after one scan
+    stopScanner();
+    if(cam.modal) cam.modal.style.display = "none";
+  }
+}
+
+/** =========================================================
+    OPTION A: Native BarcodeDetector (best when available)
+========================================================= */
+async function scanWithBarcodeDetector(){
+  if(!("BarcodeDetector" in window)) return false;
+
+  const formats = [
+    "code_128","code_39","ean_13","ean_8","upc_a","upc_e","qr_code","data_matrix","itf"
+  ];
+  let detector;
+  try{
+    detector = new BarcodeDetector({ formats });
+  }catch(_){
+    detector = new BarcodeDetector();
+  }
+
+  // Use a timed loop (lighter than requestAnimationFrame on some devices)
+  camTimer = setInterval(async ()=>{
+    try{
+      if(!cam.video || cam.video.readyState < 2) return;
+      const barcodes = await detector.detect(cam.video);
+      if(barcodes && barcodes.length){
+        const raw = barcodes[0].rawValue || "";
+        if(raw) applyScannedValue(raw);
+      }
+    }catch(_){}
+  }, 180);
+
+  return true;
+}
+
+/** =========================================================
+    OPTION B: ZXing fallback (loads only if needed)
+========================================================= */
+let zxingLoaded = false;
+let zxingReader = null;
+
+function loadZXing(){
+  return new Promise((resolve, reject)=>{
+    if(zxingLoaded) return resolve(true);
+    const s = document.createElement("script");
+    s.src = "https://cdn.jsdelivr.net/npm/@zxing/library@0.21.2/umd/index.min.js";
+    s.onload = ()=>{ zxingLoaded = true; resolve(true); };
+    s.onerror = ()=>reject(new Error("ZXing failed to load"));
+    document.head.appendChild(s);
+  });
+}
+
+async function scanWithZXing(){
+  await loadZXing();
+  const ZXing = window.ZXing;
+  if(!ZXing) throw new Error("ZXing not available");
+
+  // Create once
+  if(!zxingReader) zxingReader = new ZXing.BrowserMultiFormatReader();
+
+  // This returns continuously; we stop when we accept a scan
+  await zxingReader.decodeFromVideoDevice(null, cam.video, (result, err)=>{
+    if(result){
+      const text = result.getText?.() || "";
+      if(text) applyScannedValue(text);
+    }
+  });
+  return true;
+}
+
+/** ---- Start / Stop Camera ---- */
+async function startCamera(){
+  if(camStream) return;
+
+  if(!cam.video) throw new Error("Camera video element missing.");
+
+  // Prefer rear camera on TC22
+  const constraints = {
+    audio:false,
+    video:{
+      facingMode: { ideal: "environment" },
+      width:  { ideal: 1280 },
+      height: { ideal: 720 }
+    }
+  };
+
+  camStream = await navigator.mediaDevices.getUserMedia(constraints);
+  cam.video.srcObject = camStream;
+
+  // iOS/Android autoplay quirks
+  await cam.video.play().catch(()=>{});
+
+  setCamMsg("Camera running… aim at barcode/QR", true);
+}
+
+async function stopScanner(){
+  if(camTimer){ clearInterval(camTimer); camTimer = null; }
+
+  // stop ZXing continuous decode safely
+  try{ zxingReader?.reset?.(); }catch(_){}
+
+  if(camStream){
+    camStream.getTracks().forEach(t=>t.stop());
+    camStream = null;
+  }
+  if(cam.video) cam.video.srcObject = null;
+
+  setCamMsg("Idle", true);
+}
+
+/** ---- Open scanner modal and start scan pipeline ---- */
+async function openScanner(target="inbound", forceOpen=false){
+  camTarget = target;
+
+  // If not unlocked, block
+  if(role === "LOCKED"){
+    alert("Unlock first.");
+    return;
+  }
+
+  // show modal
+  if(cam.modal) cam.modal.style.display = "flex";
+
+  // start camera
+  try{
+    await startCamera();
+  }catch(e){
+    setCamMsg("Camera permission blocked or unavailable.", false);
+    alert(e.message || "Camera error");
+    return;
+  }
+
+  // Start detector loop
+  // If BarcodeDetector exists, use it. Otherwise use ZXing.
+  try{
+    const ok = await scanWithBarcodeDetector();
+    if(!ok){
+      await scanWithZXing();
+    }
+  }catch(e){
+    setCamMsg("Scanner engine failed. Try another browser or allow camera.", false);
+    console.error(e);
+  }
+
+  if(forceOpen){
+    // keep scanning until user turns lock off
+    camLocked = true;
+    if(cam.lockPill){
+      cam.lockPill.textContent = "Scan Lock: ON";
+      cam.lockPill.style.borderColor = "rgba(56,210,122,.45)";
+    }
+  }
+}
+
+/** ---- Wire buttons ---- */
+cam.start?.addEventListener("click", ()=> openScanner(camTarget, camLocked));
+cam.stop?.addEventListener("click", stopScanner);
+cam.close?.addEventListener("click", async ()=>{
+  if(!camLocked) await stopScanner();
+  if(cam.modal) cam.modal.style.display = "none";
+});
+
+// NEW buttons for inbound/outbound
+cam.inBtn?.addEventListener("click", ()=> openScanner("inbound", camLocked));
+cam.outBtn?.addEventListener("click", ()=> openScanner("outbound", camLocked));
+
+/** =========================================================
+   REAL-TIME TRACKING “INTERNAL CODE” (simple + reliable)
+   - You already store scans to Supabase via:
+     wh_pallet_items (inbound) and wh_outbound_scans (outbound)
+   - This helper generates a normalized internal code you can
+     attach anywhere (events/logs) if you want.
+========================================================= */
+function mkInternalScanCode(raw){
+  // Example: PRC-<YYYYMMDD>-<6char hash>
+  raw = safe(raw);
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  const da = String(d.getDate()).padStart(2,"0");
+  const base = `${y}${m}${da}`;
+
+  // tiny hash
+  let h = 0;
+  for(let i=0;i<raw.length;i++) h = ((h<<5)-h) + raw.charCodeAt(i), h|=0;
+  const hex = (h>>>0).toString(16).padStart(8,"0").slice(0,6).toUpperCase();
+  return `PRC-${base}-${hex}`;
+}
+
 
 /** ---------- UI REFS ---------- */
 const ui = {
@@ -2152,7 +2452,7 @@ function initApp(){
 
   // billing
   wireBillingEvents();
-  
+
     // fleet + logistics (UI)
   wireFleetEvents();
   wireLogisticsEvents();
