@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>LocateMe Ops — Warehouse + Fleet + Logistics</title>
+  <title>Precision Ops — Warehouse + Fleet + Logistics</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -774,7 +774,7 @@ function setTab(tab){
   }
   ui.tabs.forEach(t=>t.classList.toggle("active", t.dataset.tab===tab));
   Object.entries(ui.panes).forEach(([k,p])=>{ if(p) p.style.display = (k===tab) ? "" : "none"; });
-  localStorage.setItem("locateme_last_tab", tab);
+  localStorage.setItem("Precision_last_tab", tab);
   if(tab==="dashboard") refreshDashboard();
 }
 ui.tabs.forEach(t=>t.addEventListener("click", ()=> setTab(t.dataset.tab)));
@@ -797,7 +797,7 @@ function unlockMaster(pin){
 
   role = r;
   __activePin = pin;
-  mode = (role==="DRIVER") ? "DRIVER" : (localStorage.getItem("locateme_mode") || "MANAGER");
+  mode = (role==="DRIVER") ? "DRIVER" : (localStorage.getItem("Precision_mode") || "MANAGER");
 
   if(ui.overlay) ui.overlay.style.display = "none";
   if(ui.lockBtn) ui.lockBtn.style.display = "";
@@ -1562,11 +1562,11 @@ async function refreshDashboard(){
 /** ---------- MANAGER NOTES (local) ---------- */
 function notesSave(){
   const v = safe(ui.mgrNotes?.value);
-  localStorage.setItem("locateme_mgr_notes", v);
+  localStorage.setItem("Precision_mgr_notes", v);
   msg(ui.notesMsg, "Saved ✅", true);
 }
 function notesLoad(){
-  const v = localStorage.getItem("locateme_mgr_notes") || "";
+  const v = localStorage.getItem("Precision_mgr_notes") || "";
   if(ui.mgrNotes) ui.mgrNotes.value = v;
   msg(ui.notesMsg, "Loaded ✅", true);
 }
@@ -1703,7 +1703,7 @@ function wireBillingEvents(){
 }
 function initApp(){
   // default visible tab
-  const last = localStorage.getItem("locateme_last_tab") || "warehouse";
+  const last = localStorage.getItem("Precision_last_tab") || "warehouse";
   setTab(last);
 
   // warehouse
